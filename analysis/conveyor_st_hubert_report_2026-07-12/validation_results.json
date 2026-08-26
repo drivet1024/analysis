@@ -1,0 +1,31 @@
+{
+  "assessment": "ready_to_share",
+  "checks": {
+    "official_total_reconciles_to_lines": true,
+    "official_vs_raw_gap_is_20": true,
+    "official_vs_raw_gap_below_one_percent": true,
+    "peak_hour_is_midnight_with_1999_scans": true,
+    "destination_total_matches_routed_unique": true,
+    "routing_event_math_reconciles": true,
+    "current_reject_is_five_sunday_high": true,
+    "current_noread_is_five_sunday_high": true,
+    "current_scale_error_is_five_sunday_high": true,
+    "line_one_drives_most_rejections": true,
+    "line_one_drives_most_noreads": true,
+    "report_title_is_first_block": true,
+    "executive_summary_is_second_block": true,
+    "report_has_three_charts": true,
+    "report_has_two_tables": true,
+    "all_native_evidence_has_valid_source": true,
+    "quality_rates_are_fractional": true,
+    "hourly_chart_has_nine_time_points": true,
+    "destination_chart_has_ten_categories": true,
+    "notebook_all_code_cells_executed": true,
+    "notebook_has_no_error_outputs": true,
+    "portable_report_exists": true,
+    "artifact_has_no_credentials": true
+  },
+  "failed_checks": [],
+  "builder_verification": "structural_only",
+  "builder_limitation": "Aucun exécutable Chromium compatible n'était disponible; le contenu, le payload, la structure et les tableaux sémantiques ont été vérifiés, mais pas le rendu navigateur."
+}

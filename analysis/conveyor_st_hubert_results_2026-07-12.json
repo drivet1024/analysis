@@ -1,0 +1,643 @@
+{
+  "source": {
+    "database": "nationex",
+    "server": "natdev02",
+    "site": "ST-HUBERT",
+    "depot_id": 1,
+    "sorting_date": "2026-07-12",
+    "operational_window": {
+      "start": "2026-07-12T17:00:00-04:00",
+      "end": "2026-07-13T08:00:00-04:00",
+      "timezone": "America/Toronto (EDT)"
+    },
+    "extraction": "Agrégats opérationnels uniquement; aucune adresse, aucun code-barres et aucune ligne client exportés.",
+    "extracted_at_utc": "2026-07-16T20:18:13.105481+00:00",
+    "query_files": {
+      "timezone": "conveyor_st_hubert_timezone.sql",
+      "source_types": "conveyor_discovery_source_types.sql",
+      "line_summary": "conveyor_st_hubert_line_summary.sql",
+      "sunday_totals": "conveyor_st_hubert_sunday_totals.sql",
+      "hourly_main_lines": "conveyor_st_hubert_hourly_main_lines.sql",
+      "scan_reconciliation": "conveyor_st_hubert_scan_reconciliation.sql",
+      "routing_events": "conveyor_st_hubert_routing_events.sql",
+      "manual_exceptions": "conveyor_st_hubert_manual_exceptions.sql",
+      "top_chutes": "conveyor_st_hubert_top_chutes.sql",
+      "destination_coverage": "conveyor_st_hubert_destination_coverage.sql",
+      "destination_depots": "conveyor_st_hubert_destination_derived.sql"
+    }
+  },
+  "results": {
+    "timezone": [
+      {
+        "SERVER_NOW": "2026-07-16T16:18:03",
+        "SERVER_UTC": "2026-07-16T20:18:03",
+        "SYSTEM_TIME_ZONE": "EDT",
+        "SESSION_TIME_ZONE": "SYSTEM"
+      }
+    ],
+    "source_types": [
+      {
+        "SOURCE_TYPE": 200,
+        "SOURCE_TYPE_FR": "CONVOYEUR",
+        "SOURCE_TYPE_EN": "CONVEYOR"
+      },
+      {
+        "SOURCE_TYPE": 201,
+        "SOURCE_TYPE_FR": "NCV",
+        "SOURCE_TYPE_EN": "NCV"
+      },
+      {
+        "SOURCE_TYPE": 202,
+        "SOURCE_TYPE_FR": "PETIT COLIS",
+        "SOURCE_TYPE_EN": "SMALL PARCEL"
+      },
+      {
+        "SOURCE_TYPE": 203,
+        "SOURCE_TYPE_FR": "CHUTE REJET",
+        "SOURCE_TYPE_EN": "REJECTED CHUTE"
+      },
+      {
+        "SOURCE_TYPE": 204,
+        "SOURCE_TYPE_FR": "AUTRE/IMCOMP",
+        "SOURCE_TYPE_EN": "OTHER/INCOMP"
+      },
+      {
+        "SOURCE_TYPE": 205,
+        "SOURCE_TYPE_FR": "NCV POIDS MANUEL",
+        "SOURCE_TYPE_EN": "NCV MANUAL WEIGHT"
+      },
+      {
+        "SOURCE_TYPE": 206,
+        "SOURCE_TYPE_FR": "SCAN LOTO-QUÉBEC",
+        "SOURCE_TYPE_EN": "LOTO-QUEBEC SCAN"
+      }
+    ],
+    "line_summary": [
+      {
+        "line_id": 0,
+        "nb_parcel": 3434,
+        "nb_noread": 152,
+        "NOREAD_RATE_PCT": 4.43,
+        "nb_rejected": 187,
+        "REJECT_RATE_PCT": 5.45,
+        "nb_dimensioner_error": 94,
+        "DIMENSION_ERROR_RATE_PCT": 2.74,
+        "nb_scale_error": 207,
+        "SCALE_ERROR_RATE_PCT": 6.03,
+        "last_update": "2026-07-13T02:59:59"
+      },
+      {
+        "line_id": 1,
+        "nb_parcel": 4811,
+        "nb_noread": 449,
+        "NOREAD_RATE_PCT": 9.33,
+        "nb_rejected": 562,
+        "REJECT_RATE_PCT": 11.68,
+        "nb_dimensioner_error": 35,
+        "DIMENSION_ERROR_RATE_PCT": 0.73,
+        "nb_scale_error": 214,
+        "SCALE_ERROR_RATE_PCT": 4.45,
+        "last_update": "2026-07-13T02:59:59"
+      },
+      {
+        "line_id": 3,
+        "nb_parcel": 2105,
+        "nb_noread": 54,
+        "NOREAD_RATE_PCT": 2.57,
+        "nb_rejected": 1,
+        "REJECT_RATE_PCT": 0.05,
+        "nb_dimensioner_error": 38,
+        "DIMENSION_ERROR_RATE_PCT": 1.81,
+        "nb_scale_error": 207,
+        "SCALE_ERROR_RATE_PCT": 9.83,
+        "last_update": "2026-07-13T07:59:59"
+      }
+    ],
+    "sunday_totals": [
+      {
+        "SORT_DATE": "2026-06-14T00:00:00",
+        "PARCELS": 8529,
+        "NOREAD": 511,
+        "NOREAD_RATE_PCT": 5.99,
+        "REJECTED": 524,
+        "REJECT_RATE_PCT": 6.14,
+        "DIMENSION_ERRORS": 1116,
+        "DIMENSION_ERROR_RATE_PCT": 13.08,
+        "SCALE_ERRORS": 345,
+        "SCALE_ERROR_RATE_PCT": 4.05
+      },
+      {
+        "SORT_DATE": "2026-06-21T00:00:00",
+        "PARCELS": 7280,
+        "NOREAD": 273,
+        "NOREAD_RATE_PCT": 3.75,
+        "REJECTED": 287,
+        "REJECT_RATE_PCT": 3.94,
+        "DIMENSION_ERRORS": 136,
+        "DIMENSION_ERROR_RATE_PCT": 1.87,
+        "SCALE_ERRORS": 261,
+        "SCALE_ERROR_RATE_PCT": 3.59
+      },
+      {
+        "SORT_DATE": "2026-06-28T00:00:00",
+        "PARCELS": 11273,
+        "NOREAD": 441,
+        "NOREAD_RATE_PCT": 3.91,
+        "REJECTED": 618,
+        "REJECT_RATE_PCT": 5.48,
+        "DIMENSION_ERRORS": 122,
+        "DIMENSION_ERROR_RATE_PCT": 1.08,
+        "SCALE_ERRORS": 480,
+        "SCALE_ERROR_RATE_PCT": 4.26
+      },
+      {
+        "SORT_DATE": "2026-07-05T00:00:00",
+        "PARCELS": 7862,
+        "NOREAD": 484,
+        "NOREAD_RATE_PCT": 6.16,
+        "REJECTED": 385,
+        "REJECT_RATE_PCT": 4.9,
+        "DIMENSION_ERRORS": 107,
+        "DIMENSION_ERROR_RATE_PCT": 1.36,
+        "SCALE_ERRORS": 356,
+        "SCALE_ERROR_RATE_PCT": 4.53
+      },
+      {
+        "SORT_DATE": "2026-07-12T00:00:00",
+        "PARCELS": 10350,
+        "NOREAD": 655,
+        "NOREAD_RATE_PCT": 6.33,
+        "REJECTED": 750,
+        "REJECT_RATE_PCT": 7.25,
+        "DIMENSION_ERRORS": 167,
+        "DIMENSION_ERROR_RATE_PCT": 1.61,
+        "SCALE_ERRORS": 628,
+        "SCALE_ERROR_RATE_PCT": 6.07
+      }
+    ],
+    "hourly_main_lines": [
+      {
+        "EVENT_HOUR": "2026-07-12 17:00:00",
+        "LINE_ID": "0",
+        "SCAN_ROWS": 290,
+        "READABLE_SCAN_ROWS": 256,
+        "UNIQUE_READABLE_PARCELS": 256,
+        "UNREADABLE_SCAN_ROWS": 34
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 17:00:00",
+        "LINE_ID": "1",
+        "SCAN_ROWS": 225,
+        "READABLE_SCAN_ROWS": 204,
+        "UNIQUE_READABLE_PARCELS": 201,
+        "UNREADABLE_SCAN_ROWS": 21
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 17:00:00",
+        "LINE_ID": "3",
+        "SCAN_ROWS": 27,
+        "READABLE_SCAN_ROWS": 24,
+        "UNIQUE_READABLE_PARCELS": 20,
+        "UNREADABLE_SCAN_ROWS": 3
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 18:00:00",
+        "LINE_ID": "0",
+        "SCAN_ROWS": 429,
+        "READABLE_SCAN_ROWS": 396,
+        "UNIQUE_READABLE_PARCELS": 396,
+        "UNREADABLE_SCAN_ROWS": 33
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 18:00:00",
+        "LINE_ID": "1",
+        "SCAN_ROWS": 678,
+        "READABLE_SCAN_ROWS": 567,
+        "UNIQUE_READABLE_PARCELS": 548,
+        "UNREADABLE_SCAN_ROWS": 111
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 18:00:00",
+        "LINE_ID": "3",
+        "SCAN_ROWS": 35,
+        "READABLE_SCAN_ROWS": 35,
+        "UNIQUE_READABLE_PARCELS": 35,
+        "UNREADABLE_SCAN_ROWS": 0
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 19:00:00",
+        "LINE_ID": "0",
+        "SCAN_ROWS": 648,
+        "READABLE_SCAN_ROWS": 617,
+        "UNIQUE_READABLE_PARCELS": 606,
+        "UNREADABLE_SCAN_ROWS": 31
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 19:00:00",
+        "LINE_ID": "1",
+        "SCAN_ROWS": 976,
+        "READABLE_SCAN_ROWS": 872,
+        "UNIQUE_READABLE_PARCELS": 811,
+        "UNREADABLE_SCAN_ROWS": 104
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 20:00:00",
+        "LINE_ID": "0",
+        "SCAN_ROWS": 122,
+        "READABLE_SCAN_ROWS": 114,
+        "UNIQUE_READABLE_PARCELS": 114,
+        "UNREADABLE_SCAN_ROWS": 8
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 20:00:00",
+        "LINE_ID": "1",
+        "SCAN_ROWS": 290,
+        "READABLE_SCAN_ROWS": 223,
+        "UNIQUE_READABLE_PARCELS": 193,
+        "UNREADABLE_SCAN_ROWS": 67
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 20:00:00",
+        "LINE_ID": "3",
+        "SCAN_ROWS": 6,
+        "READABLE_SCAN_ROWS": 6,
+        "UNIQUE_READABLE_PARCELS": 6,
+        "UNREADABLE_SCAN_ROWS": 0
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 21:00:00",
+        "LINE_ID": "0",
+        "SCAN_ROWS": 639,
+        "READABLE_SCAN_ROWS": 638,
+        "UNIQUE_READABLE_PARCELS": 638,
+        "UNREADABLE_SCAN_ROWS": 1
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 21:00:00",
+        "LINE_ID": "1",
+        "SCAN_ROWS": 217,
+        "READABLE_SCAN_ROWS": 195,
+        "UNIQUE_READABLE_PARCELS": 192,
+        "UNREADABLE_SCAN_ROWS": 22
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 21:00:00",
+        "LINE_ID": "3",
+        "SCAN_ROWS": 3,
+        "READABLE_SCAN_ROWS": 3,
+        "UNIQUE_READABLE_PARCELS": 3,
+        "UNREADABLE_SCAN_ROWS": 0
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 22:00:00",
+        "LINE_ID": "0",
+        "SCAN_ROWS": 471,
+        "READABLE_SCAN_ROWS": 464,
+        "UNIQUE_READABLE_PARCELS": 464,
+        "UNREADABLE_SCAN_ROWS": 7
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 22:00:00",
+        "LINE_ID": "1",
+        "SCAN_ROWS": 832,
+        "READABLE_SCAN_ROWS": 824,
+        "UNIQUE_READABLE_PARCELS": 722,
+        "UNREADABLE_SCAN_ROWS": 8
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 22:00:00",
+        "LINE_ID": "3",
+        "SCAN_ROWS": 478,
+        "READABLE_SCAN_ROWS": 465,
+        "UNIQUE_READABLE_PARCELS": 459,
+        "UNREADABLE_SCAN_ROWS": 13
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 23:00:00",
+        "LINE_ID": "0",
+        "SCAN_ROWS": 378,
+        "READABLE_SCAN_ROWS": 359,
+        "UNIQUE_READABLE_PARCELS": 359,
+        "UNREADABLE_SCAN_ROWS": 19
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 23:00:00",
+        "LINE_ID": "1",
+        "SCAN_ROWS": 586,
+        "READABLE_SCAN_ROWS": 531,
+        "UNIQUE_READABLE_PARCELS": 502,
+        "UNREADABLE_SCAN_ROWS": 55
+      },
+      {
+        "EVENT_HOUR": "2026-07-12 23:00:00",
+        "LINE_ID": "3",
+        "SCAN_ROWS": 227,
+        "READABLE_SCAN_ROWS": 201,
+        "UNIQUE_READABLE_PARCELS": 186,
+        "UNREADABLE_SCAN_ROWS": 26
+      },
+      {
+        "EVENT_HOUR": "2026-07-13 00:00:00",
+        "LINE_ID": "0",
+        "SCAN_ROWS": 449,
+        "READABLE_SCAN_ROWS": 398,
+        "UNIQUE_READABLE_PARCELS": 396,
+        "UNREADABLE_SCAN_ROWS": 51
+      },
+      {
+        "EVENT_HOUR": "2026-07-13 00:00:00",
+        "LINE_ID": "1",
+        "SCAN_ROWS": 995,
+        "READABLE_SCAN_ROWS": 825,
+        "UNIQUE_READABLE_PARCELS": 635,
+        "UNREADABLE_SCAN_ROWS": 170
+      },
+      {
+        "EVENT_HOUR": "2026-07-13 00:00:00",
+        "LINE_ID": "3",
+        "SCAN_ROWS": 555,
+        "READABLE_SCAN_ROWS": 553,
+        "UNIQUE_READABLE_PARCELS": 553,
+        "UNREADABLE_SCAN_ROWS": 2
+      },
+      {
+        "EVENT_HOUR": "2026-07-13 01:00:00",
+        "LINE_ID": "3",
+        "SCAN_ROWS": 774,
+        "READABLE_SCAN_ROWS": 764,
+        "UNIQUE_READABLE_PARCELS": 700,
+        "UNREADABLE_SCAN_ROWS": 10
+      }
+    ],
+    "scan_reconciliation": [
+      {
+        "LINE_ID": "0",
+        "RAW_SCAN_ROWS": 3426,
+        "READABLE_SCAN_ROWS": 3242,
+        "UNIQUE_READABLE_PARCELS": 3226,
+        "UNREADABLE_SCAN_ROWS": 184,
+        "EXTRA_READABLE_SCANS": 16
+      },
+      {
+        "LINE_ID": "1",
+        "RAW_SCAN_ROWS": 4799,
+        "READABLE_SCAN_ROWS": 4241,
+        "UNIQUE_READABLE_PARCELS": 3669,
+        "UNREADABLE_SCAN_ROWS": 558,
+        "EXTRA_READABLE_SCANS": 572
+      },
+      {
+        "LINE_ID": "3",
+        "RAW_SCAN_ROWS": 2105,
+        "READABLE_SCAN_ROWS": 2051,
+        "UNIQUE_READABLE_PARCELS": 1865,
+        "UNREADABLE_SCAN_ROWS": 54,
+        "EXTRA_READABLE_SCANS": 186
+      },
+      {
+        "LINE_ID": "TOTAL",
+        "RAW_SCAN_ROWS": 10330,
+        "READABLE_SCAN_ROWS": 9534,
+        "UNIQUE_READABLE_PARCELS": 8342,
+        "UNREADABLE_SCAN_ROWS": 796,
+        "EXTRA_READABLE_SCANS": 1192
+      }
+    ],
+    "routing_events": [
+      {
+        "UNIQUE_ROUTED_PARCELS": 8340,
+        "ROUTING_EVENTS": 9529,
+        "PARCELS_WITH_MULTIPLE_ROUTING_EVENTS": 882,
+        "EXTRA_ROUTING_EVENTS": 1189,
+        "MULTI_EVENT_PARCEL_RATE_PCT": 10.58,
+        "PARCELS_SEEN_ON_MULTIPLE_LINES_OR_SOURCES": 416,
+        "MAX_ROUTING_EVENTS_FOR_ONE_PARCEL": 8
+      }
+    ],
+    "manual_exceptions": [
+      {
+        "SOURCE_TYPE": 201,
+        "SOURCE_TYPE_FR": "NCV",
+        "EVENT_COUNT": 113,
+        "UNIQUE_PARCELS": 109
+      },
+      {
+        "SOURCE_TYPE": 204,
+        "SOURCE_TYPE_FR": "AUTRE/IMCOMP",
+        "EVENT_COUNT": 58,
+        "UNIQUE_PARCELS": 56
+      },
+      {
+        "SOURCE_TYPE": 205,
+        "SOURCE_TYPE_FR": "NCV POIDS MANUEL",
+        "EVENT_COUNT": 1,
+        "UNIQUE_PARCELS": 1
+      }
+    ],
+    "top_chutes": [
+      {
+        "LINE_ID": 0,
+        "CHUTE_NO": 39,
+        "ROUTING_EVENTS": 601,
+        "UNIQUE_PARCELS": 599
+      },
+      {
+        "LINE_ID": 3,
+        "CHUTE_NO": 5,
+        "ROUTING_EVENTS": 502,
+        "UNIQUE_PARCELS": 468
+      },
+      {
+        "LINE_ID": 0,
+        "CHUTE_NO": 38,
+        "ROUTING_EVENTS": 501,
+        "UNIQUE_PARCELS": 498
+      },
+      {
+        "LINE_ID": 1,
+        "CHUTE_NO": 38,
+        "ROUTING_EVENTS": 448,
+        "UNIQUE_PARCELS": 440
+      },
+      {
+        "LINE_ID": 1,
+        "CHUTE_NO": 39,
+        "ROUTING_EVENTS": 433,
+        "UNIQUE_PARCELS": 420
+      },
+      {
+        "LINE_ID": 1,
+        "CHUTE_NO": 1,
+        "ROUTING_EVENTS": 335,
+        "UNIQUE_PARCELS": 283
+      },
+      {
+        "LINE_ID": 1,
+        "CHUTE_NO": 3,
+        "ROUTING_EVENTS": 314,
+        "UNIQUE_PARCELS": 246
+      },
+      {
+        "LINE_ID": 0,
+        "CHUTE_NO": 1,
+        "ROUTING_EVENTS": 293,
+        "UNIQUE_PARCELS": 292
+      },
+      {
+        "LINE_ID": 1,
+        "CHUTE_NO": 11,
+        "ROUTING_EVENTS": 259,
+        "UNIQUE_PARCELS": 144
+      },
+      {
+        "LINE_ID": 3,
+        "CHUTE_NO": 9,
+        "ROUTING_EVENTS": 239,
+        "UNIQUE_PARCELS": 219
+      },
+      {
+        "LINE_ID": 1,
+        "CHUTE_NO": 25,
+        "ROUTING_EVENTS": 230,
+        "UNIQUE_PARCELS": 184
+      },
+      {
+        "LINE_ID": 1,
+        "CHUTE_NO": 40,
+        "ROUTING_EVENTS": 204,
+        "UNIQUE_PARCELS": 190
+      }
+    ],
+    "destination_coverage": [
+      {
+        "UNIQUE_ROUTED_PARCELS": 8340,
+        "MISSING_DESTINATION_DEPOT": 8340,
+        "MISSING_CHUTE": 0,
+        "MISSING_WEIGHT": 450,
+        "MISSING_DIMENSIONS": 116
+      }
+    ],
+    "destination_depots": [
+      {
+        "DESTINATION_DEPOT": "ST-HUBERT",
+        "DESTINATION_DEPOT_ID": 1,
+        "UNIQUE_PARCELS": 1765
+      },
+      {
+        "DESTINATION_DEPOT": "MONTREAL GILMORE",
+        "DESTINATION_DEPOT_ID": 28,
+        "UNIQUE_PARCELS": 1697
+      },
+      {
+        "DESTINATION_DEPOT": "QUEBEC",
+        "DESTINATION_DEPOT_ID": 2,
+        "UNIQUE_PARCELS": 1097
+      },
+      {
+        "DESTINATION_DEPOT": "BLAINVILLE",
+        "DESTINATION_DEPOT_ID": 13,
+        "UNIQUE_PARCELS": 1009
+      },
+      {
+        "DESTINATION_DEPOT": "TORONTO",
+        "DESTINATION_DEPOT_ID": 12,
+        "UNIQUE_PARCELS": 567
+      },
+      {
+        "DESTINATION_DEPOT": "OTTAWA",
+        "DESTINATION_DEPOT_ID": 20,
+        "UNIQUE_PARCELS": 363
+      },
+      {
+        "DESTINATION_DEPOT": "DRUMMONDVILLE",
+        "DESTINATION_DEPOT_ID": 10,
+        "UNIQUE_PARCELS": 355
+      },
+      {
+        "DESTINATION_DEPOT": "SHERBROOKE",
+        "DESTINATION_DEPOT_ID": 3,
+        "UNIQUE_PARCELS": 254
+      },
+      {
+        "DESTINATION_DEPOT": "CHICOUTIMI",
+        "DESTINATION_DEPOT_ID": 8,
+        "UNIQUE_PARCELS": 204
+      },
+      {
+        "DESTINATION_DEPOT": "TROIS-RIVIERES",
+        "DESTINATION_DEPOT_ID": 9,
+        "UNIQUE_PARCELS": 189
+      },
+      {
+        "DESTINATION_DEPOT": "MONTRÉAL COLIBRI",
+        "DESTINATION_DEPOT_ID": 27,
+        "UNIQUE_PARCELS": 180
+      },
+      {
+        "DESTINATION_DEPOT": "HULL",
+        "DESTINATION_DEPOT_ID": 4,
+        "UNIQUE_PARCELS": 125
+      },
+      {
+        "DESTINATION_DEPOT": "TORONTO CENTRAL",
+        "DESTINATION_DEPOT_ID": 29,
+        "UNIQUE_PARCELS": 106
+      },
+      {
+        "DESTINATION_DEPOT": "BEAUCE",
+        "DESTINATION_DEPOT_ID": 25,
+        "UNIQUE_PARCELS": 92
+      },
+      {
+        "DESTINATION_DEPOT": "RIVIERE-DU-LOUP",
+        "DESTINATION_DEPOT_ID": 18,
+        "UNIQUE_PARCELS": 79
+      },
+      {
+        "DESTINATION_DEPOT": "RIMOUSKI",
+        "DESTINATION_DEPOT_ID": 5,
+        "UNIQUE_PARCELS": 68
+      },
+      {
+        "DESTINATION_DEPOT": "VAL D'OR",
+        "DESTINATION_DEPOT_ID": 6,
+        "UNIQUE_PARCELS": 56
+      },
+      {
+        "DESTINATION_DEPOT": "PORT HOPE",
+        "DESTINATION_DEPOT_ID": 15,
+        "UNIQUE_PARCELS": 44
+      },
+      {
+        "DESTINATION_DEPOT": "KINGSTON",
+        "DESTINATION_DEPOT_ID": 14,
+        "UNIQUE_PARCELS": 41
+      },
+      {
+        "DESTINATION_DEPOT": "LONDON",
+        "DESTINATION_DEPOT_ID": 31,
+        "UNIQUE_PARCELS": 16
+      },
+      {
+        "DESTINATION_DEPOT": "SEPT-ÎLES",
+        "DESTINATION_DEPOT_ID": 24,
+        "UNIQUE_PARCELS": 11
+      },
+      {
+        "DESTINATION_DEPOT": "MONT-LAURIER",
+        "DESTINATION_DEPOT_ID": 7,
+        "UNIQUE_PARCELS": 10
+      },
+      {
+        "DESTINATION_DEPOT": "NON RENSEIGNÉ",
+        "DESTINATION_DEPOT_ID": null,
+        "UNIQUE_PARCELS": 7
+      },
+      {
+        "DESTINATION_DEPOT": "CHATHAM",
+        "DESTINATION_DEPOT_ID": 23,
+        "UNIQUE_PARCELS": 5
+      }
+    ]
+  }
+}

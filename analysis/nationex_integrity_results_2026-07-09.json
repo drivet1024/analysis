@@ -1,0 +1,76 @@
+{
+  "source": {
+    "server": "natdev02",
+    "database": "nationex",
+    "account": "user_ro@%",
+    "window_start": "2026-07-09T00:00:00",
+    "window_end": "2026-07-10T00:00:00",
+    "extraction": "Aggregates only; no customer-level rows exported"
+  },
+  "plans": {
+    "parcel_partition": "p2026",
+    "shipment_partition": "p2026",
+    "parcel_rows_estimated_by_explain": 67060,
+    "shipment_rows_estimated_by_explain": 46264,
+    "parent_access": "ref/eq_ref through indexed keys"
+  },
+  "parcel": {
+    "total": 33022,
+    "shipment_business_key": ["SHIPPING_ID", "EXP_DATE"],
+    "shipment_internal_id_zero": 33022,
+    "without_current_shipment": 0,
+    "without_customer": 0,
+    "without_legacy_shipping": 7668
+  },
+  "shipment": {
+    "total": 23825,
+    "without_customer": 0
+  },
+  "history_sample": {
+    "sample_size": 5000,
+    "sampling": "First 5000 rows ordered by DATE_INSERT and PARCEL_HISTORY_ID",
+    "matched_current_parcel": 4969,
+    "matched_current_shipment": 4970,
+    "matched_customer": 4996
+  },
+  "natclik_full_day": {
+    "source_type": 600,
+    "total_events": 33676,
+    "matched_current_parcel": 32947,
+    "matched_current_shipment": 32947,
+    "matched_legacy_shipping": 25969,
+    "matched_legacy_livraison": 33676,
+    "without_customer": 0
+  },
+  "source_types": [
+    {"code": 1100, "label": "AUTO_CODE", "events": 81638, "documented": true},
+    {"code": 101, "label": "TPSL_LIVE AVEC SCAN", "events": 69552, "documented": true},
+    {"code": 105, "label": "SCAN CHARGEMENT", "events": 37536, "documented": true},
+    {"code": 200, "label": "CONVOYEUR", "events": 36438, "documented": true},
+    {"code": 600, "label": "NAT_CLIK API", "events": 33676, "documented": true},
+    {"code": 900, "label": "PARCEL_HISTORY AUTO_CODE", "events": 19620, "documented": true},
+    {"code": 103, "label": "SCAN DÉPÔT", "events": 17790, "documented": true},
+    {"code": 1900, "label": null, "events": 2203, "documented": false},
+    {"code": 1600, "label": null, "events": 2029, "documented": false},
+    {"code": 201, "label": "NCV", "events": 1957, "documented": true},
+    {"code": 1400, "label": null, "events": 1917, "documented": false},
+    {"code": 106, "label": "SCAN AGENT", "events": 1820, "documented": true},
+    {"code": 104, "label": "SCAN PLANCHER", "events": 1535, "documented": true},
+    {"code": 1700, "label": null, "events": 1450, "documented": false},
+    {"code": 204, "label": "AUTRE/IMCOMP", "events": 1098, "documented": true},
+    {"code": 301, "label": null, "events": 921, "documented": false},
+    {"code": 202, "label": "PETIT COLIS", "events": 760, "documented": true},
+    {"code": 116, "label": null, "events": 677, "documented": false},
+    {"code": 102, "label": "TPSL MANIFESTE", "events": 428, "documented": true},
+    {"code": 110, "label": null, "events": 289, "documented": false},
+    {"code": 0, "label": "NON DÉFINI", "events": 256, "documented": true},
+    {"code": 402, "label": null, "events": 241, "documented": false},
+    {"code": 400, "label": "TPSL_ROUTE", "events": 236, "documented": true},
+    {"code": 203, "label": "CHUTE REJET", "events": 140, "documented": true},
+    {"code": 107, "label": "SCAN BAS DE CHUTE", "events": 103, "documented": true},
+    {"code": 114, "label": null, "events": 37, "documented": false},
+    {"code": 2100, "label": null, "events": 32, "documented": false},
+    {"code": 205, "label": "NCV POIDS MANUEL", "events": 11, "documented": true},
+    {"code": 1200, "label": null, "events": 5, "documented": false}
+  ]
+}

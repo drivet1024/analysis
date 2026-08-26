@@ -1,0 +1,7 @@
+MySqlTool/.env.local
+MySqlTool/bin/
+MySqlTool/obj/
+.tools/
+ConveyorDashboard/.env.local
+ConveyorDashboard/bin/
+ConveyorDashboard/obj/

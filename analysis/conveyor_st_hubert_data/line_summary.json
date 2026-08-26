@@ -1,0 +1,41 @@
+[
+  {
+    "line_id": 0,
+    "nb_parcel": 3434,
+    "nb_noread": 152,
+    "NOREAD_RATE_PCT": 4.43,
+    "nb_rejected": 187,
+    "REJECT_RATE_PCT": 5.45,
+    "nb_dimensioner_error": 94,
+    "DIMENSION_ERROR_RATE_PCT": 2.74,
+    "nb_scale_error": 207,
+    "SCALE_ERROR_RATE_PCT": 6.03,
+    "last_update": "2026-07-13T02:59:59"
+  },
+  {
+    "line_id": 1,
+    "nb_parcel": 4811,
+    "nb_noread": 449,
+    "NOREAD_RATE_PCT": 9.33,
+    "nb_rejected": 562,
+    "REJECT_RATE_PCT": 11.68,
+    "nb_dimensioner_error": 35,
+    "DIMENSION_ERROR_RATE_PCT": 0.73,
+    "nb_scale_error": 214,
+    "SCALE_ERROR_RATE_PCT": 4.45,
+    "last_update": "2026-07-13T02:59:59"
+  },
+  {
+    "line_id": 3,
+    "nb_parcel": 2105,
+    "nb_noread": 54,
+    "NOREAD_RATE_PCT": 2.57,
+    "nb_rejected": 1,
+    "REJECT_RATE_PCT": 0.05,
+    "nb_dimensioner_error": 38,
+    "DIMENSION_ERROR_RATE_PCT": 1.81,
+    "nb_scale_error": 207,
+    "SCALE_ERROR_RATE_PCT": 9.83,
+    "last_update": "2026-07-13T07:59:59"
+  }
+]

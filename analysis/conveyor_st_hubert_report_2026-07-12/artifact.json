@@ -1,0 +1,1774 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "Convoyeur de St-Hubert — dimanche 12 juillet 2026",
+    "description": "Analyse opérationnelle du volume, de la qualité, des lignes, des relectures et des destinations.",
+    "generatedAt": "2026-07-16T20:18:13.105481+00:00",
+    "blocks": [
+      {
+        "id": "title",
+        "type": "markdown",
+        "body": "# Convoyeur de St-Hubert — dimanche 12 juillet 2026",
+        "layout": "full"
+      },
+      {
+        "id": "executive_summary",
+        "type": "markdown",
+        "layout": "full",
+        "body": "## Executive Summary\n\n- **Le volume était élevé :** 10,35k passages, soit +18,5 % par rapport à la moyenne des quatre dimanches précédents et +31,6 % par rapport au 5 juillet.\n- **La qualité s'est détériorée :** les rejets (7,25 %), les non-lectures (6,33 %) et les erreurs de balance (6,07 %) atteignent chacun leur sommet sur les cinq dimanches observés.\n- **La ligne 1 est la priorité :** elle porte 46,5 % du volume, mais concentre 74,9 % des rejets et 68,5 % des non-lectures.\n- **La recirculation mérite un traçage :** 882 des 8,34k colis routés uniques ont plusieurs événements de routage; 416 sont vus sur plus d'une ligne ou source."
+      },
+      {
+        "id": "headline_metrics",
+        "type": "metric-strip",
+        "cardIds": [
+          "card_volume",
+          "card_peak",
+          "card_reject",
+          "card_noread",
+          "card_scale",
+          "card_unique"
+        ],
+        "layout": "full"
+      },
+      {
+        "id": "volume_story",
+        "type": "markdown",
+        "layout": "full",
+        "body": "## Le volume élevé a culminé à minuit\n\n**La pointe atteint 1 999 scans bruts entre minuit et 0 h 59**, après deux vagues à 19 h (1 624) et 22 h (1 781). La chute à 20 h puis la reprise à 21-22 h indiquent une cadence discontinue plutôt qu'un flux uniforme.\n\nLes compteurs officiels totalisent 10 350 passages et l'historique brut 10 330 scans sur les lignes principales, un écart de seulement 20 (0,19 %). Cette concordance soutient l'usage des compteurs officiels pour les taux et de l'historique brut pour le profil horaire."
+      },
+      {
+        "id": "hourly_chart_block",
+        "type": "chart",
+        "chartId": "chart_hourly",
+        "layout": "full"
+      },
+      {
+        "id": "line_story",
+        "type": "markdown",
+        "sourceId": "src_line",
+        "layout": "full",
+        "body": "## La ligne 1 concentre la majorité des défauts\n\n**Avec 4 811 passages, la ligne 1 représente 46,5 % du volume, mais 74,9 % des rejets et 68,5 % des non-lectures.** Ses taux atteignent 11,68 % de rejet et 9,33 % de non-lecture.\n\nLa ligne 3 présente le profil inverse : seulement 0,05 % de rejet, mais 9,83 % d'erreurs de balance. Cela suggère deux pistes distinctes — lecture et rejet sur la ligne 1, mesure du poids sur la ligne 3."
+      },
+      {
+        "id": "line_table_block",
+        "type": "table",
+        "tableId": "table_lines",
+        "layout": "full"
+      },
+      {
+        "id": "quality_story",
+        "type": "markdown",
+        "sourceId": "src_status",
+        "layout": "full",
+        "body": "## Trois indicateurs de qualité se dégradent en même temps\n\n**Le taux de rejet dépasse de 2,06 points le repère pondéré des quatre dimanches précédents; la non-lecture le dépasse de 1,44 point et les erreurs de balance de 1,94 point.** Le mouvement simultané réduit la probabilité qu'il s'agisse d'un seul code d'exception isolé.\n\nLes erreurs de dimensionnement sont à 1,61 %, dans la plage récente observée après l'anomalie du 14 juin. Elles ne constituent donc pas le premier signal à investiguer cette fois-ci."
+      },
+      {
+        "id": "quality_chart_block",
+        "type": "chart",
+        "chartId": "chart_quality",
+        "layout": "full"
+      },
+      {
+        "id": "routing_story",
+        "type": "markdown",
+        "sourceId": "src_routing",
+        "layout": "full",
+        "body": "## Les relectures sont assez fréquentes pour justifier un traçage\n\n**Les 8 340 colis routés uniques génèrent 9 529 événements de routage.** Au total, 882 colis (10,58 %) ont plus d'un événement, ce qui représente 1 189 événements supplémentaires; 416 colis sont vus sur plusieurs lignes ou sources et un colis atteint huit événements.\n\nCes événements ne prouvent pas tous une recirculation anormale, mais leur concentration probable autour de la ligne 1 et des heures de pointe est une vérification opérationnelle prioritaire."
+      },
+      {
+        "id": "destination_story",
+        "type": "markdown",
+        "sourceId": "src_destinations",
+        "layout": "full",
+        "body": "## Quatre destinations représentent les deux tiers du flux routé\n\n**St-Hubert, Montréal Gilmore, Québec et Blainville totalisent 66.8% des colis routés uniques; les deux premiers seuls en représentent 41.5%.** Cette concentration aide à cibler les routes et les chutes à vérifier pendant les trois vagues de charge.\n\nLa destination est dérivée de l'expédition et du code postal parce que le champ de destination de l'événement convoyeur est vide. La dérivation couvre 8 333 colis sur 8 340; sept restent non renseignés."
+      },
+      {
+        "id": "destination_chart_block",
+        "type": "chart",
+        "chartId": "chart_destinations",
+        "layout": "full"
+      },
+      {
+        "id": "chute_story",
+        "type": "markdown",
+        "sourceId": "src_chutes",
+        "layout": "full",
+        "body": "## Le flux est réparti entre plusieurs chutes\n\n**La combinaison la plus sollicitée, ligne 0 · chute 39, représente 601 événements (6,31 %).** Les cinq premières combinaisons totalisent 26.1% des événements de routage. Aucune chute unique ne domine le flux, ce qui oriente l'enquête vers la ligne et l'équipement plutôt que vers un seul débouché."
+      },
+      {
+        "id": "chute_table_block",
+        "type": "table",
+        "tableId": "table_chutes",
+        "layout": "full"
+      },
+      {
+        "id": "recommendations",
+        "type": "markdown",
+        "layout": "full",
+        "body": "## Actions recommandées\n\n1. **Prioriser la ligne 1** aux créneaux de 19 h, 22 h et minuit : lecture caméra, règles de rejet et synchronisation avec la chute.\n2. **Vérifier la balance de la ligne 3** : son taux d'erreur de poids est le plus élevé malgré un rejet presque nul.\n3. **Retracer un échantillon des 882 colis multi-événements**, en commençant par les 416 vus sur plusieurs lignes ou sources, pour distinguer recirculation normale, relecture et transfert.\n4. **Suivre les deux prochains dimanches** contre les repères pondérés : 5,19 % de rejet, 4,89 % de non-lecture et 4,13 % d'erreur de balance."
+      },
+      {
+        "id": "questions",
+        "type": "markdown",
+        "layout": "full",
+        "body": "## Questions à approfondir\n\n- Les rejets de la ligne 1 sont-ils surtout des non-lectures, des rejets de chute ou des erreurs de synchronisation?\n- Les 416 colis vus sur plusieurs lignes suivent-ils un parcours attendu ou un transfert correctif?\n- Les erreurs de balance de la ligne 3 se concentrent-elles sur une plage de poids, un client ou un type d'emballage?"
+      },
+      {
+        "id": "caveats",
+        "type": "markdown",
+        "layout": "full",
+        "body": "## Hypothèses et limites\n\n- La journée est la **date de tri opérationnelle** du 12 juillet, de dimanche 17 h jusqu'à la fermeture des lignes le lundi matin, en heure EDT.\n- Les rejets, non-lectures et erreurs techniques peuvent se chevaucher; ils ne doivent pas être additionnés pour calculer un taux de succès.\n- Les 10 350 passages officiels et les 8 340 colis routés uniques mesurent des grains différents; l'écart inclut non-lectures, rejets et relectures.\n- Les identifiants 0, 1 et 3 sont les identifiants techniques des lignes; les libellés métier historiques ne sont pas suffisamment fiables pour les renommer.\n- Les destinations utilisent la table de localisation actuelle; une modification récente de l'affectation d'un code postal pourrait déplacer un petit nombre de colis."
+      }
+    ],
+    "cards": [
+      {
+        "id": "card_volume",
+        "dataset": "headline_status",
+        "sourceId": "src_status",
+        "description": "Somme des compteurs finaux des lignes 0, 1 et 3.",
+        "metrics": [
+          {
+            "label": "Passages officiels",
+            "field": "PARCELS",
+            "format": "compact"
+          },
+          {
+            "label": "vs moyenne 4 dim.",
+            "field": "PARCELS_VS_PRIOR_AVERAGE",
+            "format": "percent",
+            "signed": true
+          },
+          {
+            "label": "vs 5 juillet",
+            "field": "PARCELS_VS_PREVIOUS_SUNDAY",
+            "format": "percent",
+            "signed": true
+          }
+        ]
+      },
+      {
+        "id": "card_peak",
+        "dataset": "headline_hourly",
+        "sourceId": "src_hourly",
+        "description": "Pointe observée entre minuit et 0 h 59, heure EDT.",
+        "metrics": [
+          {
+            "label": "Scans à l'heure de pointe",
+            "field": "PEAK_SCAN_ROWS",
+            "format": "compact"
+          },
+          {
+            "label": "Part du flux brut",
+            "field": "PEAK_SHARE",
+            "format": "percent"
+          }
+        ]
+      },
+      {
+        "id": "card_reject",
+        "dataset": "headline_status",
+        "sourceId": "src_status",
+        "description": "Rejets divisés par les passages officiels.",
+        "metrics": [
+          {
+            "label": "Taux de rejet",
+            "field": "REJECT_RATE",
+            "format": "percent"
+          },
+          {
+            "label": "vs repère 4 dim.",
+            "field": "REJECT_RATE_DELTA_VS_PRIOR",
+            "format": "percent",
+            "signed": true
+          }
+        ]
+      },
+      {
+        "id": "card_noread",
+        "dataset": "headline_status",
+        "sourceId": "src_status",
+        "description": "Non-lectures divisées par les passages officiels.",
+        "metrics": [
+          {
+            "label": "Taux de non-lecture",
+            "field": "NOREAD_RATE",
+            "format": "percent"
+          },
+          {
+            "label": "vs repère 4 dim.",
+            "field": "NOREAD_RATE_DELTA_VS_PRIOR",
+            "format": "percent",
+            "signed": true
+          }
+        ]
+      },
+      {
+        "id": "card_scale",
+        "dataset": "headline_status",
+        "sourceId": "src_status",
+        "description": "Erreurs de balance divisées par les passages officiels.",
+        "metrics": [
+          {
+            "label": "Erreurs de balance",
+            "field": "SCALE_ERROR_RATE",
+            "format": "percent"
+          },
+          {
+            "label": "vs repère 4 dim.",
+            "field": "SCALE_ERROR_RATE_DELTA_VS_PRIOR",
+            "format": "percent",
+            "signed": true
+          }
+        ]
+      },
+      {
+        "id": "card_unique",
+        "dataset": "routing_summary",
+        "sourceId": "src_routing",
+        "description": "Colis distincts ayant reçu au moins un événement de routage réussi.",
+        "metrics": [
+          {
+            "label": "Colis routés uniques",
+            "field": "UNIQUE_ROUTED_PARCELS",
+            "format": "compact"
+          },
+          {
+            "label": "Avec événements multiples",
+            "field": "MULTI_EVENT_PARCEL_RATE",
+            "format": "percent"
+          }
+        ]
+      }
+    ],
+    "charts": [
+      {
+        "id": "chart_hourly",
+        "title": "Passages bruts par heure et par ligne",
+        "subtitle": "Fenêtre opérationnelle du 12 juillet; pointe de 1 999 scans entre minuit et 0 h 59",
+        "showDescription": true,
+        "intent": "composition",
+        "question": "Quand la charge a-t-elle culminé et comment était-elle répartie entre les lignes?",
+        "rationale": "Un diagramme en barres empilées montre simultanément le débit horaire et la contribution des trois lignes.",
+        "comparisonContext": {
+          "grain": "heure et ligne",
+          "unit": "scans bruts",
+          "denominator": "lignes de parcel_scan_history"
+        },
+        "type": "stackedBar",
+        "dataset": "hourly_main_lines",
+        "sourceId": "src_hourly",
+        "encodings": {
+          "x": {
+            "field": "EVENT_HOUR_LABEL",
+            "type": "ordinal",
+            "label": "Heure locale"
+          },
+          "y": {
+            "field": "SCAN_ROWS",
+            "type": "quantitative",
+            "aggregate": "sum",
+            "format": "compact",
+            "label": "Scans bruts"
+          },
+          "color": {
+            "field": "LINE_LABEL",
+            "type": "nominal",
+            "label": "Ligne"
+          },
+          "tooltip": [
+            {
+              "field": "READABLE_SCAN_ROWS",
+              "type": "quantitative",
+              "format": "compact",
+              "label": "Scans lisibles"
+            },
+            {
+              "field": "UNREADABLE_SCAN_ROWS",
+              "type": "quantitative",
+              "format": "compact",
+              "label": "Scans non lisibles"
+            }
+          ]
+        },
+        "palette": {
+          "kind": "categorical",
+          "name": "blue-orange-pink"
+        },
+        "legend": {
+          "position": "bottom",
+          "title": "Ligne"
+        },
+        "labels": {
+          "values": "none"
+        },
+        "settings": {
+          "groupMode": "stacked",
+          "sort": "none"
+        },
+        "layout": "full",
+        "maxRows": 40,
+        "surface": {
+          "surface": "export",
+          "viewMode": "both"
+        }
+      },
+      {
+        "id": "chart_quality",
+        "title": "Taux de défaut sur cinq dimanches",
+        "subtitle": "Rejets, non-lectures et erreurs de balance en proportion des passages officiels",
+        "showDescription": true,
+        "intent": "comparison",
+        "question": "Les taux de défaut du 12 juillet sont-ils élevés par rapport aux dimanches précédents?",
+        "rationale": "Des barres groupées comparent trois taux de même unité sur cinq périodes discrètes sans suggérer une tendance longue.",
+        "comparisonContext": {
+          "baseline": "quatre dimanches précédents",
+          "grain": "date de tri et type de défaut",
+          "unit": "part des passages",
+          "denominator": "passages officiels de chaque dimanche"
+        },
+        "type": "bar",
+        "dataset": "quality_comparison",
+        "sourceId": "src_status",
+        "encodings": {
+          "x": {
+            "field": "DATE_LABEL",
+            "type": "ordinal",
+            "label": "Dimanche"
+          },
+          "y": {
+            "field": "RATE",
+            "type": "quantitative",
+            "aggregate": "none",
+            "format": "percent",
+            "label": "Taux"
+          },
+          "color": {
+            "field": "METRIC",
+            "type": "nominal",
+            "label": "Défaut"
+          },
+          "tooltip": [
+            {
+              "field": "ISSUE_COUNT",
+              "type": "quantitative",
+              "format": "compact",
+              "label": "Occurrences"
+            },
+            {
+              "field": "PARCELS",
+              "type": "quantitative",
+              "format": "compact",
+              "label": "Passages"
+            }
+          ]
+        },
+        "palette": {
+          "kind": "categorical",
+          "name": "blue-orange-pink"
+        },
+        "legend": {
+          "position": "bottom",
+          "title": "Type de défaut"
+        },
+        "labels": {
+          "values": "auto"
+        },
+        "settings": {
+          "groupMode": "grouped",
+          "sort": "none"
+        },
+        "layout": "full",
+        "maxRows": 25,
+        "surface": {
+          "surface": "export",
+          "viewMode": "both"
+        }
+      },
+      {
+        "id": "chart_destinations",
+        "title": "Principales destinations des colis routés",
+        "subtitle": "Top 10; destination dérivée de l'expédition et du code postal",
+        "showDescription": true,
+        "intent": "comparison",
+        "question": "Quels dépôts de destination représentent la plus grande part des colis routés?",
+        "rationale": "Des barres horizontales classées rendent les noms de dépôts lisibles et montrent la concentration du flux.",
+        "comparisonContext": {
+          "grain": "dépôt de destination",
+          "unit": "colis routés uniques",
+          "denominator": "8 340 colis routés uniques"
+        },
+        "type": "horizontalBar",
+        "dataset": "top_destinations",
+        "sourceId": "src_destinations",
+        "encodings": {
+          "x": {
+            "field": "DESTINATION_DEPOT",
+            "type": "nominal",
+            "label": "Dépôt de destination"
+          },
+          "y": {
+            "field": "UNIQUE_PARCELS",
+            "type": "quantitative",
+            "aggregate": "none",
+            "format": "compact",
+            "label": "Colis routés uniques"
+          },
+          "tooltip": [
+            {
+              "field": "SHARE",
+              "type": "quantitative",
+              "format": "percent",
+              "label": "Part"
+            },
+            {
+              "field": "CUMULATIVE_SHARE",
+              "type": "quantitative",
+              "format": "percent",
+              "label": "Part cumulée"
+            }
+          ]
+        },
+        "palette": {
+          "kind": "categorical",
+          "name": "blue"
+        },
+        "labels": {
+          "values": "all"
+        },
+        "settings": {
+          "orientation": "horizontal",
+          "sort": "descending"
+        },
+        "layout": "full",
+        "maxRows": 12,
+        "surface": {
+          "surface": "export",
+          "viewMode": "both"
+        }
+      }
+    ],
+    "tables": [
+      {
+        "id": "table_lines",
+        "title": "Qualité et contribution par ligne",
+        "subtitle": "Compteurs finaux du 12 juillet; les taux utilisent les passages de chaque ligne",
+        "showDescription": true,
+        "dataset": "line_summary",
+        "sourceId": "src_line",
+        "defaultSort": {
+          "field": "nb_parcel",
+          "direction": "desc"
+        },
+        "density": "spacious",
+        "layout": "full",
+        "columns": [
+          {
+            "field": "LINE_LABEL",
+            "label": "Ligne",
+            "type": "text"
+          },
+          {
+            "field": "nb_parcel",
+            "label": "Passages",
+            "format": "number"
+          },
+          {
+            "field": "VOLUME_SHARE",
+            "label": "Part du volume",
+            "format": "percent"
+          },
+          {
+            "field": "NOREAD_RATE",
+            "label": "Non-lecture",
+            "format": "percent"
+          },
+          {
+            "field": "REJECT_RATE",
+            "label": "Rejet",
+            "format": "percent"
+          },
+          {
+            "field": "DIMENSION_ERROR_RATE",
+            "label": "Erreur dimension",
+            "format": "percent"
+          },
+          {
+            "field": "SCALE_ERROR_RATE",
+            "label": "Erreur balance",
+            "format": "percent"
+          }
+        ]
+      },
+      {
+        "id": "table_chutes",
+        "title": "Combinaisons ligne-chute les plus sollicitées",
+        "subtitle": "Top 12 par nombre d'événements de routage pendant la fenêtre opérationnelle",
+        "showDescription": true,
+        "dataset": "top_chutes",
+        "sourceId": "src_chutes",
+        "defaultSort": {
+          "field": "ROUTING_EVENTS",
+          "direction": "desc"
+        },
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          {
+            "field": "LINE_CHUTE",
+            "label": "Ligne · chute",
+            "type": "text"
+          },
+          {
+            "field": "ROUTING_EVENTS",
+            "label": "Événements",
+            "format": "number"
+          },
+          {
+            "field": "UNIQUE_PARCELS",
+            "label": "Colis uniques",
+            "format": "number"
+          },
+          {
+            "field": "EVENT_SHARE",
+            "label": "Part des événements",
+            "format": "percent"
+          }
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "src_status",
+        "label": "Compteurs officiels du convoyeur — St-Hubert",
+        "query": {
+          "engine": "MySQL 8.4",
+          "language": "SQL",
+          "executed_at": "2026-07-16T20:18:13.105481+00:00",
+          "description": "Totaux et taux des cinq dimanches, agrégés à partir du statut final de chaque ligne.",
+          "tables_used": [
+            "nationex.conveyor_status"
+          ],
+          "filters": [
+            "DEPOT_ID = 1 (ST-HUBERT)",
+            "Dimanches du 14 juin au 12 juillet 2026",
+            "Une ligne finale par date de tri et ligne de convoyeur"
+          ],
+          "metric_definitions": [
+            "Passages = somme de nb_parcel sur les lignes 0, 1 et 3.",
+            "Taux de rejet = somme(nb_rejected) / somme(nb_parcel).",
+            "Taux de non-lecture = somme(nb_noread) / somme(nb_parcel).",
+            "Taux d'erreur de balance = somme(nb_scale_error) / somme(nb_parcel).",
+            "Repère précédent = taux pondéré par les passages des quatre dimanches antérieurs."
+          ],
+          "sql": "SELECT\n    DATE(cs.sort_date) AS SORT_DATE,\n    SUM(cs.nb_parcel) AS PARCELS,\n    SUM(cs.nb_noread) AS NOREAD,\n    ROUND(100.0 * SUM(cs.nb_noread) / NULLIF(SUM(cs.nb_parcel), 0), 2) AS NOREAD_RATE_PCT,\n    SUM(cs.nb_rejected) AS REJECTED,\n    ROUND(100.0 * SUM(cs.nb_rejected) / NULLIF(SUM(cs.nb_parcel), 0), 2) AS REJECT_RATE_PCT,\n    SUM(cs.nb_dimensioner_error) AS DIMENSION_ERRORS,\n    ROUND(100.0 * SUM(cs.nb_dimensioner_error) / NULLIF(SUM(cs.nb_parcel), 0), 2) AS DIMENSION_ERROR_RATE_PCT,\n    SUM(cs.nb_scale_error) AS SCALE_ERRORS,\n    ROUND(100.0 * SUM(cs.nb_scale_error) / NULLIF(SUM(cs.nb_parcel), 0), 2) AS SCALE_ERROR_RATE_PCT\nFROM conveyor_status AS cs\nWHERE cs.depot_id = 1\n  AND cs.sort_date >= '2026-06-14'\n  AND cs.sort_date <= '2026-07-12'\n  AND DAYOFWEEK(cs.sort_date) = 1\nGROUP BY DATE(cs.sort_date)\nORDER BY SORT_DATE;"
+        }
+      },
+      {
+        "id": "src_hourly",
+        "label": "Historique brut horaire — lignes principales",
+        "query": {
+          "engine": "MySQL 8.4",
+          "language": "SQL",
+          "executed_at": "2026-07-16T20:18:13.105481+00:00",
+          "description": "Scans bruts par heure et par ligne pendant la fenêtre opérationnelle.",
+          "tables_used": [
+            "nationex.parcel_scan_history"
+          ],
+          "filters": [
+            "DEPOT_ID = 1",
+            "LINE_ID IN (0, 1, 3)",
+            "Du 12 juillet 2026 à 17 h au 13 juillet 2026 à 8 h, heure EDT"
+          ],
+          "metric_definitions": [
+            "Scans bruts = nombre de lignes de parcel_scan_history.",
+            "Colis lisibles uniques = nombre distinct de parcel_id non nul et non zéro."
+          ],
+          "sql": "SELECT\n    DATE_FORMAT(psh.date_insert, '%Y-%m-%d %H:00:00') AS EVENT_HOUR,\n    CAST(psh.line_id AS CHAR) AS LINE_ID,\n    COUNT(*) AS SCAN_ROWS,\n    SUM(psh.parcel_id IS NOT NULL AND psh.parcel_id <> 0) AS READABLE_SCAN_ROWS,\n    COUNT(DISTINCT NULLIF(psh.parcel_id, 0)) AS UNIQUE_READABLE_PARCELS,\n    SUM(psh.parcel_id IS NULL OR psh.parcel_id = 0) AS UNREADABLE_SCAN_ROWS\nFROM parcel_scan_history AS psh\nWHERE psh.depot_id = 1\n  AND psh.line_id IN (0, 1, 3)\n  AND psh.date_insert >= '2026-07-12 17:00:00'\n  AND psh.date_insert <  '2026-07-13 08:00:00'\nGROUP BY EVENT_HOUR, psh.line_id\nORDER BY EVENT_HOUR, psh.line_id;"
+        }
+      },
+      {
+        "id": "src_line",
+        "label": "Qualité par ligne — 12 juillet 2026",
+        "query": {
+          "engine": "MySQL 8.4",
+          "language": "SQL",
+          "executed_at": "2026-07-16T20:18:13.105481+00:00",
+          "description": "Compteurs et taux finaux de chaque ligne du convoyeur de St-Hubert.",
+          "tables_used": [
+            "nationex.conveyor_status"
+          ],
+          "filters": [
+            "DEPOT_ID = 1",
+            "SORT_DATE = 2026-07-12"
+          ],
+          "metric_definitions": [
+            "Chaque taux de ligne utilise nb_parcel de la même ligne comme dénominateur."
+          ],
+          "sql": "SELECT\n    cs.line_id,\n    cs.nb_parcel,\n    cs.nb_noread,\n    ROUND(100.0 * cs.nb_noread / NULLIF(cs.nb_parcel, 0), 2) AS NOREAD_RATE_PCT,\n    cs.nb_rejected,\n    ROUND(100.0 * cs.nb_rejected / NULLIF(cs.nb_parcel, 0), 2) AS REJECT_RATE_PCT,\n    cs.nb_dimensioner_error,\n    ROUND(100.0 * cs.nb_dimensioner_error / NULLIF(cs.nb_parcel, 0), 2) AS DIMENSION_ERROR_RATE_PCT,\n    cs.nb_scale_error,\n    ROUND(100.0 * cs.nb_scale_error / NULLIF(cs.nb_parcel, 0), 2) AS SCALE_ERROR_RATE_PCT,\n    cs.last_update\nFROM conveyor_status AS cs\nWHERE cs.depot_id = 1\n  AND cs.sort_date = '2026-07-12'\nORDER BY cs.line_id;"
+        }
+      },
+      {
+        "id": "src_routing",
+        "label": "Événements de routage dédupliqués",
+        "query": {
+          "engine": "MySQL 8.4",
+          "language": "SQL",
+          "executed_at": "2026-07-16T20:18:13.105481+00:00",
+          "description": "Colis routés, événements multiples et passages sur plusieurs lignes ou sources.",
+          "tables_used": [
+            "nationex.parcel_history"
+          ],
+          "filters": [
+            "DEPOT_ID = 1",
+            "SOURCE_TYPE = 200 (CONVOYEUR)",
+            "Lignes ou sources principales 0, 1 et 3",
+            "Fenêtre du 12 juillet 17 h au 13 juillet 8 h, heure EDT"
+          ],
+          "metric_definitions": [
+            "Colis routés uniques = nombre distinct de PARCEL_ID ayant au moins un événement de routage.",
+            "Événements supplémentaires = somme(nombre d'événements par colis - 1)."
+          ],
+          "sql": "WITH parcel_rollup AS (\n    SELECT\n        ph.PARCEL_ID,\n        COUNT(*) AS ROUTING_EVENTS,\n        COUNT(DISTINCT COALESCE(ph.SOURCE_ID, 0)) AS DISTINCT_LINES_OR_SOURCES,\n        MIN(ph.DATE_INSERT) AS FIRST_EVENT,\n        MAX(ph.DATE_INSERT) AS LAST_EVENT\n    FROM parcel_history PARTITION (p2026) AS ph\n    WHERE ph.DATE_INSERT >= '2026-07-12 17:00:00'\n      AND ph.DATE_INSERT <  '2026-07-13 08:00:00'\n      AND ph.DEPOT_ID = 1\n      AND ph.SOURCE_TYPE = 200\n      AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1, 3))\n      AND ph.PARCEL_ID IS NOT NULL\n    GROUP BY ph.PARCEL_ID\n)\nSELECT\n    COUNT(*) AS UNIQUE_ROUTED_PARCELS,\n    SUM(ROUTING_EVENTS) AS ROUTING_EVENTS,\n    SUM(ROUTING_EVENTS > 1) AS PARCELS_WITH_MULTIPLE_ROUTING_EVENTS,\n    SUM(ROUTING_EVENTS - 1) AS EXTRA_ROUTING_EVENTS,\n    ROUND(100.0 * SUM(ROUTING_EVENTS > 1) / NULLIF(COUNT(*), 0), 2) AS MULTI_EVENT_PARCEL_RATE_PCT,\n    SUM(DISTINCT_LINES_OR_SOURCES > 1) AS PARCELS_SEEN_ON_MULTIPLE_LINES_OR_SOURCES,\n    MAX(ROUTING_EVENTS) AS MAX_ROUTING_EVENTS_FOR_ONE_PARCEL\nFROM parcel_rollup;"
+        }
+      },
+      {
+        "id": "src_destinations",
+        "label": "Destinations dérivées des colis routés",
+        "query": {
+          "engine": "MySQL 8.4",
+          "language": "SQL",
+          "executed_at": "2026-07-16T20:18:13.105481+00:00",
+          "description": "Dépôt de destination dérivé de l'expédition et de la table de localisation postale.",
+          "tables_used": [
+            "nationex.parcel_history",
+            "nationex.shipment",
+            "nationex.location",
+            "nationex.depot"
+          ],
+          "filters": [
+            "Même population de colis routés uniques que src_routing",
+            "Jointure shipment par (SHIPPING_ID, EXP_DATE)",
+            "Jointure location par code postal normalisé"
+          ],
+          "metric_definitions": [
+            "Un colis est attribué à la destination du dernier événement de routage de la fenêtre.",
+            "Couverture = 8 333 colis renseignés sur 8 340; 7 restent non renseignés."
+          ],
+          "sql": "WITH ranked_events AS (\n    SELECT\n        ph.PARCEL_ID,\n        ph.SHIPPING_ID,\n        ph.EXP_DATE,\n        ROW_NUMBER() OVER (\n            PARTITION BY ph.PARCEL_ID\n            ORDER BY ph.DATE_INSERT DESC, ph.PARCEL_HISTORY_ID DESC\n        ) AS row_rank\n    FROM parcel_history PARTITION (p2026) AS ph\n    WHERE ph.DATE_INSERT >= '2026-07-12 17:00:00'\n      AND ph.DATE_INSERT <  '2026-07-13 08:00:00'\n      AND ph.DEPOT_ID = 1\n      AND ph.SOURCE_TYPE = 200\n      AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1, 3))\n      AND ph.PARCEL_ID IS NOT NULL\n)\nSELECT\n    COALESCE(d.DEPOTNAME, 'NON RENSEIGNÉ') AS DESTINATION_DEPOT,\n    l.DEPOTNUMBER AS DESTINATION_DEPOT_ID,\n    COUNT(*) AS UNIQUE_PARCELS\nFROM ranked_events AS re\nLEFT JOIN shipment PARTITION (p2026) AS s\n    ON s.SHIPPING_ID = re.SHIPPING_ID\n   AND s.EXP_DATE = re.EXP_DATE\nLEFT JOIN location AS l\n    ON l.LOC_POSTAL_CODE = REPLACE(UPPER(s.DEST_POSTAL_CODE), ' ', '')\nLEFT JOIN depot AS d\n    ON d.DEPOTNUMBER = l.DEPOTNUMBER\nWHERE re.row_rank = 1\nGROUP BY COALESCE(d.DEPOTNAME, 'NON RENSEIGNÉ'), l.DEPOTNUMBER\nORDER BY UNIQUE_PARCELS DESC;"
+        }
+      },
+      {
+        "id": "src_chutes",
+        "label": "Principales combinaisons ligne-chute",
+        "query": {
+          "engine": "MySQL 8.4",
+          "language": "SQL",
+          "executed_at": "2026-07-16T20:18:13.105481+00:00",
+          "description": "Les douze combinaisons ligne-chute ayant le plus d'événements de routage.",
+          "tables_used": [
+            "nationex.parcel_history"
+          ],
+          "filters": [
+            "Même fenêtre et même population d'événements de routage que src_routing",
+            "Limite aux 12 combinaisons ayant le plus d'événements"
+          ],
+          "metric_definitions": [
+            "Part des événements = événements de la combinaison / 9 529 événements de routage."
+          ],
+          "sql": "SELECT\n    COALESCE(ph.SOURCE_ID, 0) AS LINE_ID,\n    ph.CHUTE_NO,\n    COUNT(*) AS ROUTING_EVENTS,\n    COUNT(DISTINCT ph.PARCEL_ID) AS UNIQUE_PARCELS\nFROM parcel_history PARTITION (p2026) AS ph\nWHERE ph.DATE_INSERT >= '2026-07-12 17:00:00'\n  AND ph.DATE_INSERT <  '2026-07-13 08:00:00'\n  AND ph.DEPOT_ID = 1\n  AND ph.SOURCE_TYPE = 200\n  AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1, 3))\nGROUP BY COALESCE(ph.SOURCE_ID, 0), ph.CHUTE_NO\nORDER BY ROUTING_EVENTS DESC\nLIMIT 12;"
+        }
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "generatedAt": "2026-07-16T20:18:13.105481+00:00",
+    "status": "ready",
+    "datasets": {
+      "headline_status": [
+        {
+          "SORT_DATE": "2026-07-12T00:00:00",
+          "PARCELS": 10350,
+          "NOREAD": 655,
+          "NOREAD_RATE_PCT": 6.33,
+          "REJECTED": 750,
+          "REJECT_RATE_PCT": 7.25,
+          "DIMENSION_ERRORS": 167,
+          "DIMENSION_ERROR_RATE_PCT": 1.61,
+          "SCALE_ERRORS": 628,
+          "SCALE_ERROR_RATE_PCT": 6.07,
+          "PARCELS_VS_PRIOR_AVERAGE": 0.184753,
+          "PARCELS_VS_PREVIOUS_SUNDAY": 0.316459,
+          "REJECT_RATE": 0.0725,
+          "REJECT_RATE_DELTA_VS_PRIOR": 0.020588,
+          "NOREAD_RATE": 0.0633,
+          "NOREAD_RATE_DELTA_VS_PRIOR": 0.014393,
+          "SCALE_ERROR_RATE": 0.0607,
+          "SCALE_ERROR_RATE_DELTA_VS_PRIOR": 0.019434,
+          "PRIOR_AVERAGE_VOLUME": 8736,
+          "PRIOR_REJECT_RATE": 0.051912,
+          "PRIOR_NOREAD_RATE": 0.048907,
+          "PRIOR_SCALE_RATE": 0.041266
+        }
+      ],
+      "headline_hourly": [
+        {
+          "PEAK_SCAN_ROWS": 1999,
+          "PEAK_HOUR_LABEL": "Lun. 0 h à 0 h 59",
+          "RAW_SCAN_ROWS": 10330,
+          "PEAK_SHARE": 0.193514
+        }
+      ],
+      "hourly_main_lines": [
+        {
+          "EVENT_HOUR": "2026-07-12 17:00:00",
+          "LINE_ID": "0",
+          "SCAN_ROWS": 290,
+          "READABLE_SCAN_ROWS": 256,
+          "UNIQUE_READABLE_PARCELS": 256,
+          "UNREADABLE_SCAN_ROWS": 34,
+          "EVENT_HOUR_LABEL": "Dim. 17 h",
+          "LINE_LABEL": "Ligne 0",
+          "READABLE_RATE": 0.882759
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 17:00:00",
+          "LINE_ID": "1",
+          "SCAN_ROWS": 225,
+          "READABLE_SCAN_ROWS": 204,
+          "UNIQUE_READABLE_PARCELS": 201,
+          "UNREADABLE_SCAN_ROWS": 21,
+          "EVENT_HOUR_LABEL": "Dim. 17 h",
+          "LINE_LABEL": "Ligne 1",
+          "READABLE_RATE": 0.906667
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 17:00:00",
+          "LINE_ID": "3",
+          "SCAN_ROWS": 27,
+          "READABLE_SCAN_ROWS": 24,
+          "UNIQUE_READABLE_PARCELS": 20,
+          "UNREADABLE_SCAN_ROWS": 3,
+          "EVENT_HOUR_LABEL": "Dim. 17 h",
+          "LINE_LABEL": "Ligne 3",
+          "READABLE_RATE": 0.888889
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 18:00:00",
+          "LINE_ID": "0",
+          "SCAN_ROWS": 429,
+          "READABLE_SCAN_ROWS": 396,
+          "UNIQUE_READABLE_PARCELS": 396,
+          "UNREADABLE_SCAN_ROWS": 33,
+          "EVENT_HOUR_LABEL": "Dim. 18 h",
+          "LINE_LABEL": "Ligne 0",
+          "READABLE_RATE": 0.923077
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 18:00:00",
+          "LINE_ID": "1",
+          "SCAN_ROWS": 678,
+          "READABLE_SCAN_ROWS": 567,
+          "UNIQUE_READABLE_PARCELS": 548,
+          "UNREADABLE_SCAN_ROWS": 111,
+          "EVENT_HOUR_LABEL": "Dim. 18 h",
+          "LINE_LABEL": "Ligne 1",
+          "READABLE_RATE": 0.836283
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 18:00:00",
+          "LINE_ID": "3",
+          "SCAN_ROWS": 35,
+          "READABLE_SCAN_ROWS": 35,
+          "UNIQUE_READABLE_PARCELS": 35,
+          "UNREADABLE_SCAN_ROWS": 0,
+          "EVENT_HOUR_LABEL": "Dim. 18 h",
+          "LINE_LABEL": "Ligne 3",
+          "READABLE_RATE": 1.0
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 19:00:00",
+          "LINE_ID": "0",
+          "SCAN_ROWS": 648,
+          "READABLE_SCAN_ROWS": 617,
+          "UNIQUE_READABLE_PARCELS": 606,
+          "UNREADABLE_SCAN_ROWS": 31,
+          "EVENT_HOUR_LABEL": "Dim. 19 h",
+          "LINE_LABEL": "Ligne 0",
+          "READABLE_RATE": 0.95216
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 19:00:00",
+          "LINE_ID": "1",
+          "SCAN_ROWS": 976,
+          "READABLE_SCAN_ROWS": 872,
+          "UNIQUE_READABLE_PARCELS": 811,
+          "UNREADABLE_SCAN_ROWS": 104,
+          "EVENT_HOUR_LABEL": "Dim. 19 h",
+          "LINE_LABEL": "Ligne 1",
+          "READABLE_RATE": 0.893443
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 20:00:00",
+          "LINE_ID": "0",
+          "SCAN_ROWS": 122,
+          "READABLE_SCAN_ROWS": 114,
+          "UNIQUE_READABLE_PARCELS": 114,
+          "UNREADABLE_SCAN_ROWS": 8,
+          "EVENT_HOUR_LABEL": "Dim. 20 h",
+          "LINE_LABEL": "Ligne 0",
+          "READABLE_RATE": 0.934426
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 20:00:00",
+          "LINE_ID": "1",
+          "SCAN_ROWS": 290,
+          "READABLE_SCAN_ROWS": 223,
+          "UNIQUE_READABLE_PARCELS": 193,
+          "UNREADABLE_SCAN_ROWS": 67,
+          "EVENT_HOUR_LABEL": "Dim. 20 h",
+          "LINE_LABEL": "Ligne 1",
+          "READABLE_RATE": 0.768966
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 20:00:00",
+          "LINE_ID": "3",
+          "SCAN_ROWS": 6,
+          "READABLE_SCAN_ROWS": 6,
+          "UNIQUE_READABLE_PARCELS": 6,
+          "UNREADABLE_SCAN_ROWS": 0,
+          "EVENT_HOUR_LABEL": "Dim. 20 h",
+          "LINE_LABEL": "Ligne 3",
+          "READABLE_RATE": 1.0
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 21:00:00",
+          "LINE_ID": "0",
+          "SCAN_ROWS": 639,
+          "READABLE_SCAN_ROWS": 638,
+          "UNIQUE_READABLE_PARCELS": 638,
+          "UNREADABLE_SCAN_ROWS": 1,
+          "EVENT_HOUR_LABEL": "Dim. 21 h",
+          "LINE_LABEL": "Ligne 0",
+          "READABLE_RATE": 0.998435
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 21:00:00",
+          "LINE_ID": "1",
+          "SCAN_ROWS": 217,
+          "READABLE_SCAN_ROWS": 195,
+          "UNIQUE_READABLE_PARCELS": 192,
+          "UNREADABLE_SCAN_ROWS": 22,
+          "EVENT_HOUR_LABEL": "Dim. 21 h",
+          "LINE_LABEL": "Ligne 1",
+          "READABLE_RATE": 0.898618
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 21:00:00",
+          "LINE_ID": "3",
+          "SCAN_ROWS": 3,
+          "READABLE_SCAN_ROWS": 3,
+          "UNIQUE_READABLE_PARCELS": 3,
+          "UNREADABLE_SCAN_ROWS": 0,
+          "EVENT_HOUR_LABEL": "Dim. 21 h",
+          "LINE_LABEL": "Ligne 3",
+          "READABLE_RATE": 1.0
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 22:00:00",
+          "LINE_ID": "0",
+          "SCAN_ROWS": 471,
+          "READABLE_SCAN_ROWS": 464,
+          "UNIQUE_READABLE_PARCELS": 464,
+          "UNREADABLE_SCAN_ROWS": 7,
+          "EVENT_HOUR_LABEL": "Dim. 22 h",
+          "LINE_LABEL": "Ligne 0",
+          "READABLE_RATE": 0.985138
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 22:00:00",
+          "LINE_ID": "1",
+          "SCAN_ROWS": 832,
+          "READABLE_SCAN_ROWS": 824,
+          "UNIQUE_READABLE_PARCELS": 722,
+          "UNREADABLE_SCAN_ROWS": 8,
+          "EVENT_HOUR_LABEL": "Dim. 22 h",
+          "LINE_LABEL": "Ligne 1",
+          "READABLE_RATE": 0.990385
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 22:00:00",
+          "LINE_ID": "3",
+          "SCAN_ROWS": 478,
+          "READABLE_SCAN_ROWS": 465,
+          "UNIQUE_READABLE_PARCELS": 459,
+          "UNREADABLE_SCAN_ROWS": 13,
+          "EVENT_HOUR_LABEL": "Dim. 22 h",
+          "LINE_LABEL": "Ligne 3",
+          "READABLE_RATE": 0.972803
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 23:00:00",
+          "LINE_ID": "0",
+          "SCAN_ROWS": 378,
+          "READABLE_SCAN_ROWS": 359,
+          "UNIQUE_READABLE_PARCELS": 359,
+          "UNREADABLE_SCAN_ROWS": 19,
+          "EVENT_HOUR_LABEL": "Dim. 23 h",
+          "LINE_LABEL": "Ligne 0",
+          "READABLE_RATE": 0.949735
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 23:00:00",
+          "LINE_ID": "1",
+          "SCAN_ROWS": 586,
+          "READABLE_SCAN_ROWS": 531,
+          "UNIQUE_READABLE_PARCELS": 502,
+          "UNREADABLE_SCAN_ROWS": 55,
+          "EVENT_HOUR_LABEL": "Dim. 23 h",
+          "LINE_LABEL": "Ligne 1",
+          "READABLE_RATE": 0.906143
+        },
+        {
+          "EVENT_HOUR": "2026-07-12 23:00:00",
+          "LINE_ID": "3",
+          "SCAN_ROWS": 227,
+          "READABLE_SCAN_ROWS": 201,
+          "UNIQUE_READABLE_PARCELS": 186,
+          "UNREADABLE_SCAN_ROWS": 26,
+          "EVENT_HOUR_LABEL": "Dim. 23 h",
+          "LINE_LABEL": "Ligne 3",
+          "READABLE_RATE": 0.885463
+        },
+        {
+          "EVENT_HOUR": "2026-07-13 00:00:00",
+          "LINE_ID": "0",
+          "SCAN_ROWS": 449,
+          "READABLE_SCAN_ROWS": 398,
+          "UNIQUE_READABLE_PARCELS": 396,
+          "UNREADABLE_SCAN_ROWS": 51,
+          "EVENT_HOUR_LABEL": "Lun. 0 h",
+          "LINE_LABEL": "Ligne 0",
+          "READABLE_RATE": 0.886414
+        },
+        {
+          "EVENT_HOUR": "2026-07-13 00:00:00",
+          "LINE_ID": "1",
+          "SCAN_ROWS": 995,
+          "READABLE_SCAN_ROWS": 825,
+          "UNIQUE_READABLE_PARCELS": 635,
+          "UNREADABLE_SCAN_ROWS": 170,
+          "EVENT_HOUR_LABEL": "Lun. 0 h",
+          "LINE_LABEL": "Ligne 1",
+          "READABLE_RATE": 0.829146
+        },
+        {
+          "EVENT_HOUR": "2026-07-13 00:00:00",
+          "LINE_ID": "3",
+          "SCAN_ROWS": 555,
+          "READABLE_SCAN_ROWS": 553,
+          "UNIQUE_READABLE_PARCELS": 553,
+          "UNREADABLE_SCAN_ROWS": 2,
+          "EVENT_HOUR_LABEL": "Lun. 0 h",
+          "LINE_LABEL": "Ligne 3",
+          "READABLE_RATE": 0.996396
+        },
+        {
+          "EVENT_HOUR": "2026-07-13 01:00:00",
+          "LINE_ID": "3",
+          "SCAN_ROWS": 774,
+          "READABLE_SCAN_ROWS": 764,
+          "UNIQUE_READABLE_PARCELS": 700,
+          "UNREADABLE_SCAN_ROWS": 10,
+          "EVENT_HOUR_LABEL": "Lun. 1 h",
+          "LINE_LABEL": "Ligne 3",
+          "READABLE_RATE": 0.98708
+        }
+      ],
+      "quality_comparison": [
+        {
+          "SORT_DATE": "2026-06-14T00:00:00",
+          "DATE_LABEL": "14 juin",
+          "METRIC": "Rejets",
+          "RATE": 0.0614,
+          "ISSUE_COUNT": 524,
+          "PARCELS": 8529
+        },
+        {
+          "SORT_DATE": "2026-06-14T00:00:00",
+          "DATE_LABEL": "14 juin",
+          "METRIC": "Non-lectures",
+          "RATE": 0.0599,
+          "ISSUE_COUNT": 511,
+          "PARCELS": 8529
+        },
+        {
+          "SORT_DATE": "2026-06-14T00:00:00",
+          "DATE_LABEL": "14 juin",
+          "METRIC": "Erreurs de balance",
+          "RATE": 0.0405,
+          "ISSUE_COUNT": 345,
+          "PARCELS": 8529
+        },
+        {
+          "SORT_DATE": "2026-06-21T00:00:00",
+          "DATE_LABEL": "21 juin",
+          "METRIC": "Rejets",
+          "RATE": 0.0394,
+          "ISSUE_COUNT": 287,
+          "PARCELS": 7280
+        },
+        {
+          "SORT_DATE": "2026-06-21T00:00:00",
+          "DATE_LABEL": "21 juin",
+          "METRIC": "Non-lectures",
+          "RATE": 0.0375,
+          "ISSUE_COUNT": 273,
+          "PARCELS": 7280
+        },
+        {
+          "SORT_DATE": "2026-06-21T00:00:00",
+          "DATE_LABEL": "21 juin",
+          "METRIC": "Erreurs de balance",
+          "RATE": 0.0359,
+          "ISSUE_COUNT": 261,
+          "PARCELS": 7280
+        },
+        {
+          "SORT_DATE": "2026-06-28T00:00:00",
+          "DATE_LABEL": "28 juin",
+          "METRIC": "Rejets",
+          "RATE": 0.0548,
+          "ISSUE_COUNT": 618,
+          "PARCELS": 11273
+        },
+        {
+          "SORT_DATE": "2026-06-28T00:00:00",
+          "DATE_LABEL": "28 juin",
+          "METRIC": "Non-lectures",
+          "RATE": 0.0391,
+          "ISSUE_COUNT": 441,
+          "PARCELS": 11273
+        },
+        {
+          "SORT_DATE": "2026-06-28T00:00:00",
+          "DATE_LABEL": "28 juin",
+          "METRIC": "Erreurs de balance",
+          "RATE": 0.0426,
+          "ISSUE_COUNT": 480,
+          "PARCELS": 11273
+        },
+        {
+          "SORT_DATE": "2026-07-05T00:00:00",
+          "DATE_LABEL": "05 juil.",
+          "METRIC": "Rejets",
+          "RATE": 0.049,
+          "ISSUE_COUNT": 385,
+          "PARCELS": 7862
+        },
+        {
+          "SORT_DATE": "2026-07-05T00:00:00",
+          "DATE_LABEL": "05 juil.",
+          "METRIC": "Non-lectures",
+          "RATE": 0.0616,
+          "ISSUE_COUNT": 484,
+          "PARCELS": 7862
+        },
+        {
+          "SORT_DATE": "2026-07-05T00:00:00",
+          "DATE_LABEL": "05 juil.",
+          "METRIC": "Erreurs de balance",
+          "RATE": 0.0453,
+          "ISSUE_COUNT": 356,
+          "PARCELS": 7862
+        },
+        {
+          "SORT_DATE": "2026-07-12T00:00:00",
+          "DATE_LABEL": "12 juil.",
+          "METRIC": "Rejets",
+          "RATE": 0.0725,
+          "ISSUE_COUNT": 750,
+          "PARCELS": 10350
+        },
+        {
+          "SORT_DATE": "2026-07-12T00:00:00",
+          "DATE_LABEL": "12 juil.",
+          "METRIC": "Non-lectures",
+          "RATE": 0.0633,
+          "ISSUE_COUNT": 655,
+          "PARCELS": 10350
+        },
+        {
+          "SORT_DATE": "2026-07-12T00:00:00",
+          "DATE_LABEL": "12 juil.",
+          "METRIC": "Erreurs de balance",
+          "RATE": 0.0607,
+          "ISSUE_COUNT": 628,
+          "PARCELS": 10350
+        }
+      ],
+      "line_summary": [
+        {
+          "line_id": 0,
+          "nb_parcel": 3434,
+          "nb_noread": 152,
+          "NOREAD_RATE_PCT": 4.43,
+          "nb_rejected": 187,
+          "REJECT_RATE_PCT": 5.45,
+          "nb_dimensioner_error": 94,
+          "DIMENSION_ERROR_RATE_PCT": 2.74,
+          "nb_scale_error": 207,
+          "SCALE_ERROR_RATE_PCT": 6.03,
+          "last_update": "2026-07-13T02:59:59",
+          "LINE_LABEL": "Ligne 0",
+          "VOLUME_SHARE": 0.331787,
+          "REJECT_CONTRIBUTION": 0.249333,
+          "NOREAD_CONTRIBUTION": 0.232061,
+          "REJECT_RATE": 0.0545,
+          "NOREAD_RATE": 0.0443,
+          "DIMENSION_ERROR_RATE": 0.0274,
+          "SCALE_ERROR_RATE": 0.0603
+        },
+        {
+          "line_id": 1,
+          "nb_parcel": 4811,
+          "nb_noread": 449,
+          "NOREAD_RATE_PCT": 9.33,
+          "nb_rejected": 562,
+          "REJECT_RATE_PCT": 11.68,
+          "nb_dimensioner_error": 35,
+          "DIMENSION_ERROR_RATE_PCT": 0.73,
+          "nb_scale_error": 214,
+          "SCALE_ERROR_RATE_PCT": 4.45,
+          "last_update": "2026-07-13T02:59:59",
+          "LINE_LABEL": "Ligne 1",
+          "VOLUME_SHARE": 0.464831,
+          "REJECT_CONTRIBUTION": 0.749333,
+          "NOREAD_CONTRIBUTION": 0.685496,
+          "REJECT_RATE": 0.1168,
+          "NOREAD_RATE": 0.0933,
+          "DIMENSION_ERROR_RATE": 0.0073,
+          "SCALE_ERROR_RATE": 0.0445
+        },
+        {
+          "line_id": 3,
+          "nb_parcel": 2105,
+          "nb_noread": 54,
+          "NOREAD_RATE_PCT": 2.57,
+          "nb_rejected": 1,
+          "REJECT_RATE_PCT": 0.05,
+          "nb_dimensioner_error": 38,
+          "DIMENSION_ERROR_RATE_PCT": 1.81,
+          "nb_scale_error": 207,
+          "SCALE_ERROR_RATE_PCT": 9.83,
+          "last_update": "2026-07-13T07:59:59",
+          "LINE_LABEL": "Ligne 3",
+          "VOLUME_SHARE": 0.203382,
+          "REJECT_CONTRIBUTION": 0.001333,
+          "NOREAD_CONTRIBUTION": 0.082443,
+          "REJECT_RATE": 0.0005,
+          "NOREAD_RATE": 0.0257,
+          "DIMENSION_ERROR_RATE": 0.0181,
+          "SCALE_ERROR_RATE": 0.0983
+        }
+      ],
+      "routing_summary": [
+        {
+          "UNIQUE_ROUTED_PARCELS": 8340,
+          "ROUTING_EVENTS": 9529,
+          "PARCELS_WITH_MULTIPLE_ROUTING_EVENTS": 882,
+          "EXTRA_ROUTING_EVENTS": 1189,
+          "MULTI_EVENT_PARCEL_RATE_PCT": 10.58,
+          "PARCELS_SEEN_ON_MULTIPLE_LINES_OR_SOURCES": 416,
+          "MAX_ROUTING_EVENTS_FOR_ONE_PARCEL": 8,
+          "MULTI_EVENT_PARCEL_RATE": 0.1058
+        }
+      ],
+      "destination_depots": [
+        {
+          "DESTINATION_DEPOT": "ST-HUBERT",
+          "DESTINATION_DEPOT_ID": 1,
+          "UNIQUE_PARCELS": 1765,
+          "RANK": 1,
+          "SHARE": 0.211631,
+          "CUMULATIVE_SHARE": 0.211631
+        },
+        {
+          "DESTINATION_DEPOT": "MONTREAL GILMORE",
+          "DESTINATION_DEPOT_ID": 28,
+          "UNIQUE_PARCELS": 1697,
+          "RANK": 2,
+          "SHARE": 0.203477,
+          "CUMULATIVE_SHARE": 0.415108
+        },
+        {
+          "DESTINATION_DEPOT": "QUEBEC",
+          "DESTINATION_DEPOT_ID": 2,
+          "UNIQUE_PARCELS": 1097,
+          "RANK": 3,
+          "SHARE": 0.131535,
+          "CUMULATIVE_SHARE": 0.546643
+        },
+        {
+          "DESTINATION_DEPOT": "BLAINVILLE",
+          "DESTINATION_DEPOT_ID": 13,
+          "UNIQUE_PARCELS": 1009,
+          "RANK": 4,
+          "SHARE": 0.120983,
+          "CUMULATIVE_SHARE": 0.667626
+        },
+        {
+          "DESTINATION_DEPOT": "TORONTO",
+          "DESTINATION_DEPOT_ID": 12,
+          "UNIQUE_PARCELS": 567,
+          "RANK": 5,
+          "SHARE": 0.067986,
+          "CUMULATIVE_SHARE": 0.735612
+        },
+        {
+          "DESTINATION_DEPOT": "OTTAWA",
+          "DESTINATION_DEPOT_ID": 20,
+          "UNIQUE_PARCELS": 363,
+          "RANK": 6,
+          "SHARE": 0.043525,
+          "CUMULATIVE_SHARE": 0.779137
+        },
+        {
+          "DESTINATION_DEPOT": "DRUMMONDVILLE",
+          "DESTINATION_DEPOT_ID": 10,
+          "UNIQUE_PARCELS": 355,
+          "RANK": 7,
+          "SHARE": 0.042566,
+          "CUMULATIVE_SHARE": 0.821703
+        },
+        {
+          "DESTINATION_DEPOT": "SHERBROOKE",
+          "DESTINATION_DEPOT_ID": 3,
+          "UNIQUE_PARCELS": 254,
+          "RANK": 8,
+          "SHARE": 0.030456,
+          "CUMULATIVE_SHARE": 0.852158
+        },
+        {
+          "DESTINATION_DEPOT": "CHICOUTIMI",
+          "DESTINATION_DEPOT_ID": 8,
+          "UNIQUE_PARCELS": 204,
+          "RANK": 9,
+          "SHARE": 0.02446,
+          "CUMULATIVE_SHARE": 0.876619
+        },
+        {
+          "DESTINATION_DEPOT": "TROIS-RIVIERES",
+          "DESTINATION_DEPOT_ID": 9,
+          "UNIQUE_PARCELS": 189,
+          "RANK": 10,
+          "SHARE": 0.022662,
+          "CUMULATIVE_SHARE": 0.899281
+        },
+        {
+          "DESTINATION_DEPOT": "MONTRÉAL COLIBRI",
+          "DESTINATION_DEPOT_ID": 27,
+          "UNIQUE_PARCELS": 180,
+          "RANK": 11,
+          "SHARE": 0.021583,
+          "CUMULATIVE_SHARE": 0.920863
+        },
+        {
+          "DESTINATION_DEPOT": "HULL",
+          "DESTINATION_DEPOT_ID": 4,
+          "UNIQUE_PARCELS": 125,
+          "RANK": 12,
+          "SHARE": 0.014988,
+          "CUMULATIVE_SHARE": 0.935851
+        },
+        {
+          "DESTINATION_DEPOT": "TORONTO CENTRAL",
+          "DESTINATION_DEPOT_ID": 29,
+          "UNIQUE_PARCELS": 106,
+          "RANK": 13,
+          "SHARE": 0.01271,
+          "CUMULATIVE_SHARE": 0.948561
+        },
+        {
+          "DESTINATION_DEPOT": "BEAUCE",
+          "DESTINATION_DEPOT_ID": 25,
+          "UNIQUE_PARCELS": 92,
+          "RANK": 14,
+          "SHARE": 0.011031,
+          "CUMULATIVE_SHARE": 0.959592
+        },
+        {
+          "DESTINATION_DEPOT": "RIVIERE-DU-LOUP",
+          "DESTINATION_DEPOT_ID": 18,
+          "UNIQUE_PARCELS": 79,
+          "RANK": 15,
+          "SHARE": 0.009472,
+          "CUMULATIVE_SHARE": 0.969065
+        },
+        {
+          "DESTINATION_DEPOT": "RIMOUSKI",
+          "DESTINATION_DEPOT_ID": 5,
+          "UNIQUE_PARCELS": 68,
+          "RANK": 16,
+          "SHARE": 0.008153,
+          "CUMULATIVE_SHARE": 0.977218
+        },
+        {
+          "DESTINATION_DEPOT": "VAL D'OR",
+          "DESTINATION_DEPOT_ID": 6,
+          "UNIQUE_PARCELS": 56,
+          "RANK": 17,
+          "SHARE": 0.006715,
+          "CUMULATIVE_SHARE": 0.983933
+        },
+        {
+          "DESTINATION_DEPOT": "PORT HOPE",
+          "DESTINATION_DEPOT_ID": 15,
+          "UNIQUE_PARCELS": 44,
+          "RANK": 18,
+          "SHARE": 0.005276,
+          "CUMULATIVE_SHARE": 0.989209
+        },
+        {
+          "DESTINATION_DEPOT": "KINGSTON",
+          "DESTINATION_DEPOT_ID": 14,
+          "UNIQUE_PARCELS": 41,
+          "RANK": 19,
+          "SHARE": 0.004916,
+          "CUMULATIVE_SHARE": 0.994125
+        },
+        {
+          "DESTINATION_DEPOT": "LONDON",
+          "DESTINATION_DEPOT_ID": 31,
+          "UNIQUE_PARCELS": 16,
+          "RANK": 20,
+          "SHARE": 0.001918,
+          "CUMULATIVE_SHARE": 0.996043
+        },
+        {
+          "DESTINATION_DEPOT": "SEPT-ÎLES",
+          "DESTINATION_DEPOT_ID": 24,
+          "UNIQUE_PARCELS": 11,
+          "RANK": 21,
+          "SHARE": 0.001319,
+          "CUMULATIVE_SHARE": 0.997362
+        },
+        {
+          "DESTINATION_DEPOT": "MONT-LAURIER",
+          "DESTINATION_DEPOT_ID": 7,
+          "UNIQUE_PARCELS": 10,
+          "RANK": 22,
+          "SHARE": 0.001199,
+          "CUMULATIVE_SHARE": 0.998561
+        },
+        {
+          "DESTINATION_DEPOT": "NON RENSEIGNÉ",
+          "DESTINATION_DEPOT_ID": null,
+          "UNIQUE_PARCELS": 7,
+          "RANK": 23,
+          "SHARE": 0.000839,
+          "CUMULATIVE_SHARE": 0.9994
+        },
+        {
+          "DESTINATION_DEPOT": "CHATHAM",
+          "DESTINATION_DEPOT_ID": 23,
+          "UNIQUE_PARCELS": 5,
+          "RANK": 24,
+          "SHARE": 0.0006,
+          "CUMULATIVE_SHARE": 1.0
+        }
+      ],
+      "top_destinations": [
+        {
+          "DESTINATION_DEPOT": "ST-HUBERT",
+          "DESTINATION_DEPOT_ID": 1,
+          "UNIQUE_PARCELS": 1765,
+          "RANK": 1,
+          "SHARE": 0.211631,
+          "CUMULATIVE_SHARE": 0.211631
+        },
+        {
+          "DESTINATION_DEPOT": "MONTREAL GILMORE",
+          "DESTINATION_DEPOT_ID": 28,
+          "UNIQUE_PARCELS": 1697,
+          "RANK": 2,
+          "SHARE": 0.203477,
+          "CUMULATIVE_SHARE": 0.415108
+        },
+        {
+          "DESTINATION_DEPOT": "QUEBEC",
+          "DESTINATION_DEPOT_ID": 2,
+          "UNIQUE_PARCELS": 1097,
+          "RANK": 3,
+          "SHARE": 0.131535,
+          "CUMULATIVE_SHARE": 0.546643
+        },
+        {
+          "DESTINATION_DEPOT": "BLAINVILLE",
+          "DESTINATION_DEPOT_ID": 13,
+          "UNIQUE_PARCELS": 1009,
+          "RANK": 4,
+          "SHARE": 0.120983,
+          "CUMULATIVE_SHARE": 0.667626
+        },
+        {
+          "DESTINATION_DEPOT": "TORONTO",
+          "DESTINATION_DEPOT_ID": 12,
+          "UNIQUE_PARCELS": 567,
+          "RANK": 5,
+          "SHARE": 0.067986,
+          "CUMULATIVE_SHARE": 0.735612
+        },
+        {
+          "DESTINATION_DEPOT": "OTTAWA",
+          "DESTINATION_DEPOT_ID": 20,
+          "UNIQUE_PARCELS": 363,
+          "RANK": 6,
+          "SHARE": 0.043525,
+          "CUMULATIVE_SHARE": 0.779137
+        },
+        {
+          "DESTINATION_DEPOT": "DRUMMONDVILLE",
+          "DESTINATION_DEPOT_ID": 10,
+          "UNIQUE_PARCELS": 355,
+          "RANK": 7,
+          "SHARE": 0.042566,
+          "CUMULATIVE_SHARE": 0.821703
+        },
+        {
+          "DESTINATION_DEPOT": "SHERBROOKE",
+          "DESTINATION_DEPOT_ID": 3,
+          "UNIQUE_PARCELS": 254,
+          "RANK": 8,
+          "SHARE": 0.030456,
+          "CUMULATIVE_SHARE": 0.852158
+        },
+        {
+          "DESTINATION_DEPOT": "CHICOUTIMI",
+          "DESTINATION_DEPOT_ID": 8,
+          "UNIQUE_PARCELS": 204,
+          "RANK": 9,
+          "SHARE": 0.02446,
+          "CUMULATIVE_SHARE": 0.876619
+        },
+        {
+          "DESTINATION_DEPOT": "TROIS-RIVIERES",
+          "DESTINATION_DEPOT_ID": 9,
+          "UNIQUE_PARCELS": 189,
+          "RANK": 10,
+          "SHARE": 0.022662,
+          "CUMULATIVE_SHARE": 0.899281
+        }
+      ],
+      "top_chutes": [
+        {
+          "LINE_ID": 0,
+          "CHUTE_NO": 39,
+          "ROUTING_EVENTS": 601,
+          "UNIQUE_PARCELS": 599,
+          "RANK": 1,
+          "LINE_CHUTE": "L0 · chute 39",
+          "EVENT_SHARE": 0.063071
+        },
+        {
+          "LINE_ID": 3,
+          "CHUTE_NO": 5,
+          "ROUTING_EVENTS": 502,
+          "UNIQUE_PARCELS": 468,
+          "RANK": 2,
+          "LINE_CHUTE": "L3 · chute 5",
+          "EVENT_SHARE": 0.052681
+        },
+        {
+          "LINE_ID": 0,
+          "CHUTE_NO": 38,
+          "ROUTING_EVENTS": 501,
+          "UNIQUE_PARCELS": 498,
+          "RANK": 3,
+          "LINE_CHUTE": "L0 · chute 38",
+          "EVENT_SHARE": 0.052576
+        },
+        {
+          "LINE_ID": 1,
+          "CHUTE_NO": 38,
+          "ROUTING_EVENTS": 448,
+          "UNIQUE_PARCELS": 440,
+          "RANK": 4,
+          "LINE_CHUTE": "L1 · chute 38",
+          "EVENT_SHARE": 0.047014
+        },
+        {
+          "LINE_ID": 1,
+          "CHUTE_NO": 39,
+          "ROUTING_EVENTS": 433,
+          "UNIQUE_PARCELS": 420,
+          "RANK": 5,
+          "LINE_CHUTE": "L1 · chute 39",
+          "EVENT_SHARE": 0.04544
+        },
+        {
+          "LINE_ID": 1,
+          "CHUTE_NO": 1,
+          "ROUTING_EVENTS": 335,
+          "UNIQUE_PARCELS": 283,
+          "RANK": 6,
+          "LINE_CHUTE": "L1 · chute 1",
+          "EVENT_SHARE": 0.035156
+        },
+        {
+          "LINE_ID": 1,
+          "CHUTE_NO": 3,
+          "ROUTING_EVENTS": 314,
+          "UNIQUE_PARCELS": 246,
+          "RANK": 7,
+          "LINE_CHUTE": "L1 · chute 3",
+          "EVENT_SHARE": 0.032952
+        },
+        {
+          "LINE_ID": 0,
+          "CHUTE_NO": 1,
+          "ROUTING_EVENTS": 293,
+          "UNIQUE_PARCELS": 292,
+          "RANK": 8,
+          "LINE_CHUTE": "L0 · chute 1",
+          "EVENT_SHARE": 0.030748
+        },
+        {
+          "LINE_ID": 1,
+          "CHUTE_NO": 11,
+          "ROUTING_EVENTS": 259,
+          "UNIQUE_PARCELS": 144,
+          "RANK": 9,
+          "LINE_CHUTE": "L1 · chute 11",
+          "EVENT_SHARE": 0.02718
+        },
+        {
+          "LINE_ID": 3,
+          "CHUTE_NO": 9,
+          "ROUTING_EVENTS": 239,
+          "UNIQUE_PARCELS": 219,
+          "RANK": 10,
+          "LINE_CHUTE": "L3 · chute 9",
+          "EVENT_SHARE": 0.025081
+        },
+        {
+          "LINE_ID": 1,
+          "CHUTE_NO": 25,
+          "ROUTING_EVENTS": 230,
+          "UNIQUE_PARCELS": 184,
+          "RANK": 11,
+          "LINE_CHUTE": "L1 · chute 25",
+          "EVENT_SHARE": 0.024137
+        },
+        {
+          "LINE_ID": 1,
+          "CHUTE_NO": 40,
+          "ROUTING_EVENTS": 204,
+          "UNIQUE_PARCELS": 190,
+          "RANK": 12,
+          "LINE_CHUTE": "L1 · chute 40",
+          "EVENT_SHARE": 0.021408
+        }
+      ],
+      "scan_reconciliation": [
+        {
+          "LINE_ID": "0",
+          "RAW_SCAN_ROWS": 3426,
+          "READABLE_SCAN_ROWS": 3242,
+          "UNIQUE_READABLE_PARCELS": 3226,
+          "UNREADABLE_SCAN_ROWS": 184,
+          "EXTRA_READABLE_SCANS": 16
+        },
+        {
+          "LINE_ID": "1",
+          "RAW_SCAN_ROWS": 4799,
+          "READABLE_SCAN_ROWS": 4241,
+          "UNIQUE_READABLE_PARCELS": 3669,
+          "UNREADABLE_SCAN_ROWS": 558,
+          "EXTRA_READABLE_SCANS": 572
+        },
+        {
+          "LINE_ID": "3",
+          "RAW_SCAN_ROWS": 2105,
+          "READABLE_SCAN_ROWS": 2051,
+          "UNIQUE_READABLE_PARCELS": 1865,
+          "UNREADABLE_SCAN_ROWS": 54,
+          "EXTRA_READABLE_SCANS": 186
+        },
+        {
+          "LINE_ID": "TOTAL",
+          "RAW_SCAN_ROWS": 10330,
+          "READABLE_SCAN_ROWS": 9534,
+          "UNIQUE_READABLE_PARCELS": 8342,
+          "UNREADABLE_SCAN_ROWS": 796,
+          "EXTRA_READABLE_SCANS": 1192
+        }
+      ],
+      "manual_exceptions": [
+        {
+          "SOURCE_TYPE": 201,
+          "SOURCE_TYPE_FR": "NCV",
+          "EVENT_COUNT": 113,
+          "UNIQUE_PARCELS": 109
+        },
+        {
+          "SOURCE_TYPE": 204,
+          "SOURCE_TYPE_FR": "AUTRE/IMCOMP",
+          "EVENT_COUNT": 58,
+          "UNIQUE_PARCELS": 56
+        },
+        {
+          "SOURCE_TYPE": 205,
+          "SOURCE_TYPE_FR": "NCV POIDS MANUEL",
+          "EVENT_COUNT": 1,
+          "UNIQUE_PARCELS": 1
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "src_status",
+      "label": "Compteurs officiels du convoyeur — St-Hubert",
+      "query": {
+        "engine": "MySQL 8.4",
+        "language": "SQL",
+        "executed_at": "2026-07-16T20:18:13.105481+00:00",
+        "description": "Totaux et taux des cinq dimanches, agrégés à partir du statut final de chaque ligne.",
+        "tables_used": [
+          "nationex.conveyor_status"
+        ],
+        "filters": [
+          "DEPOT_ID = 1 (ST-HUBERT)",
+          "Dimanches du 14 juin au 12 juillet 2026",
+          "Une ligne finale par date de tri et ligne de convoyeur"
+        ],
+        "metric_definitions": [
+          "Passages = somme de nb_parcel sur les lignes 0, 1 et 3.",
+          "Taux de rejet = somme(nb_rejected) / somme(nb_parcel).",
+          "Taux de non-lecture = somme(nb_noread) / somme(nb_parcel).",
+          "Taux d'erreur de balance = somme(nb_scale_error) / somme(nb_parcel).",
+          "Repère précédent = taux pondéré par les passages des quatre dimanches antérieurs."
+        ],
+        "sql": "SELECT\n    DATE(cs.sort_date) AS SORT_DATE,\n    SUM(cs.nb_parcel) AS PARCELS,\n    SUM(cs.nb_noread) AS NOREAD,\n    ROUND(100.0 * SUM(cs.nb_noread) / NULLIF(SUM(cs.nb_parcel), 0), 2) AS NOREAD_RATE_PCT,\n    SUM(cs.nb_rejected) AS REJECTED,\n    ROUND(100.0 * SUM(cs.nb_rejected) / NULLIF(SUM(cs.nb_parcel), 0), 2) AS REJECT_RATE_PCT,\n    SUM(cs.nb_dimensioner_error) AS DIMENSION_ERRORS,\n    ROUND(100.0 * SUM(cs.nb_dimensioner_error) / NULLIF(SUM(cs.nb_parcel), 0), 2) AS DIMENSION_ERROR_RATE_PCT,\n    SUM(cs.nb_scale_error) AS SCALE_ERRORS,\n    ROUND(100.0 * SUM(cs.nb_scale_error) / NULLIF(SUM(cs.nb_parcel), 0), 2) AS SCALE_ERROR_RATE_PCT\nFROM conveyor_status AS cs\nWHERE cs.depot_id = 1\n  AND cs.sort_date >= '2026-06-14'\n  AND cs.sort_date <= '2026-07-12'\n  AND DAYOFWEEK(cs.sort_date) = 1\nGROUP BY DATE(cs.sort_date)\nORDER BY SORT_DATE;"
+      }
+    },
+    {
+      "id": "src_hourly",
+      "label": "Historique brut horaire — lignes principales",
+      "query": {
+        "engine": "MySQL 8.4",
+        "language": "SQL",
+        "executed_at": "2026-07-16T20:18:13.105481+00:00",
+        "description": "Scans bruts par heure et par ligne pendant la fenêtre opérationnelle.",
+        "tables_used": [
+          "nationex.parcel_scan_history"
+        ],
+        "filters": [
+          "DEPOT_ID = 1",
+          "LINE_ID IN (0, 1, 3)",
+          "Du 12 juillet 2026 à 17 h au 13 juillet 2026 à 8 h, heure EDT"
+        ],
+        "metric_definitions": [
+          "Scans bruts = nombre de lignes de parcel_scan_history.",
+          "Colis lisibles uniques = nombre distinct de parcel_id non nul et non zéro."
+        ],
+        "sql": "SELECT\n    DATE_FORMAT(psh.date_insert, '%Y-%m-%d %H:00:00') AS EVENT_HOUR,\n    CAST(psh.line_id AS CHAR) AS LINE_ID,\n    COUNT(*) AS SCAN_ROWS,\n    SUM(psh.parcel_id IS NOT NULL AND psh.parcel_id <> 0) AS READABLE_SCAN_ROWS,\n    COUNT(DISTINCT NULLIF(psh.parcel_id, 0)) AS UNIQUE_READABLE_PARCELS,\n    SUM(psh.parcel_id IS NULL OR psh.parcel_id = 0) AS UNREADABLE_SCAN_ROWS\nFROM parcel_scan_history AS psh\nWHERE psh.depot_id = 1\n  AND psh.line_id IN (0, 1, 3)\n  AND psh.date_insert >= '2026-07-12 17:00:00'\n  AND psh.date_insert <  '2026-07-13 08:00:00'\nGROUP BY EVENT_HOUR, psh.line_id\nORDER BY EVENT_HOUR, psh.line_id;"
+      }
+    },
+    {
+      "id": "src_line",
+      "label": "Qualité par ligne — 12 juillet 2026",
+      "query": {
+        "engine": "MySQL 8.4",
+        "language": "SQL",
+        "executed_at": "2026-07-16T20:18:13.105481+00:00",
+        "description": "Compteurs et taux finaux de chaque ligne du convoyeur de St-Hubert.",
+        "tables_used": [
+          "nationex.conveyor_status"
+        ],
+        "filters": [
+          "DEPOT_ID = 1",
+          "SORT_DATE = 2026-07-12"
+        ],
+        "metric_definitions": [
+          "Chaque taux de ligne utilise nb_parcel de la même ligne comme dénominateur."
+        ],
+        "sql": "SELECT\n    cs.line_id,\n    cs.nb_parcel,\n    cs.nb_noread,\n    ROUND(100.0 * cs.nb_noread / NULLIF(cs.nb_parcel, 0), 2) AS NOREAD_RATE_PCT,\n    cs.nb_rejected,\n    ROUND(100.0 * cs.nb_rejected / NULLIF(cs.nb_parcel, 0), 2) AS REJECT_RATE_PCT,\n    cs.nb_dimensioner_error,\n    ROUND(100.0 * cs.nb_dimensioner_error / NULLIF(cs.nb_parcel, 0), 2) AS DIMENSION_ERROR_RATE_PCT,\n    cs.nb_scale_error,\n    ROUND(100.0 * cs.nb_scale_error / NULLIF(cs.nb_parcel, 0), 2) AS SCALE_ERROR_RATE_PCT,\n    cs.last_update\nFROM conveyor_status AS cs\nWHERE cs.depot_id = 1\n  AND cs.sort_date = '2026-07-12'\nORDER BY cs.line_id;"
+      }
+    },
+    {
+      "id": "src_routing",
+      "label": "Événements de routage dédupliqués",
+      "query": {
+        "engine": "MySQL 8.4",
+        "language": "SQL",
+        "executed_at": "2026-07-16T20:18:13.105481+00:00",
+        "description": "Colis routés, événements multiples et passages sur plusieurs lignes ou sources.",
+        "tables_used": [
+          "nationex.parcel_history"
+        ],
+        "filters": [
+          "DEPOT_ID = 1",
+          "SOURCE_TYPE = 200 (CONVOYEUR)",
+          "Lignes ou sources principales 0, 1 et 3",
+          "Fenêtre du 12 juillet 17 h au 13 juillet 8 h, heure EDT"
+        ],
+        "metric_definitions": [
+          "Colis routés uniques = nombre distinct de PARCEL_ID ayant au moins un événement de routage.",
+          "Événements supplémentaires = somme(nombre d'événements par colis - 1)."
+        ],
+        "sql": "WITH parcel_rollup AS (\n    SELECT\n        ph.PARCEL_ID,\n        COUNT(*) AS ROUTING_EVENTS,\n        COUNT(DISTINCT COALESCE(ph.SOURCE_ID, 0)) AS DISTINCT_LINES_OR_SOURCES,\n        MIN(ph.DATE_INSERT) AS FIRST_EVENT,\n        MAX(ph.DATE_INSERT) AS LAST_EVENT\n    FROM parcel_history PARTITION (p2026) AS ph\n    WHERE ph.DATE_INSERT >= '2026-07-12 17:00:00'\n      AND ph.DATE_INSERT <  '2026-07-13 08:00:00'\n      AND ph.DEPOT_ID = 1\n      AND ph.SOURCE_TYPE = 200\n      AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1, 3))\n      AND ph.PARCEL_ID IS NOT NULL\n    GROUP BY ph.PARCEL_ID\n)\nSELECT\n    COUNT(*) AS UNIQUE_ROUTED_PARCELS,\n    SUM(ROUTING_EVENTS) AS ROUTING_EVENTS,\n    SUM(ROUTING_EVENTS > 1) AS PARCELS_WITH_MULTIPLE_ROUTING_EVENTS,\n    SUM(ROUTING_EVENTS - 1) AS EXTRA_ROUTING_EVENTS,\n    ROUND(100.0 * SUM(ROUTING_EVENTS > 1) / NULLIF(COUNT(*), 0), 2) AS MULTI_EVENT_PARCEL_RATE_PCT,\n    SUM(DISTINCT_LINES_OR_SOURCES > 1) AS PARCELS_SEEN_ON_MULTIPLE_LINES_OR_SOURCES,\n    MAX(ROUTING_EVENTS) AS MAX_ROUTING_EVENTS_FOR_ONE_PARCEL\nFROM parcel_rollup;"
+      }
+    },
+    {
+      "id": "src_destinations",
+      "label": "Destinations dérivées des colis routés",
+      "query": {
+        "engine": "MySQL 8.4",
+        "language": "SQL",
+        "executed_at": "2026-07-16T20:18:13.105481+00:00",
+        "description": "Dépôt de destination dérivé de l'expédition et de la table de localisation postale.",
+        "tables_used": [
+          "nationex.parcel_history",
+          "nationex.shipment",
+          "nationex.location",
+          "nationex.depot"
+        ],
+        "filters": [
+          "Même population de colis routés uniques que src_routing",
+          "Jointure shipment par (SHIPPING_ID, EXP_DATE)",
+          "Jointure location par code postal normalisé"
+        ],
+        "metric_definitions": [
+          "Un colis est attribué à la destination du dernier événement de routage de la fenêtre.",
+          "Couverture = 8 333 colis renseignés sur 8 340; 7 restent non renseignés."
+        ],
+        "sql": "WITH ranked_events AS (\n    SELECT\n        ph.PARCEL_ID,\n        ph.SHIPPING_ID,\n        ph.EXP_DATE,\n        ROW_NUMBER() OVER (\n            PARTITION BY ph.PARCEL_ID\n            ORDER BY ph.DATE_INSERT DESC, ph.PARCEL_HISTORY_ID DESC\n        ) AS row_rank\n    FROM parcel_history PARTITION (p2026) AS ph\n    WHERE ph.DATE_INSERT >= '2026-07-12 17:00:00'\n      AND ph.DATE_INSERT <  '2026-07-13 08:00:00'\n      AND ph.DEPOT_ID = 1\n      AND ph.SOURCE_TYPE = 200\n      AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1, 3))\n      AND ph.PARCEL_ID IS NOT NULL\n)\nSELECT\n    COALESCE(d.DEPOTNAME, 'NON RENSEIGNÉ') AS DESTINATION_DEPOT,\n    l.DEPOTNUMBER AS DESTINATION_DEPOT_ID,\n    COUNT(*) AS UNIQUE_PARCELS\nFROM ranked_events AS re\nLEFT JOIN shipment PARTITION (p2026) AS s\n    ON s.SHIPPING_ID = re.SHIPPING_ID\n   AND s.EXP_DATE = re.EXP_DATE\nLEFT JOIN location AS l\n    ON l.LOC_POSTAL_CODE = REPLACE(UPPER(s.DEST_POSTAL_CODE), ' ', '')\nLEFT JOIN depot AS d\n    ON d.DEPOTNUMBER = l.DEPOTNUMBER\nWHERE re.row_rank = 1\nGROUP BY COALESCE(d.DEPOTNAME, 'NON RENSEIGNÉ'), l.DEPOTNUMBER\nORDER BY UNIQUE_PARCELS DESC;"
+      }
+    },
+    {
+      "id": "src_chutes",
+      "label": "Principales combinaisons ligne-chute",
+      "query": {
+        "engine": "MySQL 8.4",
+        "language": "SQL",
+        "executed_at": "2026-07-16T20:18:13.105481+00:00",
+        "description": "Les douze combinaisons ligne-chute ayant le plus d'événements de routage.",
+        "tables_used": [
+          "nationex.parcel_history"
+        ],
+        "filters": [
+          "Même fenêtre et même population d'événements de routage que src_routing",
+          "Limite aux 12 combinaisons ayant le plus d'événements"
+        ],
+        "metric_definitions": [
+          "Part des événements = événements de la combinaison / 9 529 événements de routage."
+        ],
+        "sql": "SELECT\n    COALESCE(ph.SOURCE_ID, 0) AS LINE_ID,\n    ph.CHUTE_NO,\n    COUNT(*) AS ROUTING_EVENTS,\n    COUNT(DISTINCT ph.PARCEL_ID) AS UNIQUE_PARCELS\nFROM parcel_history PARTITION (p2026) AS ph\nWHERE ph.DATE_INSERT >= '2026-07-12 17:00:00'\n  AND ph.DATE_INSERT <  '2026-07-13 08:00:00'\n  AND ph.DEPOT_ID = 1\n  AND ph.SOURCE_TYPE = 200\n  AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1, 3))\nGROUP BY COALESCE(ph.SOURCE_ID, 0), ph.CHUTE_NO\nORDER BY ROUTING_EVENTS DESC\nLIMIT 12;"
+      }
+    }
+  ]
+}

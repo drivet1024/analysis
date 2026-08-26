@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Analyse des colis passant sur les convoyeurs Nationex.">
+  <title>Nationex — Analyse convoyeurs</title>
+  <link rel="stylesheet" href="/styles.css?v=20260717-v2">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Nationex · Opérations</p>
+        <h1>Analyse des convoyeurs</h1>
+        <p class="lede">Suivez les passages, les recirculations et les problèmes de mesure, puis identifiez les clients à vérifier.</p>
+      </div>
+      <div class="status-stack" aria-label="État des connexions">
+        <span id="db-status" class="status status-waiting">Base de données…</span>
+        <span id="scope-status" class="status status-waiting">Chargement…</span>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Sections du dashboard">
+      <button class="tab is-active" type="button" data-tab="daily">Analyse quotidienne</button>
+      <button class="tab" type="button" data-tab="customers">Analyse clients</button>
+    </nav>
+
+    <section class="control-panel" aria-labelledby="filters-title">
+      <div>
+        <p class="section-kicker">Périmètre</p>
+        <h2 id="filters-title">Choisir la journée opérationnelle</h2>
+      </div>
+      <label>Date opérationnelle<input id="analysis-date" type="date"></label>
+      <label>Convoyeur
+        <select id="conveyor">
+          <option value="st-hubert">St-Hubert — haut et sol</option>
+          <option value="sth-top">St-Hubert — haut</option>
+          <option value="sth-floor">St-Hubert — sol</option>
+          <option value="quebec">Québec</option>
+          <option value="toronto">Toronto</option>
+          <option value="gilmore">Gilmore</option>
+          <option value="all">Tous les convoyeurs</option>
+        </select>
+      </label>
+      <button id="refresh" class="button button-primary" type="button">Actualiser</button>
+    </section>
+
+    <div id="error" class="error-banner" hidden></div>
+
+    <div id="daily-page" class="page is-active">
+      <section aria-labelledby="overview-title">
+        <div class="section-heading">
+          <div><p class="section-kicker">Vue d’ensemble</p><h2 id="overview-title">KPI par convoyeur</h2></div>
+          <p>Les pourcentages utilisent les colis uniques du convoyeur comme dénominateur.</p>
+        </div>
+        <div id="metric-groups" class="metric-groups" aria-live="polite"></div>
+      </section>
+
+      <section class="chart-panel" aria-labelledby="hourly-title">
+        <div class="section-heading">
+          <div><p class="section-kicker">Débit</p><h2 id="hourly-title">Passages par heure opérationnelle</h2></div>
+          <p id="hourly-subtitle">Nombre de lignes de passage enregistrées.</p>
+        </div>
+        <div id="hourly-legend" class="legend"></div>
+        <div class="canvas-wrap"><canvas id="hourly-chart" role="img" aria-label="Passages par heure et par convoyeur"></canvas></div>
+      </section>
+
+      <section class="chart-panel" aria-labelledby="repeat-hour-title">
+        <div class="section-heading">
+          <div><p class="section-kicker">Moment du problème</p><h2 id="repeat-hour-title">Première répétition de la même chute par heure</h2></div>
+          <p>Nombre de colis à l’heure de leur premier passage qui répète une chute non‑98.</p>
+        </div>
+        <div id="repeat-peaks" class="repeat-peaks" aria-live="polite"></div>
+        <div id="repeat-legend" class="legend"></div>
+        <div class="canvas-wrap"><canvas id="repeat-chart" role="img" aria-label="Colis dont une même chute est répétée, selon l’heure où la répétition survient"></canvas></div>
+      </section>
+
+      <section aria-labelledby="weight-title">
+        <div class="section-heading">
+          <div><p class="section-kicker">Profil physique</p><h2 id="weight-title">Distribution du dernier poids valide</h2></div>
+          <p>Catégories exclusives; les colis sans aucun poids valide ne sont pas répartis.</p>
+        </div>
+        <div id="weight-grid" class="weight-grid"></div>
+      </section>
+
+      <section aria-labelledby="daily-table-title">
+        <div class="section-heading">
+          <div><p class="section-kicker">Lecture exacte</p><h2 id="daily-table-title">Résumé quotidien</h2></div>
+        </div>
+        <div class="table-wrap">
+          <table class="daily-table">
+            <thead><tr><th>Convoyeur</th><th>Colis uniques</th><th>Passages</th><th>Recirculés</th><th>Chute 98</th><th>Même chute répétée</th><th>Sans poids</th><th>Sans dimensions</th></tr></thead>
+            <tbody id="daily-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div id="customers-page" class="page">
+      <section class="customer-panel" aria-labelledby="customers-title">
+        <div class="section-heading customer-heading">
+          <div>
+            <p class="section-kicker">Diagnostic client</p>
+            <h2 id="customers-title">Clients associés aux problèmes de convoyeur</h2>
+            <p class="section-note">Le taux d’impact global compare les colis problématiques au volume total donné à Nationex. Les taux techniques utilisent seulement les colis passés sur le convoyeur.</p>
+          </div>
+        </div>
+        <div class="customer-filters">
+          <label>Volume total minimum<input id="min-volume" type="number" min="1" value="100"></label>
+          <label>Trier par
+            <select id="customer-sort"><option value="problemRate">Taux problème / total</option><option value="count">Nombre de problèmes</option><option value="volume">Volume total</option><option value="recirculation">Taux recirculation</option><option value="noWeight">Taux sans poids</option><option value="noDimensions">Taux sans dimensions</option></select>
+          </label>
+          <label>Client<input id="customer-search" type="search" placeholder="Nom ou numéro"></label>
+          <button id="load-customers" class="button button-primary" type="button">Analyser les clients</button>
+        </div>
+        <div id="customer-summary" class="customer-summary"></div>
+        <div class="customer-chart-card">
+          <h3>Clients prioritaires — taux de problèmes sur le volume total</h3>
+          <p>Top 10 selon le filtre et le tri choisis; le volume total demeure visible dans le tableau.</p>
+          <div class="customer-canvas-wrap"><canvas id="customer-chart" role="img" aria-label="Classement des clients problématiques"></canvas></div>
+        </div>
+        <div class="table-wrap customer-table-wrap">
+          <table class="customer-table">
+            <thead><tr><th>Client</th><th>Volume total</th><th>Sur convoyeur</th><th>Problèmes / total</th><th>Problèmes / convoyeur</th><th>Recirculés</th><th>Chute 98</th><th>Même chute</th><th>Sans poids</th><th>Sans dimensions</th><th>&lt; 1 lb</th><th>Très petit format</th><th>Format atypique</th><th>Détail</th></tr></thead>
+            <tbody id="customer-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="exception-panel" aria-labelledby="exception-title">
+        <div class="section-heading">
+          <div><p class="section-kicker">Signal aval</p><h2 id="exception-title">Exception 25 — sept jours complets</h2></div>
+          <button id="load-exception" class="button button-secondary" type="button">Calculer la corrélation</button>
+        </div>
+        <div id="exception-content" class="empty-state">Le calcul est lancé sur demande afin de ne pas alourdir l’analyse quotidienne.</div>
+      </section>
+
+      <section class="analysis-panel" aria-labelledby="ai-title">
+        <div class="analysis-heading">
+          <div><p class="section-kicker">Analyse assistée</p><h2 id="ai-title">Lecture OpenAI des problèmes clients</h2><p>Seuls les agrégats sont transmis. Aucun numéro de colis n'est envoyé et les clients sont anonymisés pendant l'appel.</p></div>
+          <button id="analyze-ai" class="button button-ai" type="button">Analyser les résultats</button>
+        </div>
+        <div id="ai-output" class="analysis-output">Chargez le classement client, puis lancez l'analyse.</div>
+      </section>
+    </div>
+
+    <section class="definitions" aria-labelledby="definitions-title">
+      <h2 id="definitions-title">Définitions appliquées</h2>
+      <dl>
+        <div><dt>Recirculé</dt><dd>Colis ayant plus d’un passage sur le même convoyeur pendant la journée opérationnelle.</dd></div>
+        <div><dt>Sans poids</dt><dd>Colis dont au moins un passage contient un poids NULL, nul ou négatif. Compté une seule fois.</dd></div>
+        <div><dt>Sans dimensions</dt><dd>Colis dont au moins un passage contient une longueur, largeur ou hauteur NULL, nulle ou négative. Compté une seule fois.</dd></div>
+        <div><dt>Même chute répétée</dt><dd>Au moins deux passages vers la même chute, en excluant la chute 98.</dd></div>
+        <div><dt>Gilmore</dt><dd>Poids, dimensions et catégories physiques non applicables et exclus des taux.</dd></div>
+        <div><dt>Source</dt><dd><code>parcel_history</code>, exception 903 et source type 200. Les postes manuels 201xx sont exclus par la cartographie des sources.</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <dialog id="detail-dialog">
+    <div class="dialog-header"><div><p class="section-kicker">Colis concernés</p><h2 id="detail-title">Détail</h2></div><button id="close-detail" class="icon-button" type="button" aria-label="Fermer">×</button></div>
+    <p id="detail-summary" class="section-note"></p>
+    <div class="table-wrap"><table class="detail-table"><thead><tr><th>Colis</th><th>Client</th><th>Convoyeur</th><th>Passages</th><th>Premier</th><th>Dernier</th><th>Chutes</th><th>Poids valide</th><th>Dimensions valides</th></tr></thead><tbody id="detail-body"></tbody></table></div>
+  </dialog>
+
+  <script src="/app.js?v=20260717-v2" defer></script>
+</body>
+</html>

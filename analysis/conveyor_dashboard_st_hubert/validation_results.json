@@ -1,0 +1,90 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "name": "groupes attendus",
+      "status": "pass",
+      "detail": "groupes=['Haut', 'Sol']"
+    },
+    {
+      "name": "dates préchargées",
+      "status": "pass",
+      "detail": "dates=38"
+    },
+    {
+      "name": "total officiel",
+      "status": "pass",
+      "detail": "total=10350"
+    },
+    {
+      "name": "total brut",
+      "status": "pass",
+      "detail": "total=10330"
+    },
+    {
+      "name": "bornes métriques Haut",
+      "status": "pass",
+      "detail": "uniques=6482"
+    },
+    {
+      "name": "recalcul indépendant Haut",
+      "status": "pass",
+      "detail": "sommaire=715; contrôle=715"
+    },
+    {
+      "name": "bornes métriques Sol",
+      "status": "pass",
+      "detail": "uniques=1865"
+    },
+    {
+      "name": "recalcul indépendant Sol",
+      "status": "pass",
+      "detail": "sommaire=164; contrôle=164"
+    },
+    {
+      "name": "grille horaire complète",
+      "status": "pass",
+      "detail": "lignes=30, heures=15"
+    },
+    {
+      "name": "réconciliation horaire Haut",
+      "status": "pass",
+      "detail": "horaire=8225; sommaire=8225"
+    },
+    {
+      "name": "réconciliation horaire Sol",
+      "status": "pass",
+      "detail": "horaire=2105; sommaire=2105"
+    },
+    {
+      "name": "sélecteur de date",
+      "status": "pass",
+      "detail": "filtre global sur summary, summary_haut, summary_sol et hourly"
+    },
+    {
+      "name": "cartes demandées",
+      "status": "pass",
+      "detail": "cartes=8"
+    },
+    {
+      "name": "graphique horaire",
+      "status": "pass",
+      "detail": "1 graphique"
+    },
+    {
+      "name": "sources liées",
+      "status": "pass",
+      "detail": "références=['src_hourly', 'src_summary']"
+    },
+    {
+      "name": "HTML généré",
+      "status": "pass",
+      "detail": "taille=507677"
+    },
+    {
+      "name": "aucun secret de connexion",
+      "status": "pass",
+      "detail": "hôte, utilisateur et mot de passe absents"
+    }
+  ]
+}

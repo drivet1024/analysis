@@ -1,0 +1,74 @@
+[
+  {
+    "LINE_ID": 0,
+    "CHUTE_NO": 39,
+    "ROUTING_EVENTS": 601,
+    "UNIQUE_PARCELS": 599
+  },
+  {
+    "LINE_ID": 3,
+    "CHUTE_NO": 5,
+    "ROUTING_EVENTS": 502,
+    "UNIQUE_PARCELS": 468
+  },
+  {
+    "LINE_ID": 0,
+    "CHUTE_NO": 38,
+    "ROUTING_EVENTS": 501,
+    "UNIQUE_PARCELS": 498
+  },
+  {
+    "LINE_ID": 1,
+    "CHUTE_NO": 38,
+    "ROUTING_EVENTS": 448,
+    "UNIQUE_PARCELS": 440
+  },
+  {
+    "LINE_ID": 1,
+    "CHUTE_NO": 39,
+    "ROUTING_EVENTS": 433,
+    "UNIQUE_PARCELS": 420
+  },
+  {
+    "LINE_ID": 1,
+    "CHUTE_NO": 1,
+    "ROUTING_EVENTS": 335,
+    "UNIQUE_PARCELS": 283
+  },
+  {
+    "LINE_ID": 1,
+    "CHUTE_NO": 3,
+    "ROUTING_EVENTS": 314,
+    "UNIQUE_PARCELS": 246
+  },
+  {
+    "LINE_ID": 0,
+    "CHUTE_NO": 1,
+    "ROUTING_EVENTS": 293,
+    "UNIQUE_PARCELS": 292
+  },
+  {
+    "LINE_ID": 1,
+    "CHUTE_NO": 11,
+    "ROUTING_EVENTS": 259,
+    "UNIQUE_PARCELS": 144
+  },
+  {
+    "LINE_ID": 3,
+    "CHUTE_NO": 9,
+    "ROUTING_EVENTS": 239,
+    "UNIQUE_PARCELS": 219
+  },
+  {
+    "LINE_ID": 1,
+    "CHUTE_NO": 25,
+    "ROUTING_EVENTS": 230,
+    "UNIQUE_PARCELS": 184
+  },
+  {
+    "LINE_ID": 1,
+    "CHUTE_NO": 40,
+    "ROUTING_EVENTS": 204,
+    "UNIQUE_PARCELS": 190
+  }
+]

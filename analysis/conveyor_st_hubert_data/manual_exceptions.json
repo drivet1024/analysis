@@ -1,0 +1,20 @@
+[
+  {
+    "SOURCE_TYPE": 201,
+    "SOURCE_TYPE_FR": "NCV",
+    "EVENT_COUNT": 113,
+    "UNIQUE_PARCELS": 109
+  },
+  {
+    "SOURCE_TYPE": 204,
+    "SOURCE_TYPE_FR": "AUTRE/IMCOMP",
+    "EVENT_COUNT": 58,
+    "UNIQUE_PARCELS": 56
+  },
+  {
+    "SOURCE_TYPE": 205,
+    "SOURCE_TYPE_FR": "NCV POIDS MANUEL",
+    "EVENT_COUNT": 1,
+    "UNIQUE_PARCELS": 1
+  }
+]
