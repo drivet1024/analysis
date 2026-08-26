@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analyse pickups - 30 derniers jours</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root { color-scheme: light; --ink: #17212b; --muted: #687684; --line: #d9e1e8; --blue: #1769aa; --teal: #008f8c; --orange: #e67e22; --paper: #f4f7f9; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, 'Times New Roman', serif; }
+    main { max-width: 1440px; margin: 0 auto; padding: 36px 28px 52px; }
+    header { display: flex; justify-content: space-between; gap: 24px; align-items: end; border-bottom: 3px solid var(--ink); padding-bottom: 18px; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 52px); line-height: 1; letter-spacing: 0; }
+    .subtitle { color: var(--muted); margin: 10px 0 0; }
+    .period { color: var(--teal); font-weight: bold; white-space: nowrap; }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 22px 0; }
+    .stat { background: white; border: 1px solid var(--line); padding: 17px; }
+    .stat strong { display: block; font-size: 28px; line-height: 1.1; color: var(--blue); }
+    .stat span { color: var(--muted); }
+    .chart-panel { background: white; border: 1px solid var(--line); padding: 20px; margin-top: 18px; }
+    .chart-panel h2 { margin: 0 0 4px; font-size: 22px; }
+    .chart-panel p { color: var(--muted); margin: 0 0 16px; }
+    .toolbar { display: flex; gap: 10px; align-items: center; margin: 14px 0; }
+    select, input { border: 1px solid var(--line); padding: 9px 10px; background: white; color: var(--ink); font: inherit; }
+    input { min-width: 260px; }
+    .chart-wrap { position: relative; height: 620px; }
+    .chart-wrap.compact { height: 420px; }
+    .note { border-left: 4px solid var(--orange); padding: 10px 14px; background: #fff8ef; margin-top: 18px; color: #68431f; }
+    .table-wrap { overflow-x: auto; max-height: 520px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-family: system-ui, sans-serif; font-size: 13px; }
+    th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th { position: sticky; top: 0; background: var(--ink); color: white; }
+    @media (max-width: 800px) { main { padding: 24px 14px 40px; } header { display: block; } .period { display: block; margin-top: 16px; } .summary { grid-template-columns: repeat(2, 1fr); } .chart-wrap { height: 780px; } .chart-wrap.compact { height: 420px; } }
+    @media (max-width: 430px) { .summary { grid-template-columns: 1fr 1fr; gap: 8px; } .stat { padding: 12px; } .stat strong { font-size: 22px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>Petits volumes de pickup</h1><p class="subtitle">Journées à 100 colis ou moins, regroupées par client</p></div>
+    <div class="period">27 juillet - 25 août 2026</div>
+  </header>
+  <section class="summary" aria-label="Résumé">
+    <div class="stat"><strong id="clients">-</strong><span>clients</span></div>
+    <div class="stat"><strong id="global-rate">-</strong><span>des journées sous le seuil</span></div>
+    <div class="stat"><strong id="pickup-days">-</strong><span>journées de pickup</span></div>
+    <div class="stat"><strong id="low-days">-</strong><span>journées à 100 colis ou moins</span></div>
+  </section>
+  <section class="chart-panel">
+    <h2>Pourcentage de journées à 100 colis ou moins</h2>
+    <p>Vue courte pour garder les noms lisibles. Utilise le filtre pour changer le groupe affiché.</p>
+    <div class="toolbar"><label for="rate-filter">Afficher</label><select id="rate-filter"><option value="top">Top 20 clients</option><option value="full">Tous les clients</option><option value="perfect">100 % des journées</option><option value="partial">Entre 0 % et 100 %</option></select></div>
+    <div class="chart-wrap"><canvas id="rate-chart"></canvas></div>
+  </section>
+  <section class="chart-panel">
+    <h2>Répartition des clients</h2>
+    <p>Nombre de clients selon leur pourcentage de journées à 100 colis ou moins.</p>
+    <div class="chart-wrap compact"><canvas id="distribution-chart"></canvas></div>
+  </section>
+  <section class="chart-panel">
+    <h2>Détail des clients</h2>
+    <div class="toolbar"><label for="client-search">Rechercher</label><input id="client-search" type="search" placeholder="Nom ou numéro de client"></div>
+    <div class="table-wrap"><table><thead><tr><th>Client</th><th>Jours pickup</th><th>Jours <= 100</th><th>%</th><th>Moyenne colis</th><th>Maximum colis</th><th>Volume cubique moyen</th><th>Colis mesurés</th><th>Poids moyen</th><th>Colis pesés</th></tr></thead><tbody id="client-body"></tbody></table></div>
+  </section>
+  <div class="note">Le seuil est inclusif : 100 colis compte comme une journée sous le seuil. Les colis proviennent de <code>shipment.PARCEL_NB</code>; les journées sans envoi comptent comme 0.</div>
+</main>
+<script>
+const number = new Intl.NumberFormat('fr-CA');
+const percent = new Intl.NumberFormat('fr-CA', { maximumFractionDigits: 1 });
+const shortName = value => value.length > 28 ? `${value.slice(0, 25)}...` : value;
+let rows = [];
+let rateChart;
+let distributionChart;
+async function load() {
+  const response = await fetch(`last_30_days_pickups_under_100.json?v=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error('Impossible de charger les données.');
+  rows = await response.json();
+  rows.sort((a, b) => Number(b.percent_days_at_or_below_100) - Number(a.percent_days_at_or_below_100) || Number(a.max_parcels_in_one_day) - Number(b.max_parcels_in_one_day) || a.client.localeCompare(b.client));
+  const scheduled = rows.reduce((sum, row) => sum + Number(row.scheduled_pickup_days), 0);
+  const low = rows.reduce((sum, row) => sum + Number(row.days_at_or_below_100), 0);
+  document.querySelector('#clients').textContent = number.format(rows.length);
+  document.querySelector('#global-rate').textContent = `${percent.format(100 * low / scheduled)} %`;
+  document.querySelector('#pickup-days').textContent = number.format(scheduled);
+  document.querySelector('#low-days').textContent = number.format(low);
+  renderRateChart(); renderDistribution(); renderTable();
+}
+function visibleRows() {
+  const filter = document.querySelector('#rate-filter').value;
+  if (filter === 'full') return rows;
+  if (filter === 'perfect') return rows.filter(row => Number(row.percent_days_at_or_below_100) === 100);
+  if (filter === 'partial') return rows.filter(row => Number(row.percent_days_at_or_below_100) > 0 && Number(row.percent_days_at_or_below_100) < 100);
+  return rows.slice(0, 20);
+}
+function renderRateChart() {
+  const chartRows = visibleRows();
+  if (rateChart) rateChart.destroy();
+  rateChart = new Chart(document.querySelector('#rate-chart'), { type: 'bar', data: { labels: chartRows.map(row => `${row.customer_id} - ${shortName(row.client)}`), datasets: [{ label: '% de journées <= 100 colis', data: chartRows.map(row => row.percent_days_at_or_below_100), backgroundColor: chartRows.map(row => Number(row.percent_days_at_or_below_100) === 100 ? '#008f8c' : '#1769aa'), borderWidth: 0, barPercentage: .8 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => `${context.raw} %` } } }, scales: { x: { min: 0, max: 100, ticks: { callback: value => `${value} %` }, grid: { color: '#e6edf2' } }, y: { ticks: { autoSkip: false, font: { size: 11 } }, grid: { display: false } } } } });
+}
+function renderDistribution() {
+  const buckets = ['0 %', '1-25 %', '26-50 %', '51-75 %', '76-99 %', '100 %'];
+  const counts = [0, 0, 0, 0, 0, 0];
+  rows.forEach(row => { const value = Number(row.percent_days_at_or_below_100); const index = value === 0 ? 0 : value === 100 ? 5 : Math.min(4, Math.floor((value - 1) / 25) + 1); counts[index]++; });
+  if (distributionChart) distributionChart.destroy();
+  distributionChart = new Chart(document.querySelector('#distribution-chart'), { type: 'bar', data: { labels: buckets, datasets: [{ label: 'Clients', data: counts, backgroundColor: ['#d05776', '#e67e22', '#e6b422', '#5d9c76', '#1769aa', '#008f8c'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } } });
+}
+function renderTable() {
+  const query = document.querySelector('#client-search').value.trim().toLowerCase();
+  const value = (amount, count, unit) => count ? `${number.format(amount)} ${unit}` : 'N/D';
+  document.querySelector('#client-body').innerHTML = rows.filter(row => `${row.customer_id} ${row.client}`.toLowerCase().includes(query)).map(row => `<tr><td>${row.customer_id} - ${row.client}</td><td>${number.format(row.scheduled_pickup_days)}</td><td>${number.format(row.days_at_or_below_100)}</td><td>${percent.format(row.percent_days_at_or_below_100)} %</td><td>${number.format(row.average_parcels_per_pickup_day)}</td><td>${number.format(row.max_parcels_in_one_day)}</td><td>${value(row.average_cubic_volume, row.volume_measured_parcels, 'u³')}</td><td>${number.format(row.volume_measured_parcels || 0)}</td><td>${value(row.average_weight, row.weight_measured_parcels, 'lb')}</td><td>${number.format(row.weight_measured_parcels || 0)}</td></tr>`).join('');
+}
+document.querySelector('#rate-filter').addEventListener('change', renderRateChart);
+document.querySelector('#client-search').addEventListener('input', renderTable);
+load().catch(error => { document.querySelector('main').insertAdjacentHTML('beforeend', `<p class="note">${error.message}</p>`); });
+</script>
+</body>
+</html>

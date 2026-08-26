@@ -1,0 +1,1112 @@
+[
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50010,
+    "customer_id": 137814,
+    "client": "137814",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "22:30:00",
+    "shipments_created": 10,
+    "shipping_orders_created": 10
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50024,
+    "customer_id": 303495,
+    "client": "A1 IMPORTS",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:30:00",
+    "shipments_created": 50,
+    "shipping_orders_created": 50
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50010,
+    "customer_id": 101439,
+    "client": "ACTION O&P INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:30:00",
+    "shipments_created": 12,
+    "shipping_orders_created": 12
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50005,
+    "customer_id": 301311,
+    "client": "AGENCE 2L",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:45:00",
+    "shipments_created": 20,
+    "shipping_orders_created": 20
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50011,
+    "customer_id": 303629,
+    "client": "AUTO COUNTRY MONTRÉAL",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50011,
+    "customer_id": 102790,
+    "client": "AUTRUCHE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50017,
+    "customer_id": 302586,
+    "client": "B&B C/O EKKINOX",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:00:00",
+    "shipments_created": 9,
+    "shipping_orders_created": 9
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50013,
+    "customer_id": 301166,
+    "client": "BBQ QUÉBEC LONGUEUIL (B2C)",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:30:00",
+    "shipments_created": 13,
+    "shipping_orders_created": 13
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50017,
+    "customer_id": 103390,
+    "client": "BEAUTE STAR INC ( MTL )",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "17:00:00",
+    "shipments_created": 46,
+    "shipping_orders_created": 46
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 105491,
+    "client": "BLC INT'L INC ( LE GROUPE )",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:45:00",
+    "shipments_created": 12,
+    "shipping_orders_created": 12
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50019,
+    "customer_id": 303280,
+    "client": "BOUCLAIR 24 HEURES",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:00:00",
+    "shipments_created": 11,
+    "shipping_orders_created": 11
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50016,
+    "customer_id": 107821,
+    "client": "BROWNING CANADA SPORTS LTEE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:30:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50016,
+    "customer_id": 107820,
+    "client": "BROWNING CANADA SPORTS LTEE ( AAF )",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:30:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50013,
+    "customer_id": 167812,
+    "client": "CADRES VERBEC INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:20:00",
+    "shipments_created": 35,
+    "shipping_orders_created": 35
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50014,
+    "customer_id": 103109,
+    "client": "CAFE BARISTA INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:50:00",
+    "shipments_created": 62,
+    "shipping_orders_created": 62
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50019,
+    "customer_id": 302525,
+    "client": "CAMBIUM DISTRIBUTION",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:45:00",
+    "shipments_created": 8,
+    "shipping_orders_created": 8
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 110997,
+    "client": "CARDINAL COURRIERS LTEE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "18:15:00",
+    "shipments_created": 9,
+    "shipping_orders_created": 9
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 303067,
+    "client": "CATSPORTS",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:45:00",
+    "shipments_created": 10,
+    "shipping_orders_created": 10
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50004,
+    "customer_id": 112060,
+    "client": "CHALUT DIV BEAUTY SYSTEMS GROUP INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "21:00:00",
+    "shipments_created": 69,
+    "shipping_orders_created": 69
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50010,
+    "customer_id": 301984,
+    "client": "CHANTAL LACROIX B2C",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:30:00",
+    "shipments_created": 26,
+    "shipping_orders_created": 26
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50016,
+    "customer_id": 112122,
+    "client": "CHAUSSURES M&M FOOTWEAR",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50004,
+    "customer_id": 113333,
+    "client": "COMMONWEALTH PLYWOOD (BOUCH)",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "19:30:00",
+    "shipments_created": 21,
+    "shipping_orders_created": 21
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 301229,
+    "client": "COMPASS GROUP CANADA/MA CAFÉINE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:00:00",
+    "shipments_created": 22,
+    "shipping_orders_created": 22
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50012,
+    "customer_id": 300482,
+    "client": "CONFORT EXCELFLEX (BLEU ECO)",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:00:00",
+    "shipments_created": 42,
+    "shipping_orders_created": 42
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50029,
+    "customer_id": 125007,
+    "client": "DATA COMMUNICATION",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "18:15:00",
+    "shipments_created": 8,
+    "shipping_orders_created": 8
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50014,
+    "customer_id": 303598,
+    "client": "DIFFUSION DIMEDIA INC. - SNR",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "17:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50014,
+    "customer_id": 131120,
+    "client": "DISTRIBUTION HMH INC ",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:30:00",
+    "shipments_created": 85,
+    "shipping_orders_created": 85
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50027,
+    "customer_id": 300627,
+    "client": "DISTRIBUTION MORISSETTE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:00:00",
+    "shipments_created": 35,
+    "shipping_orders_created": 35
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50012,
+    "customer_id": 155787,
+    "client": "DISTRIBUTION PRO EXCELLENCE-87",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:30:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 120468,
+    "client": "DOMINION BLUELINE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "18:00:00",
+    "shipments_created": 4,
+    "shipping_orders_created": 4
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50010,
+    "customer_id": 120790,
+    "client": "DUROPAC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:10:00",
+    "shipments_created": 13,
+    "shipping_orders_created": 13
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50029,
+    "customer_id": 166045,
+    "client": "EAB TOOL COMPANY",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:45:00",
+    "shipments_created": 10,
+    "shipping_orders_created": 10
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 302624,
+    "client": "EMPIRE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:30:00",
+    "shipments_created": 72,
+    "shipping_orders_created": 71
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50005,
+    "customer_id": 121395,
+    "client": "ERGOGRIP",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:15:00",
+    "shipments_created": 25,
+    "shipping_orders_created": 25
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 301238,
+    "client": "EVOLUTION",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:25:00",
+    "shipments_created": 3,
+    "shipping_orders_created": 3
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 124547,
+    "client": "FABRAPLY INC.",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:00:00",
+    "shipments_created": 3,
+    "shipping_orders_created": 3
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50007,
+    "customer_id": 302339,
+    "client": "FABRICVILLE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:00:00",
+    "shipments_created": 6,
+    "shipping_orders_created": 6
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 303201,
+    "client": "FAMILYCROPS",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:35:00",
+    "shipments_created": 2,
+    "shipping_orders_created": 2
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50013,
+    "customer_id": 125388,
+    "client": "FORMEDICA LTEE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:45:00",
+    "shipments_created": 34,
+    "shipping_orders_created": 34
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50016,
+    "customer_id": 302958,
+    "client": "FRANKLIN EMPIRE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:45:00",
+    "shipments_created": 14,
+    "shipping_orders_created": 14
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50011,
+    "customer_id": 129320,
+    "client": "GRAND PRIX IMPORT",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "17:10:00",
+    "shipments_created": 12,
+    "shipping_orders_created": 12
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 301022,
+    "client": "GROUPE PHARMA",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:35:00",
+    "shipments_created": 29,
+    "shipping_orders_created": 29
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50024,
+    "customer_id": 129900,
+    "client": "GUAY BEAUTE INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:50:00",
+    "shipments_created": 52,
+    "shipping_orders_created": 52
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 130635,
+    "client": "HARNOIS ENERGIES",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:30:00",
+    "shipments_created": 18,
+    "shipping_orders_created": 18
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50011,
+    "customer_id": 131085,
+    "client": "HIBBERT INTERNATIONAL INC.",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:15:00",
+    "shipments_created": 1,
+    "shipping_orders_created": 1
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 131875,
+    "client": "HRS GLOBAL (9266-1677 QC INC)",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:30:00",
+    "shipments_created": 9,
+    "shipping_orders_created": 9
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50004,
+    "customer_id": 303322,
+    "client": "J.E. MONDOU MASCOUCHE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "23:00:00",
+    "shipments_created": 3,
+    "shipping_orders_created": 3
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50019,
+    "customer_id": 303220,
+    "client": "L'EMBALLAGE TOUT 3PL PIVAL STE-ANNE DE BELLEVUE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:00:00",
+    "shipments_created": 17,
+    "shipping_orders_created": 17
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 302189,
+    "client": "LE JEAN BLEU INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "17:15:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50019,
+    "customer_id": 302180,
+    "client": "LEADER AUTO RESSOURCE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:00:00",
+    "shipments_created": 38,
+    "shipping_orders_created": 38
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 168070,
+    "client": "LES ATTACHES VISCAN",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "17:00:00",
+    "shipments_created": 52,
+    "shipping_orders_created": 52
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50024,
+    "customer_id": 157449,
+    "client": "LES EQUIPEMENTS QUEMONT INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:30:00",
+    "shipments_created": 35,
+    "shipping_orders_created": 35
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50011,
+    "customer_id": 164210,
+    "client": "LES SOEURS EN VRAC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:00:00",
+    "shipments_created": 23,
+    "shipping_orders_created": 23
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 140702,
+    "client": "LIEBERMANTEXTILES",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 12,
+    "shipping_orders_created": 12
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50027,
+    "customer_id": 303591,
+    "client": "MAISON JACYNTHE B2B",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50027,
+    "customer_id": 303019,
+    "client": "MAISON JACYNTHE INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 24,
+    "shipping_orders_created": 24
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50024,
+    "customer_id": 145369,
+    "client": "MARION DISTRIBUTION",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:15:00",
+    "shipments_created": 16,
+    "shipping_orders_created": 16
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 145425,
+    "client": "MARTECH",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:45:00",
+    "shipments_created": 9,
+    "shipping_orders_created": 9
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50016,
+    "customer_id": 145496,
+    "client": "MATCO PACKAGING INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50009,
+    "customer_id": 145898,
+    "client": "MEDIATECH",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:30:00",
+    "shipments_created": 33,
+    "shipping_orders_created": 33
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 145915,
+    "client": "MEDIQUE MEDICAL SUPPLIES ( MGBR ) INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 10,
+    "shipping_orders_created": 10
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50006,
+    "customer_id": 145969,
+    "client": "MIDLAND TRANSPORT LIMITED",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "00:00:00",
+    "shipments_created": 33,
+    "shipping_orders_created": 33
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50007,
+    "customer_id": 182019,
+    "client": "NASRI  INTERNATIONAL INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:00:00",
+    "shipments_created": 27,
+    "shipping_orders_created": 27
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50014,
+    "customer_id": 150936,
+    "client": "NOBLE GIFT",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:15:00",
+    "shipments_created": 1,
+    "shipping_orders_created": 1
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50016,
+    "customer_id": 302184,
+    "client": "NORKA LIVING",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:30:00",
+    "shipments_created": 15,
+    "shipping_orders_created": 15
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50017,
+    "customer_id": 303452,
+    "client": "PARAMEDIC CANADA INC.",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "16:00:00",
+    "shipments_created": 31,
+    "shipping_orders_created": 31
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50008,
+    "customer_id": 300968,
+    "client": "PNEUS A RABAIS 2",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "08:30:00",
+    "shipments_created": 69,
+    "shipping_orders_created": 69
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50017,
+    "customer_id": 154786,
+    "client": "PRO PNEUS DEMARTIGNY INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 159947,
+    "client": "PRODUITS SANITAIRES ROYAL NET INC.",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 7,
+    "shipping_orders_created": 7
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 163000,
+    "client": "PROMOTION DU LIVRE SDM INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:45:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50013,
+    "customer_id": 301566,
+    "client": "PROMOTION RODEL",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:50:00",
+    "shipments_created": 12,
+    "shipping_orders_created": 12
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50013,
+    "customer_id": 102620,
+    "client": "PROMOTIONS ATLANTIQUES",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "13:40:00",
+    "shipments_created": 3,
+    "shipping_orders_created": 3
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50004,
+    "customer_id": 156203,
+    "client": "PROMOTIONS C.D. INC.",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "18:30:00",
+    "shipments_created": 43,
+    "shipping_orders_created": 43
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50009,
+    "customer_id": 158563,
+    "client": "QUINCAILLERIE RICHELIEU LTEE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "20:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 102680,
+    "client": "QUINCAILLERIE RICHELIEU LTEE RELIABLE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "17:25:00",
+    "shipments_created": 21,
+    "shipping_orders_created": 21
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50029,
+    "customer_id": 158800,
+    "client": "ROCHELEAU",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:15:00",
+    "shipments_created": 40,
+    "shipping_orders_created": 40
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50029,
+    "customer_id": 161402,
+    "client": "SANI-MARC INC.",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:45:00",
+    "shipments_created": 38,
+    "shipping_orders_created": 38
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50011,
+    "customer_id": 161425,
+    "client": "SARSTEDT INC.                           ",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 62,
+    "shipping_orders_created": 62
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 303538,
+    "client": "SHIPTO 2",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:00:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50012,
+    "customer_id": 303003,
+    "client": "SIMONS PICKUP ST-BRUNO",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:30:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50024,
+    "customer_id": 303547,
+    "client": "SPI HEALTH & SAFETY",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "17:30:00",
+    "shipments_created": 13,
+    "shipping_orders_created": 13
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 302891,
+    "client": "SUPERIOR SANY SOLUTIONS DIV. IMPERIAL DADE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:45:00",
+    "shipments_created": 26,
+    "shipping_orders_created": 26
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50013,
+    "customer_id": 102570,
+    "client": "SUPPLEMENTS AROMATIK INC.",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:15:00",
+    "shipments_created": 11,
+    "shipping_orders_created": 11
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50016,
+    "customer_id": 164964,
+    "client": "SUZY'S INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:30:00",
+    "shipments_created": 1,
+    "shipping_orders_created": 1
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 302225,
+    "client": "TANDEM 3PL",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:00:00",
+    "shipments_created": 32,
+    "shipping_orders_created": 32
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50011,
+    "customer_id": 302190,
+    "client": "TECHNOLOGIES EDUCATIO INC",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:00:00",
+    "shipments_created": 43,
+    "shipping_orders_created": 43
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50001,
+    "customer_id": 302293,
+    "client": "UPSIDEDRINKS.CA",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "15:15:00",
+    "shipments_created": 31,
+    "shipping_orders_created": 31
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50012,
+    "customer_id": 168059,
+    "client": "V-TO INC. ( ST-HYACINTHE )",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "14:30:00",
+    "shipments_created": 27,
+    "shipping_orders_created": 27
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50024,
+    "customer_id": 302414,
+    "client": "WAREHOUSE",
+    "scheduled_start": "00:00:00",
+    "scheduled_end": "17:15:00",
+    "shipments_created": 61,
+    "shipping_orders_created": 61
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50019,
+    "customer_id": 165776,
+    "client": "TOMRA CANADA INC",
+    "scheduled_start": "15:00:00",
+    "scheduled_end": "13:45:00",
+    "shipments_created": 29,
+    "shipping_orders_created": 29
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 109105,
+    "client": "CANAROPA (1954) INC.",
+    "scheduled_start": "16:30:00",
+    "scheduled_end": "16:15:00",
+    "shipments_created": 13,
+    "shipping_orders_created": 13
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50007,
+    "customer_id": 301075,
+    "client": "KARINE JONCAS COSMETIQUES",
+    "scheduled_start": "16:30:00",
+    "scheduled_end": "15:15:00",
+    "shipments_created": 18,
+    "shipping_orders_created": 18
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50013,
+    "customer_id": 101472,
+    "client": "MESSAGERIES A.D.P. INC. (RETOURS)",
+    "scheduled_start": "16:30:00",
+    "scheduled_end": "10:00:00",
+    "shipments_created": 2,
+    "shipping_orders_created": 2
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50024,
+    "customer_id": 156202,
+    "client": "PROLOGUE (RETOURS)",
+    "scheduled_start": "16:30:00",
+    "scheduled_end": "13:00:00",
+    "shipments_created": 7,
+    "shipping_orders_created": 7
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50014,
+    "customer_id": 151185,
+    "client": "BAYARD PRESSE CANADA INC ( ADELF )",
+    "scheduled_start": "17:00:00",
+    "scheduled_end": "14:00:00",
+    "shipments_created": 5,
+    "shipping_orders_created": 5
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50009,
+    "customer_id": 109008,
+    "client": "CANARM",
+    "scheduled_start": "17:00:00",
+    "scheduled_end": "13:45:00",
+    "shipments_created": 9,
+    "shipping_orders_created": 9
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 105210,
+    "client": "D'AMOUR BICYCLE",
+    "scheduled_start": "17:00:00",
+    "scheduled_end": "16:45:00",
+    "shipments_created": 50,
+    "shipping_orders_created": 50
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50013,
+    "customer_id": 301226,
+    "client": "GRANDWEST ENTERPRISES DISTAM (EASTERN DIVISION)",
+    "scheduled_start": "17:00:00",
+    "scheduled_end": "16:15:00",
+    "shipments_created": 17,
+    "shipping_orders_created": 17
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50016,
+    "customer_id": 268418,
+    "client": "PROVO LTD MTL",
+    "scheduled_start": "17:00:00",
+    "scheduled_end": "16:15:00",
+    "shipments_created": 8,
+    "shipping_orders_created": 8
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50018,
+    "customer_id": 145969,
+    "client": "MIDLAND TRANSPORT LIMITED",
+    "scheduled_start": "18:00:00",
+    "scheduled_end": "14:15:00",
+    "shipments_created": 33,
+    "shipping_orders_created": 33
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50012,
+    "customer_id": 112005,
+    "client": "BUROPRO CITATION DRUMMONVILLE",
+    "scheduled_start": null,
+    "scheduled_end": "10:15:00",
+    "shipments_created": 31,
+    "shipping_orders_created": 31
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50019,
+    "customer_id": 114309,
+    "client": "DANESCO INC",
+    "scheduled_start": null,
+    "scheduled_end": "14:30:00",
+    "shipments_created": 3,
+    "shipping_orders_created": 3
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50012,
+    "customer_id": 163860,
+    "client": "DISTRIBUTION SIGNATURE INC",
+    "scheduled_start": null,
+    "scheduled_end": "15:00:00",
+    "shipments_created": 3,
+    "shipping_orders_created": 3
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50019,
+    "customer_id": 303546,
+    "client": "FASTCO CANADA",
+    "scheduled_start": null,
+    "scheduled_end": "15:30:00",
+    "shipments_created": 16,
+    "shipping_orders_created": 16
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50024,
+    "customer_id": 303322,
+    "client": "J.E. MONDOU MASCOUCHE",
+    "scheduled_start": null,
+    "scheduled_end": "20:00:00",
+    "shipments_created": 3,
+    "shipping_orders_created": 3
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50011,
+    "customer_id": 111444,
+    "client": "LES EDITIONS C.E.C INC (NAT_FLEX )",
+    "scheduled_start": null,
+    "scheduled_end": "15:30:00",
+    "shipments_created": 0,
+    "shipping_orders_created": 0
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 164445,
+    "client": "LES OLIVERAIES STAVROPOULOS",
+    "scheduled_start": null,
+    "scheduled_end": "15:30:00",
+    "shipments_created": 12,
+    "shipping_orders_created": 12
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50010,
+    "customer_id": 144885,
+    "client": "LUDIK DISTRIBUTION",
+    "scheduled_start": null,
+    "scheduled_end": "14:45:00",
+    "shipments_created": 16,
+    "shipping_orders_created": 16
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50002,
+    "customer_id": 165506,
+    "client": "SPICERS CANADA ULC",
+    "scheduled_start": null,
+    "scheduled_end": "18:45:00",
+    "shipments_created": 21,
+    "shipping_orders_created": 21
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50027,
+    "customer_id": 112140,
+    "client": "TC MEDIA LIVRE INC (COLLECT)",
+    "scheduled_start": null,
+    "scheduled_end": "14:30:00",
+    "shipments_created": 6,
+    "shipping_orders_created": 6
+  },
+  {
+    "pickup_date": "2026-08-03T00:00:00",
+    "route_id": 50007,
+    "customer_id": 303513,
+    "client": "YUPIK",
+    "scheduled_start": null,
+    "scheduled_end": "15:00:00",
+    "shipments_created": 1,
+    "shipping_orders_created": 1
+  }
+]

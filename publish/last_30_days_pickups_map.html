@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carte des clients - pickups</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root { --ink: #17212b; --muted: #687684; --line: #d9e1e8; --paper: #f4f7f9; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 system-ui, sans-serif; }
+    main { max-width: 1500px; margin: 0 auto; padding: 28px; }
+    header { display: flex; justify-content: space-between; align-items: end; gap: 24px; border-bottom: 3px solid var(--ink); padding-bottom: 16px; }
+    h1 { margin: 0; font: 700 clamp(28px, 4vw, 48px)/1 Georgia, serif; }
+    .subtitle { margin: 9px 0 0; color: var(--muted); }
+    .period { color: #008f8c; font-weight: 700; white-space: nowrap; }
+    .summary { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+    .stat, .control { background: white; border: 1px solid var(--line); padding: 12px 15px; }
+    .stat strong { font-size: 22px; margin-right: 6px; }
+    .stat span, label { color: var(--muted); }
+    .control { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+    input { width: 180px; accent-color: #008f8c; }
+    #map { height: min(72vh, 760px); min-height: 520px; border: 1px solid var(--line); background: #dce9e8; }
+    .legend { display: flex; align-items: center; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: -2px; margin-right: 4px; }
+    .swatch-green { background: #16845b; }
+    .swatch-yellow { background: #e4b33d; }
+    .swatch-red { background: #d0574f; }
+    .note { margin-top: 12px; padding: 10px 13px; border-left: 4px solid #e67e22; background: #fff8ef; color: #68431f; }
+    .leaflet-popup-content { min-width: 205px; }
+    .leaflet-popup-content strong { display: block; font-size: 15px; margin-bottom: 6px; }
+    .popup-rate { font-size: 22px; font-weight: 800; }
+    @media (max-width: 700px) { main { padding: 18px 12px; } header { display: block; } .period { margin-top: 14px; } .control { margin-left: 0; width: 100%; } input { flex: 1; } #map { min-height: 480px; height: 68vh; } .gradient { width: 150px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header><div><h1>Où sont les petits pickups?</h1><p class="subtitle">Clients et fréquence des journées à 100 colis ou moins</p></div><div class="period">Routes 50000 à 50099 · 27 juillet - 25 août 2026</div></header>
+  <section class="summary"><div class="stat"><strong id="visible">-</strong><span>clients affichés</span></div><div class="stat"><strong id="total">-</strong><span>clients analysés</span></div><div class="stat"><strong id="global">-</strong><span>journées sous le seuil</span></div><div class="control"><label for="minimum">Minimum de journées sous 100 colis</label><input id="minimum" type="range" min="0" max="100" step="1" value="0"><strong id="minimum-value">0 %</strong></div></section>
+  <div id="map" aria-label="Carte géographique des clients"></div>
+  <div class="legend"><span><i class="legend-swatch swatch-green"></i>0-29 %</span><span><i class="legend-swatch swatch-yellow"></i>30-79 %</span><span><i class="legend-swatch swatch-red"></i>80-100 %</span></div>
+  <div class="note">La carte est limitée aux routes <code>50000</code> à <code>50099</code>. Les pins indiquent la position enregistrée du client dans la table <code>customer</code>. Le pourcentage est calculé sur ses journées de pickup planifiées observées dans la période; le nombre de colis vient de <code>shipment.PARCEL_NB</code>.</div>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+const number = new Intl.NumberFormat('fr-CA');
+const map = L.map('map', { zoomControl: true }).setView([46.8, -71.2], 6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 18 }).addTo(map);
+let markers = L.layerGroup().addTo(map); let rows = []; let geo = [];
+const color = value => value >= 80 ? '#d0574f' : value >= 30 ? '#e4b33d' : '#16845b';
+const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
+function draw() {
+  markers.clearLayers(); const minimum = Number(document.querySelector('#minimum').value); const geoById = new Map(geo.map(point => [String(point.customer_id), point])); const visible = rows.filter(row => Number(row.percent_days_at_or_below_100) >= minimum).map(row => ({ row, point: geoById.get(String(row.customer_id)) })).filter(item => item.point && Number.isFinite(Number(item.point.latitude)) && Number.isFinite(Number(item.point.longitude)));
+  document.querySelector('#visible').textContent = number.format(visible.length); document.querySelector('#minimum-value').textContent = `${minimum} %`;
+  const bounds = [];
+  visible.forEach(({ row, point }) => { const rate = Number(row.percent_days_at_or_below_100); const marker = L.circleMarker([Number(point.latitude), Number(point.longitude)], { radius: 8, color: '#fff', weight: 1.5, fillColor: color(rate), fillOpacity: .88 }); marker.bindPopup(`<strong>${escapeHtml(row.client)}</strong><div>Client #${escapeHtml(row.customer_id)}</div><div>Route(s): ${escapeHtml(row.route_ids)}</div><div class="popup-rate" style="color:${color(rate)}">${rate} %</div><div>${row.days_at_or_below_100} / ${row.scheduled_pickup_days} journées sous 100 colis</div><div>Moyenne: ${number.format(row.average_parcels_per_pickup_day)} colis/jour</div><div>Maximum: ${number.format(row.max_parcels_in_one_day)} colis</div>`); marker.addTo(markers); bounds.push([Number(point.latitude), Number(point.longitude)]); });
+  if (bounds.length) map.fitBounds(bounds, { padding: [24, 24], maxZoom: 10 });
+  map.invalidateSize();
+}
+async function load() { const [dataResponse, geoResponse] = await Promise.all([fetch('last_30_days_pickups_under_100.json'), fetch('last_30_days_customer_geo.json')]); if (!dataResponse.ok || !geoResponse.ok) throw new Error('Les données de la carte sont indisponibles.'); rows = await dataResponse.json(); geo = await geoResponse.json(); rows.sort((a, b) => Number(a.percent_days_at_or_below_100) - Number(b.percent_days_at_or_below_100)); const scheduled = rows.reduce((sum, row) => sum + Number(row.scheduled_pickup_days), 0); const low = rows.reduce((sum, row) => sum + Number(row.days_at_or_below_100), 0); document.querySelector('#total').textContent = number.format(rows.length); document.querySelector('#global').textContent = `${(100 * low / scheduled).toFixed(1)} %`; draw(); }
+document.querySelector('#minimum').addEventListener('input', draw); load().catch(error => document.querySelector('#map').innerHTML = `<div style="padding:24px">${escapeHtml(error.message)}</div>`);
+</script>
+</body>
+</html>
