@@ -24,6 +24,12 @@ WITH RECURSIVE pickup_days AS (
            WHEN 7 THEN p.SATURDAY
          END = 1
     AND p.ROUTE_ID BETWEEN 50000 AND 50099
+    AND NOT EXISTS (
+        SELECT 1
+        FROM customer_schedule_pickup excluded
+        WHERE excluded.CUSTOMER_ID = p.CUSTOMER_ID
+          AND excluded.ROUTE_ID IN (50007, 50012, 50014, 50027, 55609)
+    )
     JOIN customer c
       ON c.CUSTOMER_ID = p.CUSTOMER_ID
      AND c.ACTIVE = 1

@@ -44,6 +44,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 const number = new Intl.NumberFormat('fr-CA');
+const excludedRoutes = new Set(['50007', '50012', '50014', '50027', '55609']);
+const hasExcludedRoute = row => String(row.route_ids ?? '').split(/\D+/).some(route => excludedRoutes.has(route));
 const map = L.map('map', { zoomControl: true }).setView([46.8, -71.2], 6);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 18 }).addTo(map);
 let markers = L.layerGroup().addTo(map); let rows = []; let geo = [];
@@ -57,7 +59,7 @@ function draw() {
   if (bounds.length) map.fitBounds(bounds, { padding: [24, 24], maxZoom: 10 });
   map.invalidateSize();
 }
-async function load() { const [dataResponse, geoResponse] = await Promise.all([fetch('last_30_days_pickups_under_100.json'), fetch('last_30_days_customer_geo.json')]); if (!dataResponse.ok || !geoResponse.ok) throw new Error('Les données de la carte sont indisponibles.'); rows = await dataResponse.json(); geo = await geoResponse.json(); rows.sort((a, b) => Number(a.percent_days_at_or_below_100) - Number(b.percent_days_at_or_below_100)); const scheduled = rows.reduce((sum, row) => sum + Number(row.scheduled_pickup_days), 0); const low = rows.reduce((sum, row) => sum + Number(row.days_at_or_below_100), 0); document.querySelector('#total').textContent = number.format(rows.length); document.querySelector('#global').textContent = `${(100 * low / scheduled).toFixed(1)} %`; draw(); }
+async function load() { const [dataResponse, geoResponse] = await Promise.all([fetch('last_30_days_pickups_under_100.json?v=20260827-route-exclusions', { cache: 'no-store' }), fetch('last_30_days_customer_geo.json', { cache: 'no-store' })]); if (!dataResponse.ok || !geoResponse.ok) throw new Error('Les données de la carte sont indisponibles.'); rows = (await dataResponse.json()).filter(row => !hasExcludedRoute(row)); geo = await geoResponse.json(); rows.sort((a, b) => Number(a.percent_days_at_or_below_100) - Number(b.percent_days_at_or_below_100)); const scheduled = rows.reduce((sum, row) => sum + Number(row.scheduled_pickup_days), 0); const low = rows.reduce((sum, row) => sum + Number(row.days_at_or_below_100), 0); document.querySelector('#total').textContent = number.format(rows.length); document.querySelector('#global').textContent = `${(100 * low / scheduled).toFixed(1)} %`; draw(); }
 document.querySelector('#minimum').addEventListener('input', draw); load().catch(error => document.querySelector('#map').innerHTML = `<div style="padding:24px">${escapeHtml(error.message)}</div>`);
 </script>
 </body>

@@ -61,7 +61,7 @@
   <section class="chart-panel">
     <h2>Détail des clients</h2>
     <div class="toolbar"><label for="client-search">Rechercher</label><input id="client-search" type="search" placeholder="Nom ou numéro de client"></div>
-    <div class="table-wrap"><table><thead><tr><th>Client</th><th>Jours pickup</th><th>Jours <= 100</th><th>%</th><th>Moyenne colis</th><th>Maximum colis</th><th>Volume cubique moyen</th><th>Colis mesurés</th><th>Poids moyen</th><th>Colis pesés</th></tr></thead><tbody id="client-body"></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>Client</th><th>Route pickup</th><th>Jours pickup</th><th>Jours <= 100</th><th>%</th><th>Moyenne colis</th><th>Maximum colis</th><th>Volume cubique moyen</th><th>Colis mesurés</th><th>Poids moyen</th><th>Colis pesés</th></tr></thead><tbody id="client-body"></tbody></table></div>
   </section>
   <div class="note">Le seuil est inclusif : 100 colis compte comme une journée sous le seuil. Les colis proviennent de <code>shipment.PARCEL_NB</code>; les journées sans envoi comptent comme 0.</div>
 </main>
@@ -107,7 +107,7 @@ function renderDistribution() {
 function renderTable() {
   const query = document.querySelector('#client-search').value.trim().toLowerCase();
   const value = (amount, count, unit) => count ? `${number.format(amount)} ${unit}` : 'N/D';
-  document.querySelector('#client-body').innerHTML = rows.filter(row => `${row.customer_id} ${row.client}`.toLowerCase().includes(query)).map(row => `<tr><td>${row.customer_id} - ${row.client}</td><td>${number.format(row.scheduled_pickup_days)}</td><td>${number.format(row.days_at_or_below_100)}</td><td>${percent.format(row.percent_days_at_or_below_100)} %</td><td>${number.format(row.average_parcels_per_pickup_day)}</td><td>${number.format(row.max_parcels_in_one_day)}</td><td>${value(row.average_cubic_volume, row.volume_measured_parcels, 'u³')}</td><td>${number.format(row.volume_measured_parcels || 0)}</td><td>${value(row.average_weight, row.weight_measured_parcels, 'lb')}</td><td>${number.format(row.weight_measured_parcels || 0)}</td></tr>`).join('');
+  document.querySelector('#client-body').innerHTML = rows.filter(row => `${row.customer_id} ${row.client}`.toLowerCase().includes(query)).map(row => `<tr><td>${row.customer_id} - ${row.client}</td><td>${row.route_ids || 'N/D'}</td><td>${number.format(row.scheduled_pickup_days)}</td><td>${number.format(row.days_at_or_below_100)}</td><td>${percent.format(row.percent_days_at_or_below_100)} %</td><td>${number.format(row.average_parcels_per_pickup_day)}</td><td>${number.format(row.max_parcels_in_one_day)}</td><td>${value(row.average_cubic_volume, row.volume_measured_parcels, 'u³')}</td><td>${number.format(row.volume_measured_parcels || 0)}</td><td>${value(row.average_weight, row.weight_measured_parcels, 'lb')}</td><td>${number.format(row.weight_measured_parcels || 0)}</td></tr>`).join('');
 }
 document.querySelector('#rate-filter').addEventListener('change', renderRateChart);
 document.querySelector('#client-search').addEventListener('input', renderTable);

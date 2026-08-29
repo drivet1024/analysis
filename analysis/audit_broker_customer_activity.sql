@@ -1,0 +1,16 @@
+SELECT
+    COALESCE(c.ACTIVE, 0) AS customer_active,
+    COUNT(*) AS scheduled_customers,
+    COUNT(DISTINCT c.PU_ROUTE_ID) AS pickup_routes,
+    SUM(COALESCE(c.PUMONDAY, 0) + COALESCE(c.PUTUESDAY, 0)
+      + COALESCE(c.PUWEDNESDAY, 0) + COALESCE(c.PUTHURSDAY, 0)
+      + COALESCE(c.PUFRIDAY, 0) + COALESCE(c.PUSATURDAY, 0)
+      + COALESCE(c.PUSUNDAY, 0)) AS scheduled_weekdays
+FROM customer c
+JOIN route r ON r.ROUTE_ID = c.PU_ROUTE_ID
+JOIN sector_info si ON si.SECTOR_ID = r.SECTOR_ID
+WHERE si.SECTOR_TYPE IN (1, 2)
+  AND (c.PUMONDAY = 1 OR c.PUTUESDAY = 1 OR c.PUWEDNESDAY = 1
+       OR c.PUTHURSDAY = 1 OR c.PUFRIDAY = 1 OR c.PUSATURDAY = 1 OR c.PUSUNDAY = 1)
+GROUP BY COALESCE(c.ACTIVE, 0)
+ORDER BY customer_active DESC;

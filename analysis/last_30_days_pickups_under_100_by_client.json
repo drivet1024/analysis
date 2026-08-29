@@ -99,17 +99,6 @@
     "dates": ""
   },
   {
-    "customer_id": 151185,
-    "client": "BAYARD PRESSE CANADA INC ( ADELF )",
-    "route_ids": "50014 / 50027",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 301166,
     "client": "BBQ QUÉBEC LONGUEUIL (B2C)",
     "route_ids": "50013",
@@ -165,17 +154,6 @@
     "dates": ""
   },
   {
-    "customer_id": 301320,
-    "client": "BRAULT & BOUTHILLIER (BEAUMONT)",
-    "route_ids": "50007",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 107821,
     "client": "BROWNING CANADA SPORTS LTEE",
     "route_ids": "50016",
@@ -198,28 +176,6 @@
     "dates": ""
   },
   {
-    "customer_id": 112005,
-    "client": "BUROPRO CITATION DRUMMONVILLE",
-    "route_ids": "50012",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 112008,
-    "client": "BUROPRO CITATION ST HYACINTHE",
-    "route_ids": "50012",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 167812,
     "client": "CADRES VERBEC INC",
     "route_ids": "50013",
@@ -231,31 +187,9 @@
     "dates": ""
   },
   {
-    "customer_id": 103109,
-    "client": "CAFE BARISTA INC",
-    "route_ids": "50014",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 302525,
     "client": "CAMBIUM DISTRIBUTION",
     "route_ids": "50019",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 101680,
-    "client": "CAMEMAT INC.",
-    "route_ids": "50012",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,
@@ -374,17 +308,6 @@
     "dates": ""
   },
   {
-    "customer_id": 300482,
-    "client": "CONFORT EXCELFLEX (BLEU ECO)",
-    "route_ids": "50012",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 105210,
     "client": "D'AMOUR BICYCLE",
     "route_ids": "50018",
@@ -421,72 +344,6 @@
     "customer_id": 300684,
     "client": "DECATHLON",
     "route_ids": "50000",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 118950,
-    "client": "DIFFUSION DIMEDIA INC.",
-    "route_ids": "50014",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 303598,
-    "client": "DIFFUSION DIMEDIA INC. - SNR",
-    "route_ids": "50014",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 131120,
-    "client": "DISTRIBUTION HMH INC ",
-    "route_ids": "50014 / 50027",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 300627,
-    "client": "DISTRIBUTION MORISSETTE",
-    "route_ids": "50013 / 50027",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 155787,
-    "client": "DISTRIBUTION PRO EXCELLENCE-87",
-    "route_ids": "50012",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 163860,
-    "client": "DISTRIBUTION SIGNATURE INC",
-    "route_ids": "50012",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,
@@ -539,31 +396,9 @@
     "dates": ""
   },
   {
-    "customer_id": 302624,
-    "client": "EMPIRE",
-    "route_ids": "50001 / 50007",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 130400,
     "client": "ENTREPRISES HAMELIN",
     "route_ids": "50013",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 121395,
-    "client": "ERGOGRIP",
-    "route_ids": "50005 / 50027",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,
@@ -586,17 +421,6 @@
     "customer_id": 124547,
     "client": "FABRAPLY INC.",
     "route_ids": "50018",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 302339,
-    "client": "FABRICVILLE",
-    "route_ids": "50007 / 50014",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,
@@ -740,17 +564,6 @@
     "customer_id": 303322,
     "client": "J.E. MONDOU MASCOUCHE",
     "route_ids": "50000 / 50004 / 50015 / 50004 / 50024",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 301075,
-    "client": "KARINE JONCAS COSMETIQUES",
-    "route_ids": "50007 / 50014",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,
@@ -913,28 +726,6 @@
     "dates": ""
   },
   {
-    "customer_id": 303591,
-    "client": "MAISON JACYNTHE B2B",
-    "route_ids": "50013 / 50027",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 303019,
-    "client": "MAISON JACYNTHE INC",
-    "route_ids": "50013 / 50027",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 302226,
     "client": "MARIE-CLAIRE B2B",
     "route_ids": "50008",
@@ -949,17 +740,6 @@
     "customer_id": 145369,
     "client": "MARION DISTRIBUTION",
     "route_ids": "50024",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 145425,
-    "client": "MARTECH",
-    "route_ids": "50001 / 50007",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,
@@ -1034,42 +814,9 @@
     "dates": ""
   },
   {
-    "customer_id": 182019,
-    "client": "NASRI  INTERNATIONAL INC",
-    "route_ids": "50007 / 50014",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 150936,
-    "client": "NOBLE GIFT",
-    "route_ids": "50014",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 302184,
     "client": "NORKA LIVING",
     "route_ids": "50016",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 303523,
-    "client": "NOVENTRA INDUSTRIES",
-    "route_ids": "50027",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,
@@ -1232,17 +979,6 @@
     "dates": ""
   },
   {
-    "customer_id": 158800,
-    "client": "ROCHELEAU",
-    "route_ids": "50012 / 50029",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 301430,
     "client": "SAIL PLEIN AIR",
     "route_ids": "50001",
@@ -1290,17 +1026,6 @@
     "customer_id": 303538,
     "client": "SHIPTO 2",
     "route_ids": "50002",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 303003,
-    "client": "SIMONS PICKUP ST-BRUNO",
-    "route_ids": "50012",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,
@@ -1397,28 +1122,6 @@
     "dates": ""
   },
   {
-    "customer_id": 302225,
-    "client": "TANDEM 3PL",
-    "route_ids": "50001 / 50007",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 112140,
-    "client": "TC MEDIA LIVRE INC (COLLECT)",
-    "route_ids": "50013 / 50027",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 302190,
     "client": "TECHNOLOGIES EDUCATIO INC",
     "route_ids": "50011",
@@ -1441,53 +1144,9 @@
     "dates": ""
   },
   {
-    "customer_id": 303299,
-    "client": "TRUDEAU CORPORATION INTERNATIONAL INC",
-    "route_ids": "50027",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 302293,
-    "client": "UPSIDEDRINKS.CA",
-    "route_ids": "50001 / 50007",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 168059,
-    "client": "V-TO INC. ( ST-HYACINTHE )",
-    "route_ids": "50012",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
     "customer_id": 302414,
     "client": "WAREHOUSE",
     "route_ids": "50024",
-    "pickup_days": 1,
-    "total_parcels_created": null,
-    "average_parcels_per_pickup_day": 0.0,
-    "max_parcels_in_one_day": null,
-    "total_shipments_created": null,
-    "dates": ""
-  },
-  {
-    "customer_id": 303513,
-    "client": "YUPIK",
-    "route_ids": "50007 / 50014",
     "pickup_days": 1,
     "total_parcels_created": null,
     "average_parcels_per_pickup_day": 0.0,

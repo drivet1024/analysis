@@ -1,0 +1,26 @@
+WITH broker_customers AS (
+    SELECT c.*
+    FROM customer c
+    JOIN route r ON r.ROUTE_ID = c.PU_ROUTE_ID
+    JOIN sector_info si ON si.SECTOR_ID = r.SECTOR_ID
+    WHERE si.SECTOR_TYPE IN (1, 2)
+      AND (c.PUSUNDAY = 1 OR c.PUMONDAY = 1 OR c.PUTUESDAY = 1
+           OR c.PUWEDNESDAY = 1 OR c.PUTHURSDAY = 1 OR c.PUFRIDAY = 1
+           OR c.PUSATURDAY = 1)
+), scheduled_closing_times AS (
+    SELECT CUSTOMER_ID, CLOSINGTIMESUNDAY AS day_closing, CLOSINGTIME AS default_closing FROM broker_customers WHERE PUSUNDAY = 1
+    UNION ALL SELECT CUSTOMER_ID, CLOSINGTIMEMONDAY, CLOSINGTIME FROM broker_customers WHERE PUMONDAY = 1
+    UNION ALL SELECT CUSTOMER_ID, CLOSINGTIMETUESDAY, CLOSINGTIME FROM broker_customers WHERE PUTUESDAY = 1
+    UNION ALL SELECT CUSTOMER_ID, CLOSINGTIMEWEDNESDAY, CLOSINGTIME FROM broker_customers WHERE PUWEDNESDAY = 1
+    UNION ALL SELECT CUSTOMER_ID, CLOSINGTIMETHURSDAY, CLOSINGTIME FROM broker_customers WHERE PUTHURSDAY = 1
+    UNION ALL SELECT CUSTOMER_ID, CLOSINGTIMEFRIDAY, CLOSINGTIME FROM broker_customers WHERE PUFRIDAY = 1
+    UNION ALL SELECT CUSTOMER_ID, CLOSINGTIMESATURDAY, CLOSINGTIME FROM broker_customers WHERE PUSATURDAY = 1
+)
+SELECT
+    COUNT(*) AS scheduled_day_slots,
+    SUM(NULLIF(TRIM(day_closing), '') IS NOT NULL) AS day_specific_used,
+    SUM(NULLIF(TRIM(day_closing), '') IS NULL
+        AND NULLIF(TRIM(default_closing), '') IS NOT NULL) AS default_used,
+    SUM(NULLIF(TRIM(day_closing), '') IS NULL
+        AND NULLIF(TRIM(default_closing), '') IS NULL) AS missing_both
+FROM scheduled_closing_times;

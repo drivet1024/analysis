@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cueillettes sur routes broker</title>
+  <style>
+    :root { color-scheme: light; --ink:#17212b; --muted:#687684; --line:#d9e1e8; --paper:#f4f7f9; --blue:#1769aa; --teal:#008f8c; --orange:#e67e22; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.45 system-ui,sans-serif; }
+    main { max-width:1440px; margin:auto; padding:36px 28px 52px; }
+    header { display:flex; justify-content:space-between; gap:24px; align-items:end; border-bottom:3px solid var(--ink); padding-bottom:18px; }
+    h1 { margin:0; font:700 clamp(28px,4vw,52px)/1 Georgia,serif; }
+    .subtitle { color:var(--muted); margin:10px 0 0; }
+    .back { color:var(--blue); font-weight:700; text-decoration:none; white-space:nowrap; }
+    .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:22px 0; }
+    .stat { background:#fff; border:1px solid var(--line); padding:17px; }
+    .stat strong { display:block; color:var(--blue); font-size:28px; line-height:1.1; }
+    .stat span { color:var(--muted); }
+    .panel { background:#fff; border:1px solid var(--line); padding:20px; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:end; margin-bottom:16px; }
+    .control { display:grid; gap:5px; }
+    label { color:var(--muted); font-size:13px; font-weight:700; }
+    input, select { min-height:40px; border:1px solid var(--line); padding:8px 10px; background:#fff; color:var(--ink); font:inherit; }
+    input { min-width:300px; }
+    .visible { margin-left:auto; color:var(--muted); padding-bottom:9px; }
+    .table-wrap { overflow:auto; max-height:68vh; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { padding:10px 9px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+    th { position:sticky; top:0; z-index:1; background:var(--ink); color:#fff; }
+    tbody tr:hover { background:#f1f7fa; }
+    .route { color:var(--teal); font-weight:800; }
+    .status { display:inline-block; border-radius:999px; padding:3px 8px; font-size:11px; font-weight:800; }
+    .status.active { color:#086b49; background:#e3f5ed; }
+    .status.inactive { color:#8a3f36; background:#fae9e6; }
+    .empty { padding:30px; text-align:center; color:var(--muted); }
+    .note { margin-top:18px; border-left:4px solid var(--orange); background:#fff8ef; padding:11px 14px; color:#68431f; }
+    @media(max-width:760px) { main{padding:25px 14px 40px} header{display:block}.back{display:inline-block;margin-top:16px}.summary{grid-template-columns:1fr}.visible{width:100%;margin:0}input{min-width:0;width:100%}.control{flex:1 1 240px} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>Cueillettes sur routes broker</h1><p class="subtitle">Clients cédulés dont la route de cueillette est rattachée à un secteur broker.</p></div>
+    <a class="back" href="index.html">← Retour au centre d'analyse</a>
+  </header>
+  <section class="summary" aria-label="Résumé">
+    <div class="stat"><strong id="client-count">-</strong><span>clients</span></div>
+    <div class="stat"><strong id="active-count">-</strong><span>clients actifs</span></div>
+    <div class="stat"><strong id="inactive-count">-</strong><span>clients inactifs</span></div>
+    <div class="stat"><strong id="route-count">-</strong><span>routes broker</span></div>
+  </section>
+  <section class="panel">
+    <div class="toolbar">
+      <div class="control"><label for="search">Rechercher</label><input id="search" type="search" placeholder="Nom ou numéro de client"></div>
+      <div class="control"><label for="route-filter">Route broker</label><select id="route-filter"><option value="">Toutes les routes</option></select></div>
+      <div class="control"><label for="status-filter">Statut du client</label><select id="status-filter"><option value="">Tous</option><option value="active">Actifs</option><option value="inactive">Inactifs</option></select></div>
+      <div class="visible"><strong id="visible-count">-</strong> clients affichés</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Client</th><th>Statut</th><th>Route broker</th><th>Nom de route</th><th>Secteur</th><th>Type</th><th>Jours</th><th>Cueillette - fermeture</th><th>Note</th></tr></thead>
+        <tbody id="schedule-body"></tbody>
+      </table>
+    </div>
+  </section>
+  <div class="note">La route provient de <code>customer.PU_ROUTE_ID</code>, reliée à <code>route</code> puis à <code>sector_info</code>. Une route est broker lorsque son secteur est de type <strong>Voiturier</strong> ou <strong>Agent</strong>.</div>
+</main>
+<script>
+const number = new Intl.NumberFormat('fr-CA');
+const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[char]);
+const formatTime = value => {
+  const text = String(value ?? '').trim();
+  if (!text || text === ':' || text === 'N/D') return 'N/D';
+  const match = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  return match ? `${Number(match[1])}h${match[2] === '00' ? '' : match[2]}` : text;
+};
+const parseSchedule = value => new Map(String(value ?? '').split(' · ').filter(Boolean).map(item => { const separator = item.indexOf(' '); return [item.slice(0, separator), formatTime(item.slice(separator + 1))]; }));
+const formatWeeklyHours = row => {
+  const pickup = parseSchedule(row.pickup_schedule); const closing = parseSchedule(row.closing_schedule);
+  const days = [...new Set([...pickup.keys(), ...closing.keys()])];
+  const pairs = days.map(day => ({ day, pickup: pickup.get(day) || 'N/D', closing: closing.get(day) || 'N/D' }));
+  if (!pairs.length) return 'N/D';
+  const sameAllWeek = pairs.every(pair => pair.pickup === pairs[0].pickup && pair.closing === pairs[0].closing);
+  const range = pair => `${pair.pickup} - ${pair.closing}`;
+  return sameAllWeek ? range(pairs[0]) : pairs.map(pair => `${pair.day} ${range(pair)}`).join(' · ');
+};
+let rows = [];
+
+function render() {
+  const query = document.querySelector('#search').value.trim().toLowerCase();
+  const route = document.querySelector('#route-filter').value;
+  const status = document.querySelector('#status-filter').value;
+  const visible = rows.filter(row => {
+    const active = Number(row.customer_active) === 1;
+    return (!route || String(row.route_id) === route)
+      && (!status || (status === 'active' ? active : !active))
+      && `${row.customer_id} ${row.client} ${row.route_id} ${row.route_name} ${row.sector_name} ${row.broker_type}`.toLowerCase().includes(query);
+  });
+  document.querySelector('#visible-count').textContent = number.format(visible.length);
+  document.querySelector('#schedule-body').innerHTML = visible.length ? visible.map(row => { const active = Number(row.customer_active) === 1; const sectorActive = Number(row.sector_active) === 1; return `<tr><td>${escapeHtml(row.customer_id)} - ${escapeHtml(row.client)}</td><td><span class="status ${active ? 'active' : 'inactive'}">${active ? 'Actif' : 'Inactif'}</span></td><td class="route">${escapeHtml(row.route_id)}</td><td>${escapeHtml(row.route_name) || '—'}</td><td>${escapeHtml(row.sector_name)}${sectorActive ? '' : ' (inactif)'}</td><td>${escapeHtml(row.broker_type)}</td><td>${escapeHtml(row.pickup_days)}</td><td>${escapeHtml(formatWeeklyHours(row))}</td><td>${escapeHtml(row.note) || '—'}</td></tr>`; }).join('') : '<tr><td class="empty" colspan="9">Aucune cueillette trouvée.</td></tr>';
+}
+
+async function load() {
+  const response = await fetch(`broker_pickup_schedule.json?v=${Date.now()}`, { cache:'no-store' });
+  if (!response.ok) throw new Error("Impossible de charger l'horaire des cueillettes.");
+  rows = await response.json();
+  rows.sort((a, b) => Number(b.customer_active) - Number(a.customer_active) || a.sector_name.localeCompare(b.sector_name, 'fr') || Number(a.route_id) - Number(b.route_id) || a.client.localeCompare(b.client, 'fr'));
+  const routes = [...new Set(rows.map(row => String(row.route_id)))].sort((a, b) => Number(a) - Number(b));
+  document.querySelector('#client-count').textContent = number.format(new Set(rows.map(row => row.customer_id)).size);
+  document.querySelector('#active-count').textContent = number.format(rows.filter(row => Number(row.customer_active) === 1).length);
+  document.querySelector('#inactive-count').textContent = number.format(rows.filter(row => Number(row.customer_active) !== 1).length);
+  document.querySelector('#route-count').textContent = number.format(routes.length);
+  document.querySelector('#route-filter').insertAdjacentHTML('beforeend', routes.map(route => { const row = rows.find(item => String(item.route_id) === route); return `<option value="${route}">${route} – ${escapeHtml(row.route_name)}</option>`; }).join(''));
+  render();
+}
+
+document.querySelector('#search').addEventListener('input', render);
+document.querySelector('#route-filter').addEventListener('change', render);
+document.querySelector('#status-filter').addEventListener('change', render);
+load().catch(error => document.querySelector('#schedule-body').innerHTML = `<tr><td class="empty" colspan="9">${escapeHtml(error.message)}</td></tr>`);
+</script>
+</body>
+</html>

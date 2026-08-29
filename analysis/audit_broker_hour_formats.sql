@@ -1,0 +1,33 @@
+WITH broker_customers AS (
+    SELECT c.*
+    FROM customer c
+    JOIN route r ON r.ROUTE_ID = c.PU_ROUTE_ID
+    JOIN sector_info si ON si.SECTOR_ID = r.SECTOR_ID
+    WHERE si.SECTOR_TYPE IN (1, 2)
+      AND (c.PUSUNDAY = 1 OR c.PUMONDAY = 1 OR c.PUTUESDAY = 1
+           OR c.PUWEDNESDAY = 1 OR c.PUTHURSDAY = 1 OR c.PUFRIDAY = 1
+           OR c.PUSATURDAY = 1)
+), values_to_check AS (
+    SELECT PUTIME AS value FROM broker_customers
+    UNION ALL SELECT PUTIMEMONDAY FROM broker_customers
+    UNION ALL SELECT PUTIMETUESDAY FROM broker_customers
+    UNION ALL SELECT PUTIMEWEDNESDAY FROM broker_customers
+    UNION ALL SELECT PUTIMETHURSDAY FROM broker_customers
+    UNION ALL SELECT PUTIMEFRIDAY FROM broker_customers
+    UNION ALL SELECT PUTIMESATURDAY FROM broker_customers
+    UNION ALL SELECT PUTIMESUNDAY FROM broker_customers
+    UNION ALL SELECT CLOSINGTIME FROM broker_customers
+    UNION ALL SELECT CLOSINGTIMEMONDAY FROM broker_customers
+    UNION ALL SELECT CLOSINGTIMETUESDAY FROM broker_customers
+    UNION ALL SELECT CLOSINGTIMEWEDNESDAY FROM broker_customers
+    UNION ALL SELECT CLOSINGTIMETHURSDAY FROM broker_customers
+    UNION ALL SELECT CLOSINGTIMEFRIDAY FROM broker_customers
+    UNION ALL SELECT CLOSINGTIMESATURDAY FROM broker_customers
+    UNION ALL SELECT CLOSINGTIMESUNDAY FROM broker_customers
+)
+SELECT TRIM(value) AS time_value, COUNT(*) AS occurrences
+FROM values_to_check
+WHERE NULLIF(TRIM(value), '') IS NOT NULL
+GROUP BY TRIM(value)
+ORDER BY occurrences DESC, time_value
+LIMIT 100;

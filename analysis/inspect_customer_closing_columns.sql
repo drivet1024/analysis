@@ -1,0 +1,11 @@
+SELECT
+    ORDINAL_POSITION AS ordinal_position,
+    COLUMN_NAME AS column_name,
+    COLUMN_TYPE AS column_type,
+    IS_NULLABLE AS is_nullable,
+    COLUMN_COMMENT AS column_comment
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = 'customer'
+  AND UPPER(COLUMN_NAME) LIKE 'CLOSINGTIME%'
+ORDER BY ORDINAL_POSITION;
