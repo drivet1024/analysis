@@ -5,3 +5,5 @@ MySqlTool/obj/
 ConveyorDashboard/.env.local
 ConveyorDashboard/bin/
 ConveyorDashboard/obj/
+__pycache__/
+*.pyc

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Route proposée — mardi, West Island</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root { font-family: Inter, Arial, sans-serif; color: #15253b; background: #f4f7fb; }
+    body { margin: 0; } main { max-width: 1500px; margin: auto; padding: 24px; }
+    h1 { margin: 0 0 6px; font-size: 1.75rem; } .subtitle, .note { color: #536579; }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; } .stat { background: #fff; border: 1px solid #d3deea; border-radius: 8px; padding: 10px 14px; min-width: 145px; }
+    .stat strong { display: block; color: #075f3a; font-size: 1.2rem; } #map { height: 58vh; min-height: 470px; border: 1px solid #c7d4e2; border-radius: 10px; background: #dce7f2; }
+    .layout { display:grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 16px; } .panel { background:#fff; border:1px solid #d3deea; border-radius:10px; padding:14px; max-height:58vh; overflow:auto; }
+    .panel h2 { font-size:1.05rem; margin:0 0 10px; } .stop { border-top:1px solid #e2e8f0; padding:9px 0; } .stop:first-of-type { border-top:0; } .stop strong { display:block; }
+    .time { color:#075f3a; font-weight:700; } .warning { color:#b42318; font-weight:700; } .stop-number { background:#075f3a; color:#fff; border:2px solid #fff; border-radius:50%; width:26px; height:26px; display:grid; place-items:center; font:700 12px Arial; box-shadow:0 1px 3px #33415588; }
+    .depot { background:#d97706; } .leaflet-popup-content { min-width:240px; } @media(max-width:900px){.layout{grid-template-columns:1fr}.panel{max-height:none}#map{height:55vh}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Route proposée — mardi</h1>
+  <p class="subtitle">Départ : 3505, boulevard Losch, Saint‑Hubert · 20 minutes de service par client · Pointe‑Claire et à l’ouest.</p>
+  <div class="stats"><div class="stat"><strong id="departure">—</strong>départ calculé</div><div class="stat"><strong id="stop-count">—</strong>arrêts clients</div><div class="stat"><strong id="drive-time">—</strong>conduite estimée</div><div class="stat"><strong id="feasibility">—</strong>fenêtres respectées</div></div>
+  <div class="layout"><div id="map" aria-label="Carte de la route du mardi"></div><aside class="panel"><h2>Ordre des arrêts</h2><div id="stops">Calcul de la route…</div></aside></div>
+  <p class="note">La route utilise le réseau routier OSRM. Les heures sans donnée sont sans restriction. Une fenêtre trop courte ou contradictoire est signalée; elle ne doit pas être considérée comme confirmée.</p>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const depot = { name: '3505 boul. Losch, Saint-Hubert', latitude: 45.501026, longitude: -73.4428912 };
+const serviceMinutes = 20;
+const day = 'Mardi';
+const number = new Intl.NumberFormat('fr-CA');
+const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[character]);
+const map = L.map('map').setView([45.48, -73.77], 10);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
+const routeLayer = L.layerGroup().addTo(map);
+
+function parseCsv(text) {
+  const rows = []; let row = []; let field = ''; let quoted = false;
+  for (const character of text) {
+    if (character === '"') quoted = !quoted;
+    else if (character === ';' && !quoted) { row.push(field); field = ''; }
+    else if (character === '\n' && !quoted) { row.push(field); rows.push(row); row = []; field = ''; }
+    else if (character !== '\r') field += character;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  const [headers, ...records] = rows;
+  return records.filter(record => record.length > 1).map(record => Object.fromEntries(headers.map((header, index) => [header, record[index] ?? ''])));
+}
+
+function parseTime(value) {
+  const match = String(value ?? '').trim().match(/^(\d{1,2})h(?:(\d{2}))?$/);
+  if (!match || Number(match[1]) === 0) return null;
+  return Number(match[1]) * 60 + Number(match[2] || 0);
+}
+
+function noteClosing(value) {
+  const match = String(value ?? '').match(/(?:fermeture|ferme)\s*(\d{1,2})h(?:(\d{2}))?/i);
+  return match ? Number(match[1]) * 60 + Number(match[2] || 0) : null;
+}
+
+function timeLabel(minutes) {
+  if (!Number.isFinite(minutes)) return 'sans restriction';
+  const dayPrefix = minutes >= 1440 ? '+1 ' : '';
+  const normal = ((Math.round(minutes) % 1440) + 1440) % 1440;
+  return `${dayPrefix}${String(Math.floor(normal / 60)).padStart(2, '0')}h${String(normal % 60).padStart(2, '0')}`;
+}
+
+function buildStops(rows) {
+  const grouped = new Map();
+  rows.filter(row => row.Jour === day).forEach(row => {
+    const key = row['ID Client'];
+    if (!grouped.has(key)) grouped.set(key, { id:key, name:row['Nom Client'], latitude:Number(row.Latitude), longitude:Number(row.Longitude), rows:[] });
+    grouped.get(key).rows.push(row);
+  });
+  return [...grouped.values()].map(stop => {
+    const pickups = stop.rows.map(row => parseTime(row['Pickup début']) ?? parseTime(row['Pickup fin'])).filter(Number.isFinite);
+    const closings = stop.rows.map(row => noteClosing(row.Note)).filter(Number.isFinite);
+    stop.open = pickups.length ? Math.min(...pickups) : 0;
+    stop.close = closings.length ? Math.max(...closings) : 24 * 60;
+    if (stop.close <= stop.open) stop.close += 24 * 60;
+    stop.routes = [...new Set(stop.rows.map(row => row.Route))].sort((a,b) => Number(a) - Number(b));
+    return stop;
+  });
+}
+
+function orderStops(stops, durations) {
+  const remaining = [...stops]; const ordered = []; let currentIndex = 0;
+  while (remaining.length) {
+    remaining.sort((a, b) => a.close - b.close || durations[currentIndex][stops.indexOf(a) + 1] - durations[currentIndex][stops.indexOf(b) + 1]);
+    const next = remaining.shift(); ordered.push(next); currentIndex = stops.indexOf(next) + 1;
+  }
+  return ordered;
+}
+
+function scheduleStops(ordered, allStops, durations) {
+  const travel = (from, to) => Math.round(durations[from][to] / 60);
+  const latestService = new Array(ordered.length);
+  for (let index = ordered.length - 1; index >= 0; index--) {
+    const stop = ordered[index]; const matrixIndex = allStops.indexOf(stop) + 1;
+    let latest = stop.close - serviceMinutes;
+    if (index < ordered.length - 1) latest = Math.min(latest, latestService[index + 1] - serviceMinutes - travel(matrixIndex, allStops.indexOf(ordered[index + 1]) + 1));
+    latestService[index] = latest;
+  }
+  let current = latestService[0] - travel(0, allStops.indexOf(ordered[0]) + 1);
+  const departure = current; let drive = 0;
+  ordered.forEach((stop, index) => {
+    const from = index ? allStops.indexOf(ordered[index - 1]) + 1 : 0;
+    const to = allStops.indexOf(stop) + 1; const minutes = travel(from, to); drive += minutes; current += minutes;
+    stop.arrival = current; stop.serviceStart = Math.max(current, stop.open); stop.serviceEnd = stop.serviceStart + serviceMinutes;
+    stop.feasible = stop.serviceStart >= stop.open && stop.serviceEnd <= stop.close;
+    current = stop.serviceEnd;
+  });
+  return { departure, drive, stops: ordered };
+}
+
+function stopIcon(index, depotMarker = false) {
+  return L.divIcon({ className:'', iconSize:[28,28], iconAnchor:[14,14], html:`<div class="stop-number${depotMarker ? ' depot' : ''}">${index}</div>` });
+}
+
+function renderPlan(plan, route) {
+  routeLayer.clearLayers();
+  const bounds = [[depot.latitude, depot.longitude]];
+  L.marker([depot.latitude, depot.longitude], { icon:stopIcon('D', true) }).bindPopup(`<strong>Départ</strong><div>${escapeHtml(depot.name)}</div><div>${timeLabel(plan.departure)}</div>`).addTo(routeLayer);
+  if (route?.geometry) L.geoJSON(route.geometry, { style:{ color:'#1769aa', weight:5, opacity:.75 } }).addTo(routeLayer);
+  plan.stops.forEach((stop, index) => {
+    const status = stop.feasible ? '' : '<div class="warning">Fenêtre non respectée</div>';
+    const hours = `${timeLabel(stop.open)} – ${timeLabel(stop.close)}`;
+    L.marker([stop.latitude, stop.longitude], { icon:stopIcon(index + 1) }).bindPopup(`<strong>${escapeHtml(stop.name)}</strong><div>Client #${escapeHtml(stop.id)} · routes ${escapeHtml(stop.routes.join(' · '))}</div><div>Arrivée : <b>${timeLabel(stop.arrival)}</b></div><div>Fenêtre : ${hours}</div>${status}`).addTo(routeLayer);
+    bounds.push([stop.latitude, stop.longitude]);
+  });
+  map.fitBounds(bounds, { padding:[30,30] });
+  document.querySelector('#departure').textContent = timeLabel(plan.departure);
+  document.querySelector('#stop-count').textContent = number.format(plan.stops.length);
+  document.querySelector('#drive-time').textContent = `${plan.drive} min`;
+  const failed = plan.stops.filter(stop => !stop.feasible).length;
+  document.querySelector('#feasibility').textContent = failed ? `${failed} à revoir` : 'Toutes';
+  document.querySelector('#stops').innerHTML = plan.stops.map((stop, index) => `<div class="stop"><strong>${index + 1}. ${escapeHtml(stop.name)}</strong><div class="time">Arrivée ${timeLabel(stop.arrival)} · service jusqu’à ${timeLabel(stop.serviceEnd)}</div><div>Fenêtre ${timeLabel(stop.open)} – ${timeLabel(stop.close)} · routes ${escapeHtml(stop.routes.join(' · '))}</div>${stop.feasible ? '' : '<div class="warning">Fenêtre impossible avec 20 min de service</div>'}</div>`).join('');
+}
+
+async function load() {
+  const response = await fetch(`pickups_west_island_strict.csv?v=${Date.now()}`, { cache:'no-store' });
+  if (!response.ok) throw new Error('Impossible de charger les pickups.');
+  const stops = buildStops(parseCsv(await response.text()));
+  const coordinates = [[depot.longitude, depot.latitude], ...stops.map(stop => [stop.longitude, stop.latitude])].map(point => point.join(',')).join(';');
+  const tableResponse = await fetch(`https://router.project-osrm.org/table/v1/driving/${coordinates}?annotations=duration`);
+  if (!tableResponse.ok) throw new Error('Impossible de calculer les temps de conduite.');
+  const table = await tableResponse.json(); if (table.code !== 'Ok') throw new Error('Temps de conduite indisponibles.');
+  const ordered = orderStops(stops, table.durations); const plan = scheduleStops(ordered, stops, table.durations);
+  const routeCoordinates = [[depot.longitude, depot.latitude], ...plan.stops.map(stop => [stop.longitude, stop.latitude])].map(point => point.join(',')).join(';');
+  const routeResponse = await fetch(`https://router.project-osrm.org/route/v1/driving/${routeCoordinates}?overview=full&geometries=geojson`);
+  const routeData = routeResponse.ok ? await routeResponse.json() : null;
+  renderPlan(plan, routeData?.routes?.[0]);
+}
+load().catch(error => { document.querySelector('#stops').innerHTML = `<div class="warning">${escapeHtml(error.message)}</div>`; });
+</script>
+</body>
+</html>

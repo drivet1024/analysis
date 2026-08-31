@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carte combinée des pickups — île de Montréal</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root{--ink:#17212b;--muted:#687684;--line:#d9e1e8;--paper:#f4f7f9;--blue:#1769aa;--teal:#249b5a;--orange:#e67e22;--yellow:#ffd60a}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 system-ui,sans-serif}main{max-width:1500px;margin:auto;padding:28px}header{display:flex;justify-content:space-between;align-items:end;gap:20px;border-bottom:3px solid var(--ink);padding-bottom:16px}h1{margin:0;font:700 clamp(27px,4vw,47px)/1 Georgia,serif}.subtitle{margin:9px 0 0;color:var(--muted)}.back{color:var(--blue);font-weight:700;text-decoration:none;white-space:nowrap}.summary{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}.stat{background:#fff;border:1px solid var(--line);padding:12px 15px}.stat strong{font-size:22px;margin-right:6px}.stat span{color:var(--muted)}.filters{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}.filter{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);padding:10px 12px;font-weight:700}.filter input{width:16px;height:16px;accent-color:var(--blue)}.filter.search input{width:210px;height:auto;padding:6px 8px;accent-color:auto;font:inherit}#map{height:min(70vh,760px);min-height:520px;border:1px solid var(--line);background:#dce9e8}.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;color:var(--muted);font-size:13px}.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}.dot.blue{background:var(--blue)}.dot.orange{background:var(--orange)}.dot.yellow{background:var(--yellow)}.dot.teal{background:var(--teal)}.boundary{display:inline-block;width:20px;border-top:2px dashed var(--blue);margin-right:5px;vertical-align:4px}.note{margin-top:12px;padding:10px 13px;border-left:4px solid var(--orange);background:#fff8ef;color:#68431f}.leaflet-popup-content{min-width:235px;max-height:min(60vh,480px);overflow-y:auto;padding-right:6px;scrollbar-gutter:stable}.leaflet-popup-content strong{display:block;font-size:15px;margin-bottom:6px}.tags{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0}.tag{padding:2px 6px;border-radius:999px;color:#fff;font-size:11px;font-weight:800}.tag.blue{background:var(--blue)}.tag.orange{background:var(--orange)}.tag.yellow{background:var(--yellow);color:#3d2d00}.tag.teal{background:var(--teal);color:#fff}.popup-line{margin-top:5px}@media(max-width:700px){main{padding:18px 12px}header{display:block}.back{display:inline-block;margin-top:14px}#map{min-height:480px;height:68vh}.leaflet-popup-content{max-height:52vh}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>Pickups cédulés — île de Montréal</h1><p class="subtitle">Une vue combinée des cueillettes planifiées, très petits volumes et routes spéciales.</p></div>
+    <a class="back" href="index.html">← Retour au centre d'analyse</a>
+  </header>
+  <section class="summary" aria-label="Résumé">
+    <div class="stat"><strong id="visible-count">-</strong><span>clients affichés</span></div>
+    <div class="stat"><strong id="scheduled-count">-</strong><span>autres pickups cédulés sur l'île</span></div>
+    <div class="stat"><strong id="transport-under-count">-</strong><span>Transport ≤100 colis</span></div>
+    <div class="stat"><strong id="transport-over-count">-</strong><span>Transport &gt;100 colis</span></div>
+    <div class="stat"><strong id="special-count">-</strong><span>clients St-Pierre</span></div>
+  </section>
+  <section class="filters" aria-label="Filtres de la carte">
+    <label class="filter"><input id="scheduled-filter" type="checkbox" checked> Routes cédulées hors 500xx et 501xx</label>
+    <label class="filter"><input id="transport-filter" type="checkbox" checked> Transport : routes 500xx</label>
+    <label class="filter"><input id="special-filter" type="checkbox" checked> St-Pierre : 50103 · 50104 · 50125 · 50129 · 50130 · 50144</label>
+    <label class="filter search">Rechercher<input id="client-search" type="search" placeholder="Client ou no. client"></label>
+  </section>
+  <div id="map" aria-label="Carte des pickups cédulés et des segments associés"></div>
+  <div class="legend"><span><i class="dot blue"></i>Route cédulée hors 500xx et 501xx</span><span><i class="dot orange"></i>Transport 500xx : ≤100 colis</span><span><i class="dot yellow"></i>Transport 500xx : &gt;100 colis</span><span><i class="dot teal"></i>St-Pierre : routes 501xx sélectionnées</span><span><i class="boundary"></i>Limite terrestre de l'île</span></div>
+  <div class="note">Les trois filtres s'additionnent. Cédulé affiche les routes hors 500xx et 501xx sur l'île, y compris les clients actifs de type broker; Transport affiche les routes 500xx sur l'île; St-Pierre affiche exclusivement les routes 50103, 50104, 50125, 50129, 50130 et 50144. Les clients à la même coordonnée sont regroupés dans une seule boîte.</div>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+const number = new Intl.NumberFormat('fr-CA');
+const esc = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+const map = L.map('map').setView([45.53, -73.63], 10);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 18 }).addTo(map);
+const markerLayer = L.layerGroup().addTo(map);
+let clients = [];
+
+function parseCsv(text) {
+  const rows = []; let row = []; let value = ''; let quoted = false;
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index]; const next = text[index + 1];
+    if (character === '"' && quoted && next === '"') { value += '"'; index++; }
+    else if (character === '"') quoted = !quoted;
+    else if (character === ',' && !quoted) { row.push(value); value = ''; }
+    else if ((character === '\n' || character === '\r') && !quoted) {
+      if (character === '\r' && next === '\n') index++;
+      row.push(value); if (row.some(cell => cell !== '')) rows.push(row); row = []; value = '';
+    } else value += character;
+  }
+  if (value || row.length) { row.push(value); rows.push(row); }
+  const [headers, ...records] = rows;
+  return records.map(record => Object.fromEntries(headers.map((header, index) => [header, record[index] ?? ''])));
+}
+
+function pointInRing(point, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i]; const [xj, yj] = ring[j];
+    const intersects = ((yi > point[1]) !== (yj > point[1])) && point[0] < (xj - xi) * (point[1] - yi) / (yj - yi) + xi;
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+function geometryContains(point, geometry) {
+  const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.type === 'MultiPolygon' ? geometry.coordinates : [];
+  return polygons.some(polygon => pointInRing(point, polygon[0]) && !polygon.slice(1).some(hole => pointInRing(point, hole)));
+}
+
+function isOnMontrealIsland(point, boundary) {
+  return boundary.features.some(feature => feature.geometry && geometryContains(point, feature.geometry));
+}
+
+function joinByCustomer(rows) {
+  const grouped = new Map();
+  rows.forEach(row => {
+    const key = String(row.customer_id);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(row);
+  });
+  return grouped;
+}
+
+function parseBrokerWeekly(value) {
+  const schedule = new Map();
+  String(value ?? '').split(' · ').forEach(item => {
+    const match = item.match(/^(Lun|Mar|Mer|Jeu|Ven|Sam|Dim)\s+(.+)$/);
+    if (match) schedule.set(match[1], match[2]);
+  });
+  return schedule;
+}
+
+function brokerScheduleRows(rows) {
+  const dayNames = { Lun:'Lundi', Mar:'Mardi', Mer:'Mercredi', Jeu:'Jeudi', Ven:'Vendredi', Sam:'Samedi', Dim:'Dimanche' };
+  return rows.filter(row => Number(row.customer_active) === 1 && row.broker_type).flatMap(row => {
+    const pickup = parseBrokerWeekly(row.pickup_schedule); const closing = parseBrokerWeekly(row.closing_schedule);
+    const days = new Set([...pickup.keys(), ...closing.keys()]);
+    return [...days].map(day => ({ customer_id:row.customer_id, client:row.client, jour:dayNames[day], route_id:String(row.route_id), heure_debut:pickup.get(day) || 'N/D', heure_fin:closing.get(day) || 'N/D', source:'broker' }));
+  });
+}
+
+function markerStyle(client) {
+  const fillColor = client.transportVolume === 'under' ? '#e67e22'
+    : client.transportVolume === 'over' ? '#ffd60a'
+    : client.stPierre ? '#249b5a' : '#1769aa';
+  return { radius: 8, color: '#fff', weight: 2, fillColor, fillOpacity: .92 };
+}
+
+function popup(client) {
+  const transportTag = client.transportVolume === 'under' ? '<span class="tag orange">Transport 500xx · ≤100 colis</span>'
+    : client.transportVolume === 'over' ? '<span class="tag yellow">Transport 500xx · &gt;100 colis</span>' : '';
+  const tags = [client.scheduledOtherIsland ? '<span class="tag blue">Cédulé hors 500xx/501xx</span>' : '', transportTag, client.stPierre ? '<span class="tag teal">St-Pierre</span>' : ''].join('');
+  const schedule = client.schedules.length ? `<div class="popup-line"><b>Horaire :</b> ${client.schedules.map(row => `${esc(row.jour)} · route ${esc(row.route_id)} · ${esc(row.heure_debut || 'N/D')}–${esc(row.heure_fin || 'N/D')}`).join('<br>')}</div>` : '';
+  const volume = client.transportVolume ? `<div class="popup-line"><b>Transport :</b> max ${number.format(client.low.max_parcels_in_one_day)} colis · ${number.format(client.low.days_at_or_below_100)}/${number.format(client.low.scheduled_pickup_days)} journées ≤100</div>` : '';
+  const stPierre = client.stPierre ? `<div class="popup-line"><b>St-Pierre :</b> ${esc(client.special.route_ids)} · ${number.format(client.special.scheduled_pickup_days)} journées cédulées</div>` : '';
+  const address = client.address ? `<div class="popup-line"><b>Adresse :</b> ${esc(client.address)}</div>` : '';
+  return `<strong>${esc(client.client)}</strong><div>Client #${esc(client.customerId)}</div>${address}<div class="tags">${tags}</div>${schedule}${volume}${stPierre}`;
+}
+
+function shouldRender(client) {
+  const special = document.querySelector('#special-filter').checked && client.stPierre;
+  const scheduled = document.querySelector('#scheduled-filter').checked && client.scheduledOtherIsland;
+  const transport = document.querySelector('#transport-filter').checked && client.transportIsland;
+  return scheduled || transport || special;
+}
+
+function render() {
+  markerLayer.clearLayers();
+  const query = document.querySelector('#client-search').value.trim().toLowerCase();
+  const visible = clients.filter(client => shouldRender(client) && (!query || `${client.customerId} ${client.client}`.toLowerCase().includes(query))); const bounds = [];
+  const locationGroups = new Map();
+  visible.forEach(client => {
+    const key = `${client.latitude.toFixed(6)},${client.longitude.toFixed(6)}`;
+    if (!locationGroups.has(key)) locationGroups.set(key, []);
+    locationGroups.get(key).push(client);
+  });
+  locationGroups.forEach(group => {
+    const client = group[0]; const style = markerStyle(client);
+    const marker = L.circleMarker([client.latitude, client.longitude], { ...style, radius: group.length > 1 ? 11 : style.radius });
+    const content = group.length === 1 ? popup(client) : `<strong>${group.length} clients à cette adresse</strong>${group.sort((a, b) => a.client.localeCompare(b.client, 'fr')).map(item => `<div class="popup-line">${popup(item)}</div>`).join('<hr>')}`;
+    marker.bindPopup(content); marker.addTo(markerLayer); bounds.push([client.latitude, client.longitude]);
+  });
+  document.querySelector('#visible-count').textContent = number.format(visible.length);
+  if (bounds.length) map.fitBounds(bounds, { padding: [24, 24], maxZoom: visible.length === 1 ? 15 : 11 });
+}
+
+async function load() {
+  const [scheduleResponse, lowResponse, specialResponse, geoResponse, boundaryResponse, brokerResponse, addressResponse] = await Promise.all([
+    fetch(`customer_pickup_schedule.csv?v=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`last_30_days_pickups_under_100.json?v=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`selected_routes_30_days.json?v=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`last_30_days_customer_geo.json?v=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`montreal_island_boundary.geojson?v=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`broker_pickup_schedule.json?v=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`customer_addresses.json?v=${Date.now()}`, { cache: 'no-store' }),
+  ]);
+  if (![scheduleResponse, lowResponse, specialResponse, geoResponse, boundaryResponse, brokerResponse, addressResponse].every(response => response.ok)) throw new Error('Impossible de charger une des sources de la carte.');
+  const schedules = parseCsv(await scheduleResponse.text());
+  const brokerSchedules = brokerScheduleRows(await brokerResponse.json());
+  const lowRows = await lowResponse.json();
+  const specialRows = await specialResponse.json();
+  const coordinates = new Map((await geoResponse.json()).map(row => [String(row.customer_id), row]));
+  const addresses = new Map((await addressResponse.json()).map(row => [String(row.customer_id), row.address]));
+  const boundary = await boundaryResponse.json();
+  L.geoJSON(boundary, { style: { color: '#1769aa', weight: 1.5, dashArray: '5 5', fill: false, interactive: false } }).addTo(map);
+  const schedulesByCustomer = joinByCustomer(schedules);
+  brokerSchedules.forEach(row => {
+    const key = String(row.customer_id); const existing = schedulesByCustomer.get(key) ?? [];
+    if (!existing.some(item => String(item.route_id) === row.route_id && item.jour === row.jour)) existing.push(row);
+    schedulesByCustomer.set(key, existing);
+  });
+  const lowByCustomer = new Map(lowRows.map(row => [String(row.customer_id), row]));
+  const specialByCustomer = new Map(specialRows.map(row => [String(row.customer_id), row]));
+  const stPierreRoutes = new Set(['50103', '50104', '50125', '50129', '50130', '50144']);
+  const customerIds = new Set([...schedulesByCustomer.keys(), ...lowByCustomer.keys(), ...specialByCustomer.keys()]);
+  clients = [...customerIds].map(customerId => {
+    const point = coordinates.get(customerId); if (!point) return null;
+    const schedule = schedulesByCustomer.get(customerId) ?? [];
+    const low = lowByCustomer.get(customerId); const special = specialByCustomer.get(customerId);
+    const latitude = Number(point.latitude); const longitude = Number(point.longitude); const island = isOnMontrealIsland([longitude, latitude], boundary);
+    const transportIsland = island && schedule.some(row => /^500\d{2}$/.test(String(row.route_id)));
+    const scheduledOtherIsland = island && schedule.some(row => !/^50[01]\d{2}$/.test(String(row.route_id)));
+    const transportVolume = transportIsland && low ? Number(low.max_parcels_in_one_day) <= 100 ? 'under' : 'over' : null;
+    const stPierre = Boolean(special) && String(special.route_ids).split(' / ').some(route => stPierreRoutes.has(route));
+    return { customerId, client: schedule[0]?.client ?? low?.client ?? special?.client ?? point.client, address: addresses.get(customerId), latitude, longitude, island, schedules: schedule, scheduledIsland: schedule.length > 0 && island, scheduledOtherIsland, transportIsland, transportVolume, low, special, stPierre };
+  }).filter(Boolean);
+  document.querySelector('#scheduled-count').textContent = number.format(clients.filter(client => client.scheduledOtherIsland).length);
+  document.querySelector('#transport-under-count').textContent = number.format(clients.filter(client => client.transportVolume === 'under').length);
+  document.querySelector('#transport-over-count').textContent = number.format(clients.filter(client => client.transportVolume === 'over').length);
+  document.querySelector('#special-count').textContent = number.format(clients.filter(client => client.stPierre).length);
+  document.querySelectorAll('input[type="checkbox"]').forEach(input => input.addEventListener('change', render));
+  document.querySelector('#client-search').addEventListener('input', render);
+  render();
+}
+
+load().catch(error => { document.querySelector('#map').innerHTML = `<div style="padding:24px;color:#687684">${esc(error.message)}</div>`; });
+</script>
+</body>
+</html>

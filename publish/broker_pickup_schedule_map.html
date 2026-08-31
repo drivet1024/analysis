@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carte des cueillettes cédulées broker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root{--ink:#17212b;--muted:#687684;--line:#d9e1e8;--paper:#f4f7f9;--blue:#1769aa;--orange:#e67e22}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 system-ui,sans-serif}main{max-width:1500px;margin:auto;padding:28px}header{display:flex;justify-content:space-between;align-items:end;gap:20px;border-bottom:3px solid var(--ink);padding-bottom:16px}h1{margin:0;font:700 clamp(27px,4vw,47px)/1 Georgia,serif}.subtitle{margin:9px 0 0;color:var(--muted)}.back{color:var(--blue);font-weight:700;text-decoration:none;white-space:nowrap}.summary{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}.stat{background:#fff;border:1px solid var(--line);padding:12px 15px}.stat strong{font-size:22px;margin-right:6px}.stat span{color:var(--muted)}.toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:18px 0}.control{display:grid;gap:5px;min-width:190px;flex:1}label{font-weight:700;font-size:13px;color:var(--muted)}select{min-height:40px;border:1px solid var(--line);background:#fff;padding:8px;font:inherit;color:var(--ink)}#map{height:min(70vh,760px);min-height:520px;border:1px solid var(--line);background:#dce9e8}.note{margin-top:12px;padding:10px 13px;border-left:4px solid var(--orange);background:#fff8ef;color:#68431f}.leaflet-popup-content{min-width:230px}.leaflet-popup-content strong{display:block;font-size:15px;margin-bottom:6px}.route{font-weight:800}.muted{color:var(--muted)}@media(max-width:700px){main{padding:18px 12px}header{display:block}.back{display:inline-block;margin-top:14px}.control{min-width:100%}#map{min-height:480px;height:68vh}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>Carte des cueillettes cédulées broker</h1><p class="subtitle">Clients planifiés sur une route reliée à un voiturier ou à un agent.</p></div>
+    <a class="back" href="index.html">← Retour au centre d'analyse</a>
+  </header>
+  <section class="summary" aria-label="Résumé de la carte">
+    <div class="stat"><strong id="scheduled-count">-</strong><span>cueillettes actives cédulées</span></div>
+    <div class="stat"><strong id="mapped-count">-</strong><span>affichées sur la carte</span></div>
+    <div class="stat"><strong id="missing-count">-</strong><span>sans coordonnées</span></div>
+    <div class="stat"><strong id="route-count">-</strong><span>routes broker</span></div>
+  </section>
+  <section class="toolbar" aria-label="Filtres de la carte">
+    <div class="control"><label for="route-filter">Route broker</label><select id="route-filter"><option value="">Toutes les routes</option></select></div>
+    <div class="control"><label for="type-filter">Type de secteur</label><select id="type-filter"><option value="">Tous les types</option></select></div>
+    <div class="control"><label for="day-filter">Jour de cueillette</label><select id="day-filter"><option value="">Tous les jours</option><option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option><option>Dimanche</option></select></div>
+  </section>
+  <div id="map" aria-label="Carte des clients ayant une cueillette cédulée broker"></div>
+  <div class="note">La carte ne présente que les clients actifs. La couleur distingue les routes et le marqueur représente un client. Les données d'horaire proviennent de <code>broker_pickup_schedule.json</code>. Les clients sans coordonnées ne peuvent pas être placés sur la carte; consultez le <a href="broker_pickup_schedule.html">tableau des cueillettes broker</a> pour la liste complète.</div>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+const number = new Intl.NumberFormat('fr-CA');
+const esc = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+const map = L.map('map').setView([46.8, -71.2], 6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 18 }).addTo(map);
+const markers = L.layerGroup().addTo(map);
+let schedule = [], mapped = [];
+
+function colorForRoute(routeId) {
+  let hash = 0;
+  for (const character of String(routeId)) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  return `hsl(${hash % 360} 62% 42%)`;
+}
+
+function applyTestClosingTime(row) {
+  if (Number(row.customer_active) !== 1 || /\d{1,2}:\d{2}/.test(String(row.closing_schedule ?? ''))) return row;
+  const pickup = String(row.pickup_schedule ?? '').split(' · ').map(item => { const separator = item.indexOf(' '); return { day: item.slice(0, separator), time: item.slice(separator + 1) }; }).filter(item => item.day && item.time);
+  const pickupTimes = [...new Set(pickup.map(item => item.time).filter(time => time !== 'N/D'))];
+  if (pickupTimes.length !== 1) return row;
+  const closingSchedule = pickup.map(item => {
+    const match = item.time.match(/^(\d{1,2}):(\d{2})$/);
+    const time = match ? `${String((Number(match[1]) + 1) % 24).padStart(2, '0')}:${match[2]}` : 'N/D';
+    return `${item.day} ${time}`;
+  }).join(' · ');
+  return { ...row, closing_schedule: closingSchedule, note: `Fermeture de test : pickup + 1h${row.note ? ` | ${row.note}` : ''}` };
+}
+
+function scheduleLine(row) {
+  const pickup = row.pickup_schedule || 'N/D';
+  const closing = row.closing_schedule || 'N/D';
+  return `<div><b>Cueillette :</b> ${esc(pickup)}</div><div><b>Fermeture :</b> ${esc(closing)}</div>`;
+}
+
+function matchesFilters(row) {
+  const route = document.querySelector('#route-filter').value;
+  const type = document.querySelector('#type-filter').value;
+  const day = document.querySelector('#day-filter').value;
+  return (!route || String(row.route_id) === route)
+    && (!type || row.broker_type === type)
+    && (!day || String(row.pickup_days).includes(day));
+}
+
+function render() {
+  markers.clearLayers();
+  const rows = mapped.filter(matchesFilters);
+  const bounds = [];
+  rows.forEach(row => {
+    const color = colorForRoute(row.route_id);
+    const marker = L.circleMarker([row.latitude, row.longitude], { radius: 8, color: '#fff', weight: 1.5, fillColor: color, fillOpacity: .9 });
+    marker.bindPopup(`<strong>${esc(row.client)}</strong><div>Client #${esc(row.customer_id)}</div><div class="route" style="color:${color}">Route ${esc(row.route_id)} — ${esc(row.route_name)}</div><div>${esc(row.broker_type)} · ${esc(row.sector_name)}</div><div><b>Jours :</b> ${esc(row.pickup_days)}</div>${scheduleLine(row)}${row.note ? `<div><b>Note :</b> ${esc(row.note)}</div>` : ''}`);
+    marker.addTo(markers);
+    bounds.push([row.latitude, row.longitude]);
+  });
+  document.querySelector('#mapped-count').textContent = number.format(rows.length);
+  if (bounds.length) map.fitBounds(bounds, { padding: [25, 25], maxZoom: 11 });
+  else map.setView([46.8, -71.2], 6);
+  map.invalidateSize();
+}
+
+function populateFilters() {
+  const routes = [...new Set(schedule.map(row => String(row.route_id)))].sort((a, b) => Number(a) - Number(b));
+  const types = [...new Set(schedule.map(row => row.broker_type).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const routeSelect = document.querySelector('#route-filter');
+  const typeSelect = document.querySelector('#type-filter');
+  routeSelect.insertAdjacentHTML('beforeend', routes.map(route => {
+    const row = schedule.find(item => String(item.route_id) === route);
+    return `<option value="${esc(route)}">${esc(route)} — ${esc(row.route_name)}</option>`;
+  }).join(''));
+  typeSelect.insertAdjacentHTML('beforeend', types.map(type => `<option value="${esc(type)}">${esc(type)}</option>`).join(''));
+}
+
+async function load() {
+  const [scheduleResponse, geoResponse] = await Promise.all([
+    fetch(`broker_pickup_schedule.json?v=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`last_30_days_customer_geo.json?v=${Date.now()}`, { cache: 'no-store' }),
+  ]);
+  if (!scheduleResponse.ok || !geoResponse.ok) throw new Error('Impossible de charger les données de cueillettes ou les coordonnées clients.');
+  schedule = (await scheduleResponse.json()).filter(row => Number(row.customer_active) === 1).map(applyTestClosingTime);
+  const coordinates = new Map((await geoResponse.json()).map(row => [String(row.customer_id), row]));
+  mapped = schedule.map(row => {
+    const point = coordinates.get(String(row.customer_id));
+    return point ? { ...row, latitude: Number(point.latitude), longitude: Number(point.longitude) } : null;
+  }).filter(Boolean);
+  document.querySelector('#scheduled-count').textContent = number.format(schedule.length);
+  document.querySelector('#missing-count').textContent = number.format(schedule.length - mapped.length);
+  document.querySelector('#route-count').textContent = number.format(new Set(schedule.map(row => row.route_id)).size);
+  populateFilters();
+  document.querySelectorAll('select').forEach(select => select.addEventListener('change', render));
+  render();
+}
+
+load().catch(error => { document.querySelector('#map').innerHTML = `<div class="muted" style="padding:24px">${esc(error.message)}</div>`; });
+</script>
+</body>
+</html>

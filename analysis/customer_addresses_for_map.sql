@@ -1,0 +1,13 @@
+SELECT c.CUSTOMER_ID AS customer_id,
+       NULLIF(TRIM(CONCAT_WS(', ',
+         NULLIF(TRIM(CONCAT_WS(' ', c.ADDRESS1, c.ADDRESS2)), ''),
+         NULLIF(TRIM(c.CITY), ''),
+         NULLIF(TRIM(c.POSTAL_CODE), '')
+       )), '') AS address
+FROM customer c
+WHERE c.ACTIVE = 1
+  AND c.LATITUDE IS NOT NULL
+  AND c.LONGITUDE IS NOT NULL
+  AND c.LATITUDE BETWEEN 40 AND 50
+  AND c.LONGITUDE BETWEEN -80 AND -65
+  AND LOWER(c.NAME) NOT LIKE '%nationex%';

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pickups — Pointe-Claire et à l’ouest</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root { font-family: Inter, Arial, sans-serif; color: #15253b; background: #f4f7fb; }
+    body { margin: 0; } main { max-width: 1500px; margin: auto; padding: 24px; }
+    h1 { margin: 0 0 6px; font-size: 1.75rem; } .subtitle { margin: 0 0 18px; color: #536579; }
+    .stats, .filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+    .stat { background: #fff; border: 1px solid #d3deea; border-radius: 8px; padding: 10px 14px; min-width: 135px; }
+    .stat strong { display:block; color:#075f3a; font-size:1.2rem; } .filters { align-items: end; }
+    label { display: grid; gap: 5px; font-weight: 650; font-size: .9rem; } input, select { min-width: 210px; padding: 8px 10px; border: 1px solid #bfcede; border-radius: 6px; font: inherit; }
+    #map { height: 72vh; min-height: 560px; border: 1px solid #c7d4e2; border-radius: 10px; background: #dce7f2; }
+    .note { margin-top: 12px; color: #536579; font-size: .9rem; } .route { font-weight: 700; color: #075f3a; margin: 5px 0; } .hours { margin: 8px 0 0; line-height: 1.45; }
+    .leaflet-popup-content { min-width: 250px; } .leaflet-popup-content strong { font-size: 1.05rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Pickups — Pointe-Claire et à l’ouest</h1>
+  <p class="subtitle">Clients avec une cueillette à Pointe-Claire ou plus à l’ouest.</p>
+  <div class="stats"><div class="stat"><strong id="client-count">—</strong>clients</div><div class="stat"><strong id="pickup-count">—</strong>cueillettes planifiées</div><div class="stat"><strong>≤ −73.75</strong>longitude, dans l’île</div></div>
+  <div class="filters"><label>Rechercher un client<input id="search" type="search" placeholder="Nom, ID ou route"></label><label>Jour<select id="day-filter"><option value="">Tous les jours</option><option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option><option>Dimanche</option></select></label></div>
+  <div id="map" aria-label="Carte des pickups du West Island"></div>
+  <p class="note">Vert : autres pickups. Gris : route Transport 500xx avec plus de 100 colis. Cliquez sur un point pour voir les routes, les journées et les heures. <a href="pickups_west_island_strict.csv">Télécharger le CSV</a>.</p>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const number = new Intl.NumberFormat('fr-CA');
+const dayOrder = { Lundi: 1, Mardi: 2, Mercredi: 3, Jeudi: 4, Vendredi: 5, Samedi: 6, Dimanche: 7 };
+const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[char]);
+const map = L.map('map', { zoomControl: true }).setView([45.48, -73.76], 10);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+L.polyline([[45.35, -73.75], [45.65, -73.75]], { color: '#c62828', weight: 3, opacity: .9, dashArray: '8 8', interactive: false })
+  .bindTooltip('Limite −73.75', { permanent: true, direction: 'right', offset: [8, 0], className: 'longitude-label' })
+  .addTo(map);
+const markers = L.layerGroup().addTo(map);
+let clients = [];
+
+function parseCsv(text) {
+  const rows = []; let row = []; let field = ''; let quoted = false;
+  for (const character of text) {
+    if (character === '"') quoted = !quoted;
+    else if (character === ';' && !quoted) { row.push(field); field = ''; }
+    else if (character === '\n' && !quoted) { row.push(field); rows.push(row); row = []; field = ''; }
+    else if (character !== '\r') field += character;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  const [headers, ...records] = rows;
+  return records.filter(record => record.length > 1).map(record => Object.fromEntries(headers.map((header, index) => [header, record[index] ?? ''])));
+}
+
+function formatRow(row) {
+  const times = [row['Pickup début'], row['Pickup fin']].filter(Boolean).join(' – ') || 'N/D';
+  return `<div><b>${escapeHtml(row.Jour)}</b> · route ${escapeHtml(row.Route)} · ${escapeHtml(times)}${row.Note ? ` <em>(${escapeHtml(row.Note)})</em>` : ''}</div>`;
+}
+
+function render() {
+  const query = document.querySelector('#search').value.trim().toLowerCase();
+  const day = document.querySelector('#day-filter').value;
+  const visible = clients.filter(client => (!day || client.rows.some(row => row.Jour === day)) && `${client.id} ${client.name} ${[...client.routes].join(' ')}`.toLowerCase().includes(query));
+  markers.clearLayers();
+  const bounds = [];
+  visible.forEach(client => {
+    const rows = client.rows.filter(row => !day || row.Jour === day).sort((a, b) => dayOrder[a.Jour] - dayOrder[b.Jour] || Number(a.Route) - Number(b.Route));
+    const transportOver100 = client.rows.some(row => /^500\d{2}$/.test(String(row.Route))) && Number(client.volume?.max_parcels_in_one_day) > 100;
+    const marker = L.circleMarker([client.latitude, client.longitude], { radius: 8, color: '#fff', weight: 2, fillColor: transportOver100 ? '#6b7280' : '#075f3a', fillOpacity: .92 });
+    marker.bindPopup(`<strong>${escapeHtml(client.name)}</strong><div>Client #${escapeHtml(client.id)}</div><div class="route">Routes : ${escapeHtml([...client.routes].sort((a, b) => Number(a) - Number(b)).join(' · '))}${transportOver100 ? ' · Transport > 100 colis' : ''}</div><div class="hours">${rows.map(formatRow).join('')}</div>`);
+    marker.addTo(markers); bounds.push([client.latitude, client.longitude]);
+  });
+  document.querySelector('#client-count').textContent = number.format(visible.length);
+  document.querySelector('#pickup-count').textContent = number.format(visible.reduce((sum, client) => sum + client.rows.filter(row => !day || row.Jour === day).length, 0));
+  if (bounds.length) map.fitBounds(bounds, { padding: [28, 28], maxZoom: 12 });
+}
+
+async function load() {
+  const [response, volumeResponse] = await Promise.all([
+    fetch(`pickups_west_island_strict.csv?v=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`last_30_days_pickups_under_100.json?v=${Date.now()}`, { cache: 'no-store' }),
+  ]);
+  if (!response.ok || !volumeResponse.ok) throw new Error('Impossible de charger les pickups du West Island.');
+  const volumes = new Map((await volumeResponse.json()).map(row => [String(row.customer_id), row]));
+  const grouped = new Map();
+  parseCsv(await response.text()).forEach(row => {
+    const key = row['ID Client'];
+    if (!grouped.has(key)) grouped.set(key, { id: key, name: row['Nom Client'], latitude: Number(row.Latitude), longitude: Number(row.Longitude), volume: volumes.get(key), routes: new Set(), rows: [] });
+    const client = grouped.get(key); client.routes.add(row.Route); client.rows.push(row);
+  });
+  clients = [...grouped.values()];
+  document.querySelector('#search').addEventListener('input', render);
+  document.querySelector('#day-filter').addEventListener('change', render);
+  render();
+}
+load().catch(error => { document.querySelector('#map').textContent = error.message; });
+</script>
+</body>
+</html>

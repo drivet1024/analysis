@@ -76,6 +76,18 @@ const formatTime = value => {
   return match ? `${Number(match[1])}h${match[2] === '00' ? '' : match[2]}` : text;
 };
 const parseSchedule = value => new Map(String(value ?? '').split(' · ').filter(Boolean).map(item => { const separator = item.indexOf(' '); return [item.slice(0, separator), formatTime(item.slice(separator + 1))]; }));
+const applyTestClosingTime = row => {
+  if (Number(row.customer_active) !== 1 || /\d{1,2}:\d{2}/.test(String(row.closing_schedule ?? ''))) return row;
+  const pickup = String(row.pickup_schedule ?? '').split(' · ').map(item => { const separator = item.indexOf(' '); return { day: item.slice(0, separator), time: item.slice(separator + 1) }; }).filter(item => item.day && item.time);
+  const pickupTimes = [...new Set(pickup.map(item => item.time).filter(time => time !== 'N/D'))];
+  if (pickupTimes.length !== 1) return row;
+  const addOneHour = time => {
+    const match = time.match(/^(\d{1,2}):(\d{2})$/);
+    return match ? `${String((Number(match[1]) + 1) % 24).padStart(2, '0')}:${match[2]}` : 'N/D';
+  };
+  const closingSchedule = pickup.map(item => `${item.day} ${addOneHour(item.time)}`).join(' · ');
+  return { ...row, closing_schedule: closingSchedule, note: `Fermeture de test : pickup + 1h${row.note ? ` | ${row.note}` : ''}` };
+};
 const formatWeeklyHours = row => {
   const pickup = parseSchedule(row.pickup_schedule); const closing = parseSchedule(row.closing_schedule);
   const days = [...new Set([...pickup.keys(), ...closing.keys()])];
@@ -104,7 +116,7 @@ function render() {
 async function load() {
   const response = await fetch(`broker_pickup_schedule.json?v=${Date.now()}`, { cache:'no-store' });
   if (!response.ok) throw new Error("Impossible de charger l'horaire des cueillettes.");
-  rows = await response.json();
+  rows = (await response.json()).map(applyTestClosingTime);
   rows.sort((a, b) => Number(b.customer_active) - Number(a.customer_active) || a.sector_name.localeCompare(b.sector_name, 'fr') || Number(a.route_id) - Number(b.route_id) || a.client.localeCompare(b.client, 'fr'));
   const routes = [...new Set(rows.map(row => String(row.route_id)))].sort((a, b) => Number(a) - Number(b));
   document.querySelector('#client-count').textContent = number.format(new Set(rows.map(row => row.customer_id)).size);
