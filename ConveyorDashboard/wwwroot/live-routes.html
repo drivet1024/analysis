@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Suivi en direct des routes 500xx traitées à Saint-Hubert.">
+  <title>Routes 500xx — Traitement Saint-Hubert</title>
+  <link rel="stylesheet" href="/live-routes.css?v=20260903-8">
+</head>
+<body>
+  <main class="dashboard-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <div>
+          <p class="eyebrow">Nationex · Saint-Hubert</p>
+          <h1>Routes 500xx <span>haut · sol · manuel</span></h1>
+        </div>
+      </div>
+      <div class="live-panel">
+        <span id="connection-dot" class="live-dot waiting" aria-hidden="true"></span>
+        <div><strong id="connection-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+        <button id="refresh-button" type="button">Actualiser</button>
+      </div>
+    </header>
+
+    <nav class="dashboard-tabs" role="tablist" aria-label="Sections du tableau de bord">
+      <button id="routes-tab-button" class="dashboard-tab active" type="button" role="tab" aria-selected="true" aria-controls="routes-tab" data-tab="routes-tab">Routes 500xx</button>
+      <button id="conveyor-tab-button" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="conveyor-tab" data-tab="conveyor-tab">Données convoyeur</button>
+    </nav>
+
+    <div id="routes-tab" class="tab-panel" role="tabpanel" aria-labelledby="routes-tab-button">
+
+    <section class="freshness-strip" aria-label="Fraîcheur des données">
+      <div><span>Dernier colis vu</span><strong id="latest-scan">—</strong></div>
+      <div><span>Prochaine mise à jour</span><strong><span id="countdown">30</span> s</strong></div>
+      <div><span>Fenêtre analysée</span><strong>Depuis 16:00 aujourd’hui</strong></div>
+      <div><span>Source</span><strong>Serveur 101 · lecture seule</strong></div>
+    </section>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+    <section class="kpi-grid" aria-label="Résumé opérationnel">
+      <article class="kpi-card accent-green"><span>Routes actives</span><strong id="active-routes">—</strong><small>≥ 2 colis dans les 5 dernières minutes</small></article>
+      <article class="kpi-card accent-blue"><span>Colis 500xx traités</span><strong id="mapped-parcels">—</strong><small>Union haut, sol et manuel sans double comptage</small></article>
+      <article class="kpi-card accent-violet"><span>Total prévu ce soir</span><strong id="estimated-evening-total">—</strong><small>Toutes les routes et tous les pickups du jour</small></article>
+      <article class="kpi-card accent-amber"><span>Restants estimés</span><strong id="remaining-parcels">—</strong><small>Toutes les routes planifiées aujourd’hui</small></article>
+      <article class="kpi-card accent-violet"><span>Couverture 500xx</span><strong id="mapping-coverage">—</strong><small id="coverage-context">—</small></article>
+    </section>
+
+    <section class="active-section" aria-labelledby="active-title">
+      <div class="section-heading">
+        <div><p class="section-kicker">En ce moment</p><h2 id="active-title">Routes les plus actives</h2></div>
+        <p>Le rythme récent sert à distinguer une route en cours d’un lot déjà terminé.</p>
+      </div>
+      <div id="active-route-grid" class="active-route-grid" aria-live="polite">
+        <article class="route-card loading-card">Chargement des routes…</article>
+      </div>
+    </section>
+
+    <section class="table-section" aria-labelledby="routes-title">
+      <div class="section-heading">
+        <div><p class="section-kicker">Aujourd’hui</p><h2 id="routes-title">Toutes les routes et leur volume prévu</h2></div>
+        <div class="legend" aria-label="Légende des états"><span><i class="legend-active"></i>Active</span><span><i class="legend-recent"></i>Récente</span><span><i class="legend-idle"></i>Inactive</span></div>
+      </div>
+      <div class="table-wrap">
+        <table class="route-table">
+          <thead><tr><th>Route</th><th>État</th><th>Total traités</th><th>Haut</th><th>Sol</th><th>Scan manuel</th><th>5 min</th><th>Total estimé</th><th>Restants estimés</th><th>Progression</th><th>Premier colis</th><th>Dernier colis</th><th>Confiance</th></tr></thead>
+          <tbody id="routes-body"><tr><td colspan="13" class="empty-cell">Chargement…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="method-card" aria-labelledby="method-title">
+      <div><p class="section-kicker">Hypothèse</p><h2 id="method-title">Comment les colis restants sont estimés</h2></div>
+      <ol>
+        <li>Chaque colis unique vu sur le convoyeur du haut, au sol ou à un poste manuel après 16:00 est associé au client.</li>
+        <li>Le client est rattaché à sa route 500xx planifiée pour aujourd’hui.</li>
+        <li>Le total attendu retient le maximum entre le volume déjà passé, les colis créés aujourd’hui et la moyenne des quatre mêmes jours précédents.</li>
+        <li>Restants estimés = total attendu − union des colis haut, sol et manuels. Un colis vu par plusieurs sources n’est soustrait qu’une fois.</li>
+      </ol>
+      <p id="mapping-note" class="mapping-note">Les colis sans route unique sont suivis séparément et ne sont jamais comptés deux fois.</p>
+    </section>
+
+    <section class="table-section" aria-labelledby="unprocessed-title">
+      <div class="section-heading">
+        <div><p class="section-kicker">Inventaire des trois derniers jours</p><h2 id="unprocessed-title">Colis créés qui ne sont pas encore traités</h2></div>
+        <p id="unprocessed-summary">Chargement de la liste par client…</p>
+      </div>
+      <div class="table-wrap">
+        <table class="unprocessed-table">
+          <thead><tr><th>Client</th><th>Nº client</th><th>Route du jour</th><th>Pickup du jour</th><th>Aujourd’hui</th><th>Hier</th><th>Avant-hier</th><th>Total non passés</th><th>Plus ancien</th><th>Plus récent</th></tr></thead>
+          <tbody id="unprocessed-body"><tr><td colspan="10" class="empty-cell">Chargement…</td></tr></tbody>
+        </table>
+      </div>
+      <p class="dialog-source">Colis uniques créés aujourd’hui, hier ou avant-hier pour les clients d’une route 500xx planifiée aujourd’hui. Un passage au convoyeur haut, au sol ou au scan manuel retire le colis de cette liste.</p>
+    </section>
+    </div>
+
+    <section id="conveyor-tab" class="tab-panel conveyor-tab-panel" role="tabpanel" aria-labelledby="conveyor-tab-button" hidden>
+      <div class="section-heading conveyor-heading">
+        <div><p class="section-kicker">Quart de 16:00 à 03:59</p><h2>Données convoyeur</h2></div>
+      </div>
+      <div class="conveyor-pill-grid" aria-live="polite">
+        <article class="conveyor-pill conveyor-pill-high"><span>Convoyeur du haut</span><strong id="conveyor-high-total">—</strong><small>Début <b id="conveyor-high-start">—</b></small></article>
+        <article class="conveyor-pill conveyor-pill-floor"><span>Convoyeur du bas</span><strong id="conveyor-floor-total">—</strong><small>Début <b id="conveyor-floor-start">—</b></small></article>
+        <article class="conveyor-pill conveyor-pill-manual"><span>Scan manuel</span><strong id="conveyor-manual-total">—</strong><small>Début <b id="conveyor-manual-start">—</b></small></article>
+      </div>
+      <section class="capacity-section" aria-labelledby="capacity-title">
+        <div class="section-heading capacity-heading">
+          <div><p class="section-kicker">Rendement du convoyeur du haut</p><h2 id="capacity-title">Capacité pratique et creux de production</h2></div>
+          <p id="capacity-summary">Calcul du benchmark sur les quarts complétés…</p>
+        </div>
+        <div class="capacity-kpi-grid" aria-live="polite">
+          <article><span>Capacité pratique</span><strong id="capacity-benchmark">—</strong><small id="capacity-benchmark-context">75e percentile des pointes</small></article>
+          <article><span>Maximum observé</span><strong id="capacity-maximum">—</strong><small>Meilleure fenêtre continue de 60 minutes</small></article>
+          <article><span>Débit en temps réel</span><strong id="capacity-current-peak">—</strong><small id="capacity-current-context">Bloc de 15 minutes en cours, annualisé</small></article>
+          <article><span>Moyenne de la soirée</span><strong id="capacity-average-utilization">—</strong><small id="capacity-average-context">Depuis le premier colis</small></article>
+        </div>
+        <article class="capacity-chart-card">
+          <div class="capacity-chart-head">
+            <div><h3>Débit en colis/heure par bloc de 15 minutes</h3><p>Chaque bloc est annualisé en colis/heure. La ligne pointillée représente la capacité pratique.</p></div>
+            <div class="capacity-legend"><span><i class="capacity-dot full"></i>À capacité</span><span><i class="capacity-dot under"></i>Sous capacité</span><span><i class="capacity-dot gap"></i>Creux</span></div>
+          </div>
+          <div id="capacity-chart" class="capacity-chart" role="img" aria-label="Débit du convoyeur du haut par bloc de quinze minutes"></div>
+        </article>
+        <div class="capacity-gap-layout">
+          <article class="gap-summary-card">
+            <span>Temps total en creux</span><strong id="capacity-gap-minutes">—</strong>
+            <small id="capacity-gap-context">Creux soutenus d'au moins 5 minutes</small>
+          </article>
+          <div class="table-wrap capacity-gap-wrap">
+            <table class="capacity-gap-table">
+              <thead><tr><th>Début</th><th>Fin</th><th>Durée</th><th>Colis</th><th>Moyenne/heure</th><th>Utilisation</th></tr></thead>
+              <tbody id="capacity-gap-body"><tr><td colspan="6" class="empty-cell">Analyse en cours…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <p class="capacity-method">Benchmark observé sur les 14 derniers jours : 75e percentile du meilleur volume traité dans une fenêtre continue de 60 minutes par quart complété. Il s'agit d'une référence opérationnelle, pas de la limite mécanique du convoyeur.</p>
+      </section>
+      <div class="conveyor-charts-grid">
+        <article class="hourly-chart-card hourly-chart-high">
+          <div><h3>Convoyeur du haut</h3><p>16 h à 3 h · colis uniques · échelle commune</p></div>
+          <div id="hourly-high-chart" class="hourly-chart" role="img" aria-label="Nombre de colis par heure sur le convoyeur du haut"></div>
+        </article>
+        <article class="hourly-chart-card hourly-chart-floor">
+          <div><h3>Convoyeur du bas</h3><p>16 h à 3 h · colis uniques · échelle commune</p></div>
+          <div id="hourly-floor-chart" class="hourly-chart" role="img" aria-label="Nombre de colis par heure sur le convoyeur du bas"></div>
+        </article>
+        <article class="hourly-chart-card hourly-chart-manual">
+          <div><h3>Scan manuel</h3><p>16 h à 3 h · colis uniques · échelle commune</p></div>
+          <div id="hourly-manual-chart" class="hourly-chart" role="img" aria-label="Nombre de colis par heure au scan manuel"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="client-dialog">
+    <div class="dialog-head">
+      <div><p class="section-kicker">Double vérification du jour</p><h2 id="dialog-title">Clients de la route</h2></div>
+      <button id="dialog-close" class="dialog-close" type="button" aria-label="Fermer">×</button>
+    </div>
+    <div id="client-summary" class="client-summary"></div>
+    <div class="table-wrap client-table-wrap">
+      <table class="client-table">
+        <thead><tr><th>Client</th><th>Nº client</th><th id="pickup-day-heading">Pickup du jour</th><th>Créés aujourd’hui</th><th>Total traités</th><th>Haut</th><th>Sol</th><th>Manuel</th><th>Premier</th><th>Dernier</th><th>Vérification</th><th>Note</th></tr></thead>
+        <tbody id="clients-body"><tr><td colspan="12" class="empty-cell">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+    <p id="dialog-source" class="dialog-source">Horaire officiel du jour sur le serveur 101, vérifié avec les colis observés en haut, au sol et aux postes manuels depuis 16:00.</p>
+  </dialog>
+
+  <script src="/live-routes.js?v=20260903-7" defer></script>
+</body>
+</html>

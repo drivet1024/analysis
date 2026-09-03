@@ -1,0 +1,20 @@
+WITH destination_routes AS (
+    SELECT DISTINCT s.DEST_ROUTE_ID
+    FROM parcel_history PARTITION (p2026) ph
+    JOIN shipment s ON s.SHIPPING_ID=ph.SHIPPING_ID AND s.EXP_DATE=ph.EXP_DATE
+    WHERE ph.DEPOT_ID=2 AND ph.EXCEPTION=25 AND ph.SOURCE_TYPE=900
+      AND COALESCE(ph.VOID,0)=0
+      AND ph.DATE_LIV>=CURDATE() AND ph.DATE_LIV<CURDATE()+INTERVAL 1 DAY
+)
+SELECT dr.DEST_ROUTE_ID,
+       r.ROUTE_ID route_table_id,r.START_DEPOT_ID,r.END_DEPOT_ID,
+       nr.ROUTE_ID nat_route_id,nr.DEPOT_ID nat_route_depot,
+       si.SECTOR_ID,si.DEPOTNUMBER sector_depot,
+       d.DEPOT_SHORT_LABEL,d.DEPOTNAME
+FROM destination_routes dr
+LEFT JOIN route r ON r.ROUTE_ID=dr.DEST_ROUTE_ID
+LEFT JOIN nat_route nr ON nr.ROUTE_ID=dr.DEST_ROUTE_ID
+LEFT JOIN sector_info si ON si.SECTOR_ID=FLOOR(dr.DEST_ROUTE_ID/100)
+LEFT JOIN depot d ON d.DEPOTNUMBER=COALESCE(r.START_DEPOT_ID,nr.DEPOT_ID,si.DEPOTNUMBER)
+ORDER BY dr.DEST_ROUTE_ID;
+

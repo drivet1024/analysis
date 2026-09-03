@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Scans en direct des dépôts Nationex.">
+  <title>Scans des dépôts Nationex</title>
+  <link rel="stylesheet" href="/quebec-scans.css?v=20260903-21">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="identity">
+        <span class="mark" aria-hidden="true">N</span>
+        <div><p>Nationex · <span id="header-depot-name">QUEBEC</span></p><h1>Analyse code 25</h1></div>
+      </div>
+      <div class="topbar-actions">
+        <label class="depot-picker"><span>Dépôt analysé</span><select id="depot-select" aria-label="Sélectionner le dépôt à analyser"><option value="2">QUEBEC</option></select></label>
+        <details id="settings-menu" class="settings-menu">
+          <summary aria-label="Modifier la plage horaire" title="Paramètres de la plage horaire">⚙</summary>
+          <div class="settings-popover">
+            <strong>Plage horaire</strong>
+            <div class="time-window-editor" aria-label="Plage horaire du dépôt">
+              <label><span>Début</span><input id="window-start" type="time" value="00:00" step="60"></label>
+              <label><span>Fin</span><input id="window-end" type="time" value="23:59" step="60"></label>
+              <button id="save-window" type="button">Sauvegarder</button>
+            </div>
+          </div>
+        </details>
+        <div class="live-box">
+          <i id="live-dot" aria-hidden="true"></i>
+          <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+        </div>
+      </div>
+    </header>
+
+    <section id="st-hubert-rerouted" class="rerouted-banner interactive" role="button" tabindex="0" aria-label="Voir les colis avec un code 25 attribué à St-Hubert" hidden>
+      <div><span>Code 25 attribués · St-Hubert</span><strong id="st-hubert-rerouted-total">—</strong></div>
+      <p id="st-hubert-rerouted-note">Dernier scan convoyeur à St-Hubert, puis code 25 dans un autre dépôt.</p>
+    </section>
+
+    <section class="context-row" aria-label="Contexte de la lecture">
+      <div class="date-context"><span>Date analysée</span><div class="date-navigation"><button id="previous-date" type="button" aria-label="Jour précédent">‹</button><input id="analysis-date" type="date" aria-label="Date analysée"><button id="next-date" type="button" aria-label="Jour suivant">›</button></div></div>
+      <div><span>Fenêtre</span><strong id="window-label">00:00 à 23:59</strong></div>
+      <div><span>Dernier scan</span><strong id="latest-scan">—</strong></div>
+    </section>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+    <section class="metric-grid" aria-label="Totaux par type de scan">
+      <article class="metric metric-903"><span>Scan dépôt</span><strong id="total-903">—</strong><small>Exception 903 · Tous les types de source</small></article>
+      <article class="metric metric-904"><span>Scan plancher</span><strong id="total-904">—</strong><small>Exception 904 · Tous les types de source</small></article>
+      <article id="code25-card" class="metric metric-25 interactive" role="button" tabindex="0" aria-label="Voir les codes 25 par dépôt de destination"><span>Code 25</span><strong id="total-25">—</strong><small>Cliquer pour voir les dépôts de destination</small></article>
+    </section>
+
+    <section class="chart-card" aria-labelledby="chart-title">
+      <div class="chart-heading">
+        <div><p>Volume horaire</p><h2 id="chart-title">Colis uniques par heure</h2><small>Barres superposées · journée débutant à minuit</small></div>
+        <div class="legend" aria-label="Légende">
+          <span><i class="swatch swatch-903"></i>Scan dépôt 903</span>
+          <span><i class="swatch swatch-904"></i>Scan plancher 904</span>
+          <span><i class="swatch swatch-25"></i>Code 25</span>
+        </div>
+      </div>
+      <div id="stacked-chart" class="stacked-chart" role="img" aria-label="Graphique à barres superposées des scans dépôt 903, plancher 904 et code 25 par heure"></div>
+    </section>
+
+    <p class="method-note">Chaque colis est compté une fois par code, à l’heure de son premier événement valide. Les couleurs ne doivent pas être additionnées pour obtenir des colis uniques, car un même colis peut apparaître dans plusieurs catégories.</p>
+  </main>
+
+  <dialog id="code25-dialog">
+    <div class="dialog-head">
+      <div><p>Détail du jour</p><h2>Codes 25 par dépôt de destination</h2></div>
+      <button id="dialog-close" class="dialog-close" type="button" aria-label="Fermer">×</button>
+    </div>
+    <div class="dialog-summary"><span>Total codes 25</span><strong id="dialog-total-25">—</strong><small id="dialog-date">Depuis 00:00</small></div>
+    <div class="destination-table-wrap">
+      <table class="destination-table">
+        <thead><tr><th>Dépôt de destination</th><th>Colis</th><th>Part</th><th>Premier</th><th>Dernier</th></tr></thead>
+        <tbody id="destination-body"><tr><td colspan="5" class="empty-cell">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="dialog-note">Regroupement par dépôt : <code>DEST_ROUTE_ID → route.END_DEPOT_ID → depot.DEPOTNUMBER</code>. Toutes les routes du même dépôt sont additionnées. Le secteur sert de repli lorsque la route n’a pas de dépôt de fin.</p>
+  </dialog>
+
+  <dialog id="parcel-dialog" class="parcel-dialog">
+    <div class="dialog-head">
+      <div><p>Détail des colis</p><h2 id="parcel-dialog-title">Colis du dépôt</h2></div>
+      <button id="parcel-dialog-close" class="dialog-close" type="button" aria-label="Fermer">×</button>
+    </div>
+    <div class="dialog-summary"><span>Total colis</span><strong id="parcel-dialog-total">—</strong><small id="parcel-dialog-date">Depuis 00:00</small></div>
+    <div class="destination-table-wrap">
+      <table class="destination-table parcel-table">
+        <thead><tr><th>Colis</th><th>Client</th><th>Secteur</th><th>Dimensions</th><th>Poids (lb)</th><th>Scan</th></tr></thead>
+        <tbody id="parcel-body"><tr><td colspan="6" class="empty-cell">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="dialog-note">Le poids et les dimensions proviennent du dernier scan convoyeur 903 avant l’arrivée au dépôt analysé (<span id="measurement-source-depot">QUEBEC</span>). Sans scan 903, le dernier scan dépôt 901 est utilisé.</p>
+  </dialog>
+
+  <dialog id="history-dialog" class="history-dialog">
+    <div class="dialog-head">
+      <div><p>Historique du colis</p><h2 id="history-dialog-title">Colis</h2><span id="history-dialog-address" class="history-location">Adresse non disponible</span></div>
+      <button id="history-dialog-close" class="dialog-close" type="button" aria-label="Fermer">×</button>
+    </div>
+    <div class="dialog-summary"><span>Événements</span><strong id="history-dialog-total">—</strong><small id="history-dialog-refresh">Lecture en direct</small></div>
+    <div class="destination-table-wrap history-table-wrap">
+      <table class="destination-table history-table">
+        <thead><tr><th>Code</th><th>Date</th><th>Usager/TPSL</th><th>Dépôt</th></tr></thead>
+        <tbody id="history-body"><tr><td colspan="4" class="empty-cell">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+  </dialog>
+
+  <dialog id="attributed-dialog" class="parcel-dialog">
+    <div class="dialog-head">
+      <div><p>Détail de l’attribution</p><h2 id="attributed-dialog-title">Codes 25 attribués à St-Hubert</h2></div>
+      <button id="attributed-dialog-close" class="dialog-close" type="button" aria-label="Fermer">×</button>
+    </div>
+    <div class="dialog-summary"><span>Total colis</span><strong id="attributed-dialog-total">—</strong><small id="attributed-dialog-date">Depuis 22:00 la veille</small></div>
+    <div class="destination-table-wrap">
+      <table class="destination-table parcel-table">
+        <thead><tr><th>Colis</th><th>Client</th><th>Dernier convoyeur</th><th>Code 25</th><th>Dépôt du code 25</th></tr></thead>
+        <tbody id="attributed-body"><tr><td colspan="5" class="empty-cell">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="dialog-note">Chaque colis est affiché une fois. Cliquez sur un colis pour consulter tout son historique.</p>
+  </dialog>
+
+  <script src="/quebec-scans.js?v=20260903-21" defer></script>
+</body>
+</html>

@@ -1,0 +1,1469 @@
+[
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 158568,
+    "customer_name": "RICOCHET",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 209,
+    "first_seen": "2026-09-01T16:06:50",
+    "last_seen": "2026-09-01T16:43:36"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303544,
+    "customer_name": "ATTITUDE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 95,
+    "first_seen": "2026-09-01T16:42:04",
+    "last_seen": "2026-09-01T16:45:50"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302559,
+    "customer_name": "BKIND",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 95,
+    "first_seen": "2026-09-01T16:38:20",
+    "last_seen": "2026-09-01T16:45:39"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303274,
+    "customer_name": "NAAK",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 83,
+    "first_seen": "2026-09-01T16:21:19",
+    "last_seen": "2026-09-01T16:43:47"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302056,
+    "customer_name": "GENIMA BROSSARD",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 80,
+    "first_seen": "2026-09-01T16:08:15",
+    "last_seen": "2026-09-01T16:40:41"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303545,
+    "customer_name": "COPICOM INC.",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 73,
+    "first_seen": "2026-09-01T16:28:42",
+    "last_seen": "2026-09-01T16:36:54"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303154,
+    "customer_name": "KIAGO NUTRITION",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 52,
+    "first_seen": "2026-09-01T16:32:20",
+    "last_seen": "2026-09-01T16:43:02"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300617,
+    "customer_name": "B2 FASHIONS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 47,
+    "first_seen": "2026-09-01T16:14:10",
+    "last_seen": "2026-09-01T16:27:42"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 120430,
+    "customer_name": "DOLCE \u0026 BIANCA INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 39,
+    "first_seen": "2026-09-01T16:27:30",
+    "last_seen": "2026-09-01T16:43:08"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 130000,
+    "customer_name": "GUERIN, EDITEUR LTEE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 39,
+    "first_seen": "2026-09-01T16:20:10",
+    "last_seen": "2026-09-01T16:32:16"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 105370,
+    "customer_name": "BIO SOLUTIONS CR INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 33,
+    "first_seen": "2026-09-01T16:12:28",
+    "last_seen": "2026-09-01T16:44:38"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300482,
+    "customer_name": "CONFORT EXCELFLEX (BLEU ECO)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 33,
+    "first_seen": "2026-09-01T16:06:18",
+    "last_seen": "2026-09-01T16:43:26"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 112402,
+    "customer_name": "KERSIA CANADA ( ANJOU ) ( 456016 )",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 29,
+    "first_seen": "2026-09-01T16:13:11",
+    "last_seen": "2026-09-01T16:44:39"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301595,
+    "customer_name": "MACHOOL",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 29,
+    "first_seen": "2026-09-01T16:15:43",
+    "last_seen": "2026-09-01T16:36:03"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 144753,
+    "customer_name": "EDITIONS LOGITELL INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 27,
+    "first_seen": "2026-09-01T16:15:51",
+    "last_seen": "2026-09-01T16:18:07"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302623,
+    "customer_name": "PERRON RIGOT",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 26,
+    "first_seen": "2026-09-01T16:28:35",
+    "last_seen": "2026-09-01T16:42:39"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303299,
+    "customer_name": "TRUDEAU CORPORATION INTERNATIONAL INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 26,
+    "first_seen": "2026-09-01T16:15:35",
+    "last_seen": "2026-09-01T16:27:19"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303301,
+    "customer_name": "CAFE TERRA / TERRA CAFE LTEE (B2C)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 24,
+    "first_seen": "2026-09-01T16:29:48",
+    "last_seen": "2026-09-01T16:36:20"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302464,
+    "customer_name": "SHERBROOKE CANIN INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 23,
+    "first_seen": "2026-09-01T16:34:16",
+    "last_seen": "2026-09-01T16:43:49"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302771,
+    "customer_name": "ELEGANZA ANJOU (106)",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 20,
+    "first_seen": "2026-09-01T16:45:56",
+    "last_seen": "2026-09-01T16:48:20"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 163860,
+    "customer_name": "DISTRIBUTION SIGNATURE INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 18,
+    "first_seen": "2026-09-01T16:20:32",
+    "last_seen": "2026-09-01T16:43:44"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 168059,
+    "customer_name": "V-TO INC. ( ST-HYACINTHE )",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 18,
+    "first_seen": "2026-09-01T16:20:17",
+    "last_seen": "2026-09-01T16:31:03"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302113,
+    "customer_name": "GIRL CRUSH ",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 18,
+    "first_seen": "2026-09-01T16:28:20",
+    "last_seen": "2026-09-01T16:30:52"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 154931,
+    "customer_name": "MEDIGAS 80546",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 16,
+    "first_seen": "2026-09-01T16:18:13",
+    "last_seen": "2026-09-01T16:27:18"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303544,
+    "customer_name": "ATTITUDE",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 15,
+    "first_seen": "2026-09-01T16:41:21",
+    "last_seen": "2026-09-01T16:46:49"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 165514,
+    "customer_name": "CAFE TERRA / TERRA CAFE ET THE LTEE (B2B)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 15,
+    "first_seen": "2026-09-01T16:30:36",
+    "last_seen": "2026-09-01T16:36:12"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302025,
+    "customer_name": "LA BOITE \u00C0 BONBONS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 15,
+    "first_seen": "2026-09-01T16:23:23",
+    "last_seen": "2026-09-01T16:29:52"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302036,
+    "customer_name": "LASER PRO",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 14,
+    "first_seen": "2026-09-01T16:38:19",
+    "last_seen": "2026-09-01T16:42:52"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 113300,
+    "customer_name": "NATIONEX",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 14,
+    "first_seen": "2026-09-01T16:06:27",
+    "last_seen": "2026-09-01T16:25:16"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303577,
+    "customer_name": "WCS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 13,
+    "first_seen": "2026-09-01T16:11:04",
+    "last_seen": "2026-09-01T16:38:56"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302443,
+    "customer_name": "JESEMI INC / ALAMBKA",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 13,
+    "first_seen": "2026-09-01T16:25:47",
+    "last_seen": "2026-09-01T16:28:16"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 107860,
+    "customer_name": "HAMSTER (DIV. DE NOVEXCO INC.)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 12,
+    "first_seen": "2026-09-01T16:07:13",
+    "last_seen": "2026-09-01T16:41:56"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302842,
+    "customer_name": "MUSHUP",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 12,
+    "first_seen": "2026-09-01T16:25:27",
+    "last_seen": "2026-09-01T16:28:18"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 107883,
+    "customer_name": "BUSREL INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 11,
+    "first_seen": "2026-09-01T16:41:29",
+    "last_seen": "2026-09-01T16:42:10"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302088,
+    "customer_name": "ENERGIE PLP ",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 10,
+    "first_seen": "2026-09-01T16:44:30",
+    "last_seen": "2026-09-01T16:45:49"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 161426,
+    "customer_name": "PRODUITS SANY DIV SOLUTIONS SUPERIEURES",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 10,
+    "first_seen": "2026-09-01T16:24:51",
+    "last_seen": "2026-09-01T16:43:38"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 137295,
+    "customer_name": "JOHNNY VAC INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 10,
+    "first_seen": "2026-09-01T16:29:37",
+    "last_seen": "2026-09-01T16:43:15"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302782,
+    "customer_name": "OGALO",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 10,
+    "first_seen": "2026-09-01T16:20:37",
+    "last_seen": "2026-09-01T16:41:40"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301870,
+    "customer_name": "Dropship Montreal plateforme",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 10,
+    "first_seen": "2026-09-01T16:15:47",
+    "last_seen": "2026-09-01T16:34:49"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302545,
+    "customer_name": "NESPRESSO CANADA-E-COMMERCE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 9,
+    "first_seen": "2026-09-01T16:06:26",
+    "last_seen": "2026-09-01T16:41:23"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 137814,
+    "customer_name": "LABELINK",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 9,
+    "first_seen": "2026-09-01T16:24:44",
+    "last_seen": "2026-09-01T16:32:00"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303126,
+    "customer_name": "LA MAISON SIMONS",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 9,
+    "first_seen": "2026-09-01T16:27:28",
+    "last_seen": "2026-09-01T16:27:50"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302039,
+    "customer_name": "LOTO-QUEBEC LOTERIES 2022",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 8,
+    "first_seen": "2026-09-01T16:27:39",
+    "last_seen": "2026-09-01T16:37:10"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 129200,
+    "customer_name": "GOURMET NUTRITION F.B.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 8,
+    "first_seen": "2026-09-01T16:32:30",
+    "last_seen": "2026-09-01T16:34:45"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303062,
+    "customer_name": "LES COLLECTIONS HEADSTER KIDS B2C",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 8,
+    "first_seen": "2026-09-01T16:30:04",
+    "last_seen": "2026-09-01T16:30:43"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 128704,
+    "customer_name": "BIBLAIRIE GGC ( ADELF)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 7,
+    "first_seen": "2026-09-01T16:40:05",
+    "last_seen": "2026-09-01T16:45:27"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 101465,
+    "customer_name": "MESSAGERIES A.D.P  INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 7,
+    "first_seen": "2026-09-01T16:07:03",
+    "last_seen": "2026-09-01T16:20:56"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303328,
+    "customer_name": "QUARTZ CO. WANT LES ESSENTIELS (B2B)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 7,
+    "first_seen": "2026-09-01T16:15:10",
+    "last_seen": "2026-09-01T16:15:31"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302274,
+    "customer_name": "BROSSARD FRERES INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 6,
+    "first_seen": "2026-09-01T16:43:51",
+    "last_seen": "2026-09-01T16:44:16"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302111,
+    "customer_name": "LIBRAIRIE APPALACHES (ALQ)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 6,
+    "first_seen": "2026-09-01T16:34:02",
+    "last_seen": "2026-09-01T16:37:56"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 149493,
+    "customer_name": "J.E. MONDOU LTEE ",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 6,
+    "first_seen": "2026-09-01T16:07:18",
+    "last_seen": "2026-09-01T16:35:10"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 139648,
+    "customer_name": "LIBRAIRIE LARICO ( ALQ )",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 6,
+    "first_seen": "2026-09-01T16:10:41",
+    "last_seen": "2026-09-01T16:14:47"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 111445,
+    "customer_name": "LES EDITIONS CEC INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 5,
+    "first_seen": "2026-09-01T16:39:28",
+    "last_seen": "2026-09-01T16:44:53"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300118,
+    "customer_name": "STAPLES CANADA ULC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 5,
+    "first_seen": "2026-09-01T16:07:07",
+    "last_seen": "2026-09-01T16:43:36"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302781,
+    "customer_name": "LA CARTOUCHERIE",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 5,
+    "first_seen": "2026-09-01T16:35:53",
+    "last_seen": "2026-09-01T16:38:58"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 154860,
+    "customer_name": "POIVRE DES ILES",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 5,
+    "first_seen": "2026-09-01T16:15:55",
+    "last_seen": "2026-09-01T16:17:53"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302056,
+    "customer_name": "GENIMA BROSSARD",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 4,
+    "first_seen": "2026-09-01T16:46:02",
+    "last_seen": "2026-09-01T16:47:11"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301596,
+    "customer_name": "FLAGSHIP",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 4,
+    "first_seen": "2026-09-01T16:11:03",
+    "last_seen": "2026-09-01T16:34:37"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 156201,
+    "customer_name": "PROLOGUE (GRANDE DIFFUSION)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 4,
+    "first_seen": "2026-09-01T16:20:35",
+    "last_seen": "2026-09-01T16:25:12"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 155787,
+    "customer_name": "DISTRIBUTION PRO EXCELLENCE-87",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 4,
+    "first_seen": "2026-09-01T16:21:12",
+    "last_seen": "2026-09-01T16:21:18"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303220,
+    "customer_name": "L\u0027EMBALLAGE TOUT 3PL PIVAL STE-ANNE DE BELLEVUE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:42:34",
+    "last_seen": "2026-09-01T16:43:40"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302240,
+    "customer_name": "EXPRESSO VENTE MALI INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:30:51",
+    "last_seen": "2026-09-01T16:41:13"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303120,
+    "customer_name": "LA MAISON SIMONS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:38:47",
+    "last_seen": "2026-09-01T16:39:15"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303274,
+    "customer_name": "NAAK",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:33:29",
+    "last_seen": "2026-09-01T16:33:46"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302039,
+    "customer_name": "LOTO-QUEBEC LOTERIES 2022",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:06:23",
+    "last_seen": "2026-09-01T16:33:37"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 153689,
+    "customer_name": "ORTHOFAB",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:24:38",
+    "last_seen": "2026-09-01T16:31:13"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301982,
+    "customer_name": "L\u00C9PINE RETOUR COLLECT CHICOUTIMI",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:24:46",
+    "last_seen": "2026-09-01T16:27:37"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303512,
+    "customer_name": "3PL MTL",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:25:39",
+    "last_seen": "2026-09-01T16:27:34"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 156202,
+    "customer_name": "PROLOGUE (RETOURS)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:24:30",
+    "last_seen": "2026-09-01T16:26:13"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300098,
+    "customer_name": "INDUSTRIES DORR",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:16:43",
+    "last_seen": "2026-09-01T16:24:35"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303552,
+    "customer_name": "SOLUTIONS TNT C/O LOGITELL",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:16:24",
+    "last_seen": "2026-09-01T16:16:40"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303354,
+    "customer_name": "SKECHERS EATON",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:14:41",
+    "last_seen": "2026-09-01T16:15:01"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 173822,
+    "customer_name": "SOURIS MINI # 22",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:14:04",
+    "last_seen": "2026-09-01T16:14:24"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303119,
+    "customer_name": "LA MAISON SIMONS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 3,
+    "first_seen": "2026-09-01T16:14:07",
+    "last_seen": "2026-09-01T16:14:12"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302545,
+    "customer_name": "NESPRESSO CANADA-E-COMMERCE",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:38:44",
+    "last_seen": "2026-09-01T16:47:23"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302842,
+    "customer_name": "MUSHUP",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:46:11",
+    "last_seen": "2026-09-01T16:46:14"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302725,
+    "customer_name": "SAIL SHERBROOKE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:39:13",
+    "last_seen": "2026-09-01T16:45:39"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 145969,
+    "customer_name": "MIDLAND TRANSPORT LIMITED",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:06:21",
+    "last_seen": "2026-09-01T16:43:32"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302088,
+    "customer_name": "ENERGIE PLP ",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:42:06",
+    "last_seen": "2026-09-01T16:42:16"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303034,
+    "customer_name": "FONDUSSIMO",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:40:24",
+    "last_seen": "2026-09-01T16:40:54"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301212,
+    "customer_name": "LA MAISON SIMONS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:24:42",
+    "last_seen": "2026-09-01T16:40:53"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300119,
+    "customer_name": "LES EMBALLAGES POLY-PRO",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:39:05",
+    "last_seen": "2026-09-01T16:39:10"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 107860,
+    "customer_name": "HAMSTER (DIV. DE NOVEXCO INC.)",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:28:22",
+    "last_seen": "2026-09-01T16:38:21"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301834,
+    "customer_name": "LINEN CHEST ANJOU #114",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:37:14",
+    "last_seen": "2026-09-01T16:37:23"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303034,
+    "customer_name": "FONDUSSIMO",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:36:56",
+    "last_seen": "2026-09-01T16:36:59"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 109008,
+    "customer_name": "CANARM",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:07:04",
+    "last_seen": "2026-09-01T16:36:10"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303493,
+    "customer_name": "CASABAWA IMPORTATIONS INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:21:49",
+    "last_seen": "2026-09-01T16:36:04"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 101680,
+    "customer_name": "CAMEMAT INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:35:05",
+    "last_seen": "2026-09-01T16:35:16"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302407,
+    "customer_name": "PROLOGUE DISTRIBUTION - RIVE-SUD",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:33:21",
+    "last_seen": "2026-09-01T16:33:51"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 156200,
+    "customer_name": "PROLOGUE DISTRIBUTION",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:07:23",
+    "last_seen": "2026-09-01T16:29:41"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303492,
+    "customer_name": "AGENCE KO\u0026CO.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:25:32",
+    "last_seen": "2026-09-01T16:29:06"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300684,
+    "customer_name": "DECATHLON",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:28:24",
+    "last_seen": "2026-09-01T16:28:26"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302725,
+    "customer_name": "SAIL SHERBROOKE",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:27:45",
+    "last_seen": "2026-09-01T16:27:51"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 103390,
+    "customer_name": "BEAUTE STAR INC ( MTL )",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:24:50",
+    "last_seen": "2026-09-01T16:24:59"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303139,
+    "customer_name": "TRANSATLANTIQUE SELECTION",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:14:54",
+    "last_seen": "2026-09-01T16:14:59"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303260,
+    "customer_name": "FLEUR D\u0027OLIVE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:10:43",
+    "last_seen": "2026-09-01T16:10:45"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300922,
+    "customer_name": "BIBLIOTHEQUE SAINT-LUC (COLLECT)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:07:40",
+    "last_seen": "2026-09-01T16:08:13"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302644,
+    "customer_name": "POPEYE\u0027S STORE #105",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:07:36",
+    "last_seen": "2026-09-01T16:07:38"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 112005,
+    "customer_name": "BUROPRO CITATION DRUMMONVILLE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 2,
+    "first_seen": "2026-09-01T16:06:55",
+    "last_seen": "2026-09-01T16:07:00"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 101680,
+    "customer_name": "CAMEMAT INC.",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:45:51",
+    "last_seen": "2026-09-01T16:45:51"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302874,
+    "customer_name": "REPAS WECOOK (MEALKIT)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:45:07",
+    "last_seen": "2026-09-01T16:45:07"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303651,
+    "customer_name": "\u00C9TIQUETTES PDF",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:45:01",
+    "last_seen": "2026-09-01T16:45:01"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 111015,
+    "customer_name": "CANTIN DISTRIBUTION INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:44:46",
+    "last_seen": "2026-09-01T16:44:46"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 129001,
+    "customer_name": "EDITIONS GLADIUS INT\u0027L INC. B2B",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:44:41",
+    "last_seen": "2026-09-01T16:44:41"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 168070,
+    "customer_name": "LES ATTACHES VISCAN",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:44:18",
+    "last_seen": "2026-09-01T16:44:18"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 163712,
+    "customer_name": "SERVI-JEUX",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:44:04",
+    "last_seen": "2026-09-01T16:44:04"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 103397,
+    "customer_name": "BOUTIQUE ABITIBI (110 )",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:07:33",
+    "last_seen": "2026-09-01T16:42:46"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303360,
+    "customer_name": "SAFDIE \u0026 CO",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:20",
+    "last_seen": "2026-09-01T16:42:45"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303197,
+    "customer_name": "CAFE LIEGEOIS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:42:30",
+    "last_seen": "2026-09-01T16:42:30"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 129320,
+    "customer_name": "GRAND PRIX IMPORT",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:42:07",
+    "last_seen": "2026-09-01T16:42:07"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300105,
+    "customer_name": "SHIPTIME",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:39:00",
+    "last_seen": "2026-09-01T16:39:00"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302782,
+    "customer_name": "OGALO",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:38:36",
+    "last_seen": "2026-09-01T16:38:36"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302781,
+    "customer_name": "LA CARTOUCHERIE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:38:08",
+    "last_seen": "2026-09-01T16:38:08"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303545,
+    "customer_name": "COPICOM INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:37:31",
+    "last_seen": "2026-09-01T16:37:31"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302448,
+    "customer_name": "ALTITUDE SPORTS",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:37:25",
+    "last_seen": "2026-09-01T16:37:25"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301212,
+    "customer_name": "LA MAISON SIMONS",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:37:02",
+    "last_seen": "2026-09-01T16:37:02"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 109105,
+    "customer_name": "CANAROPA (1954) INC.",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:35:50",
+    "last_seen": "2026-09-01T16:35:50"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302645,
+    "customer_name": "POPEYE\u0027S STORE #485",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:35:32",
+    "last_seen": "2026-09-01T16:35:32"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": null,
+    "customer_name": null,
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:35:26",
+    "last_seen": "2026-09-01T16:35:26"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301241,
+    "customer_name": "LES SERVICES D\u2019EXP\u00C9DITION DROPSHIP INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:33:15",
+    "last_seen": "2026-09-01T16:33:15"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 150919,
+    "customer_name": "DERMOLAB PHARMA LTEE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:33:02",
+    "last_seen": "2026-09-01T16:33:02"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 146710,
+    "customer_name": "MINERVA LTEE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:29:42",
+    "last_seen": "2026-09-01T16:29:42"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302025,
+    "customer_name": "LA BOITE \u00C0 BONBONS",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:28:39",
+    "last_seen": "2026-09-01T16:28:39"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 144753,
+    "customer_name": "EDITIONS LOGITELL INC.",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:28:32",
+    "last_seen": "2026-09-01T16:28:32"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 101465,
+    "customer_name": "MESSAGERIES A.D.P  INC.",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:28:20",
+    "last_seen": "2026-09-01T16:28:20"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301776,
+    "customer_name": "LINEN CHEST",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:27:59",
+    "last_seen": "2026-09-01T16:27:59"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302606,
+    "customer_name": "LEVITON",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:27:56",
+    "last_seen": "2026-09-01T16:27:56"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301870,
+    "customer_name": "Dropship Montreal plateforme",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:27:53",
+    "last_seen": "2026-09-01T16:27:53"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303123,
+    "customer_name": "LA MAISON SIMONS",
+    "conveyor_line": "Sol",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:27:46",
+    "last_seen": "2026-09-01T16:27:46"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301555,
+    "customer_name": "SIMONS RAMASSAGES FOURNIS. (BO\u00CETES)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:27:02",
+    "last_seen": "2026-09-01T16:27:02"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302399,
+    "customer_name": "INEX SAAS TECHNOLOGIES",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:26:35",
+    "last_seen": "2026-09-01T16:26:35"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303123,
+    "customer_name": "LA MAISON SIMONS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:26:11",
+    "last_seen": "2026-09-01T16:26:11"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303553,
+    "customer_name": "INCEKT PROTEINES INC C/O MACHOOL",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:24:55",
+    "last_seen": "2026-09-01T16:24:55"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 107000,
+    "customer_name": "STAPLES CANADA ULC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:24:33",
+    "last_seen": "2026-09-01T16:24:33"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302727,
+    "customer_name": "SAIL QU\u00C9BEC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:24:12",
+    "last_seen": "2026-09-01T16:24:12"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300716,
+    "customer_name": "DAB DISTRIBUTIONS(COLLECT)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:20:08",
+    "last_seen": "2026-09-01T16:20:08"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 164964,
+    "customer_name": "SUZY\u0027S INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:07:30",
+    "last_seen": "2026-09-01T16:17:17"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303067,
+    "customer_name": "CATSPORTS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:16:51",
+    "last_seen": "2026-09-01T16:16:51"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303081,
+    "customer_name": "KOTMO INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:16:29",
+    "last_seen": "2026-09-01T16:16:29"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 130400,
+    "customer_name": "ENTREPRISES HAMELIN",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:16:27",
+    "last_seen": "2026-09-01T16:16:27"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 125630,
+    "customer_name": "LIBRAIRIE LE FURETEUR ( ALQ )",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:16:25",
+    "last_seen": "2026-09-01T16:16:25"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 130635,
+    "customer_name": "HARNOIS ENERGIES",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:14:54",
+    "last_seen": "2026-09-01T16:14:54"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 158800,
+    "customer_name": "ROCHELEAU",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:14:51",
+    "last_seen": "2026-09-01T16:14:51"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303178,
+    "customer_name": "VINCENT D\u0027AM\u00C9RIQUE B2B",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:14:49",
+    "last_seen": "2026-09-01T16:14:49"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 101706,
+    "customer_name": "LIBRAIRIE ALIRE ( ALQ )",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:14:44",
+    "last_seen": "2026-09-01T16:14:44"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 150935,
+    "customer_name": "LES IMPORTATIONS N\u0026N",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:14:21",
+    "last_seen": "2026-09-01T16:14:21"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 173825,
+    "customer_name": "SOURIS MINI # 25",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:14:19",
+    "last_seen": "2026-09-01T16:14:19"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301554,
+    "customer_name": "SIMONS DROPSHIP",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:14:15",
+    "last_seen": "2026-09-01T16:14:15"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303570,
+    "customer_name": "LES BRUTES C/O MACHOOL",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:10:58",
+    "last_seen": "2026-09-01T16:10:58"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302226,
+    "customer_name": "MARIE-CLAIRE B2B",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:07:52",
+    "last_seen": "2026-09-01T16:07:52"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 149250,
+    "customer_name": "LIBRAIRIE MODERNE ( ALQ )",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:07:39",
+    "last_seen": "2026-09-01T16:07:39"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 183017,
+    "customer_name": "CONCEPT ROUYN INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:07:34",
+    "last_seen": "2026-09-01T16:07:34"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303346,
+    "customer_name": "TECHPRO LASER",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:07:30",
+    "last_seen": "2026-09-01T16:07:30"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 155765,
+    "customer_name": "PROCAP LIMITEE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:59",
+    "last_seen": "2026-09-01T16:06:59"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 125388,
+    "customer_name": "FORMEDICA LTEE",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:57",
+    "last_seen": "2026-09-01T16:06:57"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 303495,
+    "customer_name": "A1 IMPORTS",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:56",
+    "last_seen": "2026-09-01T16:06:56"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301776,
+    "customer_name": "LINEN CHEST",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:53",
+    "last_seen": "2026-09-01T16:06:53"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302525,
+    "customer_name": "CAMBIUM DISTRIBUTION",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:49",
+    "last_seen": "2026-09-01T16:06:49"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302293,
+    "customer_name": "UPSIDEDRINKS.CA",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:47",
+    "last_seen": "2026-09-01T16:06:47"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 301320,
+    "customer_name": "BRAULT \u0026 BOUTHILLIER (BEAUMONT)",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:46",
+    "last_seen": "2026-09-01T16:06:46"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 300637,
+    "customer_name": "E.J. SUPPLY INC",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:39",
+    "last_seen": "2026-09-01T16:06:39"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 302975,
+    "customer_name": "TEXTILES PATLIN INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:37",
+    "last_seen": "2026-09-01T16:06:37"
+  },
+  {
+    "database_now": "2026-09-01T16:48:50",
+    "customer_id": 156203,
+    "customer_name": "PROMOTIONS C.D. INC.",
+    "conveyor_line": "Haut",
+    "parcels_after_16": 1,
+    "first_seen": "2026-09-01T16:06:24",
+    "last_seen": "2026-09-01T16:06:24"
+  }
+]

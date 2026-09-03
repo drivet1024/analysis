@@ -10,7 +10,7 @@ LoadEnvironmentFile(Path.Combine(builder.Environment.ContentRootPath, ".env.loca
 LoadEnvironmentFile(Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "MySqlTool", ".env.local")));
 
 var config = new DashboardConfig(
-    Environment.GetEnvironmentVariable("MYSQL_HOST") ?? "192.168.1.222",
+    Environment.GetEnvironmentVariable("MYSQL_HOST") ?? "192.168.1.101",
     uint.TryParse(Environment.GetEnvironmentVariable("MYSQL_PORT"), out var port) ? port : 3306,
     Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? "nationex",
     Environment.GetEnvironmentVariable("MYSQL_USER") ?? "user_ro",
@@ -77,6 +77,99 @@ app.MapGet("/api/range", async (ConveyorDataService data) =>
 {
     try { return Results.Ok(await data.GetAvailableRangeAsync()); }
     catch (Exception ex) { return Results.Problem($"Impossible de lire les dates disponibles : {ex.Message}"); }
+});
+
+app.MapGet("/api/live-routes", async (ConveyorDataService data) =>
+{
+    try { return Results.Ok(await data.GetLiveRoutesAsync()); }
+    catch (Exception ex) { return Results.Problem($"Le suivi des routes n'a pas pu être calculé : {ex.Message}"); }
+});
+
+app.MapGet("/api/live-routes/{routeId:int}/clients", async (int routeId, ConveyorDataService data) =>
+{
+    if (routeId is < 50000 or > 50099) return Results.BadRequest(new { error = "La route doit être comprise entre 50000 et 50099." });
+    try { return Results.Ok(await data.GetLiveRouteClientsAsync(routeId)); }
+    catch (Exception ex) { return Results.Problem($"Le détail des clients n'a pas pu être calculé : {ex.Message}"); }
+});
+
+app.MapGet("/api/unprocessed-parcels", async (ConveyorDataService data) =>
+{
+    try { return Results.Ok(await data.GetUnprocessedParcelsAsync()); }
+    catch (Exception ex) { return Results.Problem($"La liste des colis non traités n'a pas pu être calculée : {ex.Message}"); }
+});
+
+app.MapGet("/api/conveyor-hourly", async (ConveyorDataService data) =>
+{
+    try { return Results.Ok(await data.GetConveyorHourlyAsync()); }
+    catch (Exception ex) { return Results.Problem($"Les volumes horaires du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
+});
+
+app.MapGet("/api/high-conveyor-capacity", async (ConveyorDataService data) =>
+{
+    try { return Results.Ok(await data.GetHighConveyorCapacityAsync()); }
+    catch (Exception ex) { return Results.Problem($"L'analyse de capacité du convoyeur du haut n'a pas pu être calculée : {ex.Message}"); }
+});
+
+app.MapGet("/api/scan-depots", async (ConveyorDataService data) =>
+{
+    try { return Results.Ok(await data.GetScanDepotsAsync()); }
+    catch (Exception ex) { return Results.Problem($"La liste des dépôts n'a pas pu être chargée : {ex.Message}"); }
+});
+
+app.MapGet("/api/quebec-depot-scans", async (int? depotId, string? date, string? startTime, string? endTime, ConveyorDataService data) =>
+{
+    var sourceDepotId = depotId ?? 2;
+    if (sourceDepotId <= 0) return Results.BadRequest("Le numéro de dépôt doit être supérieur à zéro.");
+    try
+    {
+        var window = ResolveTimeWindow(date, startTime, endTime, DateTime.Now);
+        return Results.Ok(await data.GetQuebecDepotScansAsync(sourceDepotId, window.Start, window.End));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Les scans du dépôt n'ont pas pu être calculés : {ex.Message}"); }
+});
+
+app.MapGet("/api/quebec-depot-scans/code25-attributed", async (int? depotId, string? date, ConveyorDataService data) =>
+{
+    var attributionDepotId = depotId ?? 1;
+    if (attributionDepotId <= 0) return Results.BadRequest("Le numéro de dépôt doit être supérieur à zéro.");
+    try { return Results.Ok(await data.GetAttributedCode25ParcelsAsync(attributionDepotId, ResolveAnalysisDate(date, DateOnly.FromDateTime(DateTime.Now)))); }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Les colis attribués au dépôt n'ont pas pu être chargés : {ex.Message}"); }
+});
+
+app.MapGet("/api/quebec-depot-scans/code25-destinations", async (int? depotId, string? date, string? startTime, string? endTime, ConveyorDataService data) =>
+{
+    var sourceDepotId = depotId ?? 2;
+    if (sourceDepotId <= 0) return Results.BadRequest("Le numéro de dépôt doit être supérieur à zéro.");
+    try
+    {
+        var window = ResolveTimeWindow(date, startTime, endTime, DateTime.Now);
+        return Results.Ok(await data.GetQuebecCode25DestinationsAsync(sourceDepotId, window.Start, window.End));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Le détail des codes 25 par destination n'a pas pu être calculé : {ex.Message}"); }
+});
+
+app.MapGet("/api/quebec-depot-scans/code25-destinations/{depotId:int}/parcels", async (int depotId, int? sourceDepotId, string? date, string? startTime, string? endTime, ConveyorDataService data) =>
+{
+    if (depotId <= 0) return Results.BadRequest("Le numéro de dépôt doit être supérieur à zéro.");
+    var selectedSourceDepotId = sourceDepotId ?? 2;
+    if (selectedSourceDepotId <= 0) return Results.BadRequest("Le numéro du dépôt analysé doit être supérieur à zéro.");
+    try
+    {
+        var window = ResolveTimeWindow(date, startTime, endTime, DateTime.Now);
+        return Results.Ok(await data.GetQuebecCode25ParcelsAsync(selectedSourceDepotId, depotId, window.Start, window.End));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"La liste des colis du dépôt n'a pas pu être calculée : {ex.Message}"); }
+});
+
+app.MapGet("/api/parcels/{parcelId:long}/history", async (long parcelId, ConveyorDataService data) =>
+{
+    if (parcelId <= 0) return Results.BadRequest("Le numéro de colis doit être supérieur à zéro.");
+    try { return Results.Ok(await data.GetParcelHistoryAsync(parcelId)); }
+    catch (Exception ex) { return Results.Problem($"L'historique du colis n'a pas pu être chargé : {ex.Message}"); }
 });
 
 app.MapGet("/api/daily", async (HttpRequest request, ConveyorDataService data) =>
@@ -160,6 +253,34 @@ static DateOnly QueryDate(IQueryCollection query, string name, DateOnly fallback
     if (string.IsNullOrWhiteSpace(value)) return fallback;
     if (DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result)) return result;
     throw new ArgumentException($"Le paramètre {name} doit être au format AAAA-MM-JJ.");
+}
+
+static DateOnly ResolveAnalysisDate(string? value, DateOnly fallback)
+{
+    if (string.IsNullOrWhiteSpace(value)) return fallback;
+    if (DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result)) return result;
+    throw new ArgumentException("La date doit être au format AAAA-MM-JJ.");
+}
+
+static TimeWindowBounds ResolveTimeWindow(string? dateValue, string? startValue, string? endValue, DateTime now)
+{
+    const string format = "HH:mm";
+    var startText = string.IsNullOrWhiteSpace(startValue) ? "00:00" : startValue;
+    var endText = string.IsNullOrWhiteSpace(endValue) ? "23:59" : endValue;
+    if (!TimeOnly.TryParseExact(startText, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var startTime))
+        throw new ArgumentException("L'heure de début doit être au format HH:mm.");
+    if (!TimeOnly.TryParseExact(endText, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var endTime))
+        throw new ArgumentException("L'heure de fin doit être au format HH:mm.");
+    if (startTime == endTime)
+        throw new ArgumentException("Les heures de début et de fin doivent être différentes.");
+
+    var analysisDate = ResolveAnalysisDate(dateValue, DateOnly.FromDateTime(now));
+    var start = analysisDate.ToDateTime(startTime);
+    var end = analysisDate.ToDateTime(endTime);
+    if (endText == "23:59") end = end.AddMinutes(1);
+    if (endTime < startTime)
+        end = end.AddDays(1);
+    return new TimeWindowBounds(start, end, startText, endText);
 }
 
 static void LoadEnvironmentFile(string path)
@@ -289,9 +410,235 @@ sealed record CorrelationSummary(long WithException25, long WithException25Probl
 }
 sealed record ExceptionCustomerRow(int CustomerId, string CustomerName, long ConveyorParcels, long ProblemParcels, long Exception25Parcels, long Exception25AndProblemParcels);
 sealed record Exception25Response(DateOnly StartDate, DateOnly EndDate, CorrelationSummary Global, IReadOnlyList<ExceptionCustomerRow> Customers, IReadOnlyList<string> Notes, DateTimeOffset GeneratedAt);
+sealed record LiveRouteRow(
+    int RouteId,
+    long ParcelsPassed,
+    long ParcelsHigh,
+    long ParcelsFloor,
+    long ParcelsManual,
+    long ParcelsLast5Minutes,
+    long ParcelsCreatedToday,
+    long HistoricalAverage,
+    long EstimatedTotal,
+    long EstimatedRemaining,
+    decimal EstimatedProgressPercent,
+    DateTime? FirstSeen,
+    DateTime? LastSeen,
+    string Status,
+    string Confidence);
+sealed record LiveRoutesResponse(
+    DateOnly Date,
+    DateTime DatabaseNow,
+    DateTime? LatestScan,
+    long TotalProcessedParcels,
+    long TotalHighParcels,
+    long TotalFloorParcels,
+    long TotalManualParcels,
+    DateTime? FirstHighScan,
+    DateTime? FirstFloorScan,
+    DateTime? FirstManualScan,
+    long MappedProcessedParcels,
+    long UnmappedProcessedParcels,
+    long AmbiguousProcessedParcels,
+    IReadOnlyList<LiveRouteRow> Routes,
+    IReadOnlyList<string> Notes,
+    DateTimeOffset GeneratedAt);
+sealed record LiveRouteClientRow(
+    int CustomerId,
+    string CustomerName,
+    string PickupTime,
+    string Note,
+    long ParcelsPassed,
+    long ParcelsHigh,
+    long ParcelsFloor,
+    long ParcelsManual,
+    long ParcelsCreatedToday,
+    DateTime? FirstSeen,
+    DateTime? LastSeen,
+    string Verification);
+sealed record LiveRouteClientsResponse(
+    int RouteId,
+    string ScheduleDay,
+    int ScheduledClients,
+    int ObservedClients,
+    long ParcelsPassed,
+    IReadOnlyList<LiveRouteClientRow> Clients,
+    IReadOnlyList<string> VerificationSources,
+    DateTimeOffset GeneratedAt);
+sealed record UnprocessedClientRow(
+    int CustomerId,
+    string CustomerName,
+    string Routes,
+    string PickupTime,
+    long CreatedToday,
+    long CreatedYesterday,
+    long CreatedTwoDaysAgo,
+    long UnprocessedParcels,
+    DateTime OldestCreated,
+    DateTime NewestCreated);
+sealed record UnprocessedParcelsResponse(
+    DateOnly WindowStart,
+    DateOnly WindowEnd,
+    string ScheduleDay,
+    int Clients,
+    long UnprocessedParcels,
+    IReadOnlyList<UnprocessedClientRow> Rows,
+    IReadOnlyList<string> Notes,
+    DateTimeOffset GeneratedAt);
+sealed record ConveyorHourlyRow(string Source, int Hour, long Parcels);
+sealed record ConveyorHourlyResponse(
+    DateOnly Date,
+    DateTime DatabaseNow,
+    DateTime ShiftStart,
+    DateTime ShiftEnd,
+    long TotalHighParcels,
+    long TotalFloorParcels,
+    long TotalManualParcels,
+    DateTime? FirstHighScan,
+    DateTime? FirstFloorScan,
+    DateTime? FirstManualScan,
+    IReadOnlyList<ConveyorHourlyRow> Rows,
+    IReadOnlyList<string> Notes,
+    DateTimeOffset GeneratedAt);
+sealed record HighCapacityDailyPeak(
+    DateOnly ShiftDate,
+    long PeakPerHour,
+    DateTime PeakWindowStart,
+    long TotalParcels);
+sealed record HighCapacityBucket(
+    DateTime BucketStart,
+    long Parcels,
+    decimal ParcelsPerHour,
+    decimal UtilizationPercent,
+    string Status,
+    bool IsFuture);
+sealed record HighCapacityGap(
+    DateTime Start,
+    DateTime End,
+    int DurationMinutes,
+    long Parcels,
+    decimal AveragePerHour,
+    decimal UtilizationPercent);
+sealed record HighConveyorCapacityResponse(
+    DateOnly ShiftDate,
+    DateTime DatabaseNow,
+    DateTime ShiftStart,
+    DateTime ShiftEnd,
+    int BenchmarkShifts,
+    long PracticalCapacityPerHour,
+    long MaximumObservedPerHour,
+    decimal CurrentRatePerHour,
+    decimal AveragePerHourSinceStart,
+    decimal UtilizationSinceStartPercent,
+    int MinutesAtOrAboveCapacity,
+    int GapMinutes,
+    IReadOnlyList<HighCapacityDailyPeak> DailyPeaks,
+    IReadOnlyList<HighCapacityBucket> Buckets,
+    IReadOnlyList<HighCapacityGap> Gaps,
+    IReadOnlyList<string> Notes,
+    DateTimeOffset GeneratedAt);
+sealed record CapacityBenchmarkSnapshot(
+    DateTimeOffset LoadedAt,
+    long PracticalCapacityPerHour,
+    long MaximumObservedPerHour,
+    IReadOnlyList<HighCapacityDailyPeak> DailyPeaks);
+sealed record QuebecScanHourlyRow(
+    int Hour,
+    DateTime BucketStart,
+    long Conveyor903,
+    long Floor904,
+    long Code25);
+sealed record ScanDepotOption(
+    int DepotId,
+    string DepotName,
+    string DepotShortLabel,
+    bool HasConveyor);
+sealed record TimeWindowBounds(DateTime Start, DateTime End, string StartTime, string EndTime);
+sealed record QuebecDepotScansResponse(
+    DateOnly Date,
+    DateTime DatabaseNow,
+    DateTime DayStart,
+    DateTime DayEnd,
+    DateTime? LatestScan,
+    long TotalConveyor903,
+    long TotalFloor904,
+    long TotalCode25,
+    long TotalCode25ReroutedElsewhere,
+    DateTime Code25AttributionSince,
+    IReadOnlyList<QuebecScanHourlyRow> Rows,
+    IReadOnlyList<string> Notes,
+    DateTimeOffset GeneratedAt);
+sealed record QuebecCode25DestinationRow(
+    int? DestinationDepotId,
+    string DestinationDepotName,
+    int RouteCount,
+    long Parcels,
+    decimal SharePercent,
+    DateTime FirstScan,
+    DateTime LastScan);
+sealed record QuebecCode25DestinationsResponse(
+    DateOnly Date,
+    DateTime DatabaseNow,
+    long TotalCode25,
+    IReadOnlyList<QuebecCode25DestinationRow> Destinations,
+    IReadOnlyList<string> Notes,
+    DateTimeOffset GeneratedAt);
+sealed record QuebecCode25ParcelRow(
+    long ParcelId,
+    int? CustomerId,
+    string CustomerName,
+    int? DestinationSectorId,
+    decimal? PreviousWeight,
+    decimal? PreviousLength,
+    decimal? PreviousWidth,
+    decimal? PreviousHeight,
+    DateTime? PreviousScanDate,
+    int? PreviousScanCode,
+    DateTime ScanTime);
+sealed record QuebecCode25ParcelsResponse(
+    DateOnly Date,
+    DateTime DatabaseNow,
+    int DepotId,
+    string DepotName,
+    long TotalParcels,
+    IReadOnlyList<QuebecCode25ParcelRow> Parcels,
+    DateTimeOffset GeneratedAt);
+sealed record AttributedCode25ParcelRow(
+    long ParcelId,
+    int? CustomerId,
+    string CustomerName,
+    DateTime LastConveyorScan,
+    DateTime Code25Time,
+    int Code25DepotId,
+    string Code25DepotName);
+sealed record AttributedCode25ParcelsResponse(
+    DateTime DatabaseNow,
+    DateTime Since,
+    int AttributionDepotId,
+    string AttributionDepotName,
+    long TotalParcels,
+    IReadOnlyList<AttributedCode25ParcelRow> Parcels,
+    DateTimeOffset GeneratedAt);
+sealed record ParcelHistoryEventRow(
+    long ParcelHistoryId,
+    int ExceptionCode,
+    string Description,
+    DateTime EventDate,
+    string UserOrTpsl,
+    int? DepotId,
+    string DepotName);
+sealed record ParcelHistoryResponse(
+    long ParcelId,
+    DateTime DatabaseNow,
+    string DestinationAddress,
+    string DestinationCity,
+    IReadOnlyList<ParcelHistoryEventRow> Events,
+    DateTimeOffset GeneratedAt);
 
 sealed class ConveyorDataService(DashboardConfig config)
 {
+    private readonly SemaphoreSlim capacityBenchmarkLock = new(1, 1);
+    private CapacityBenchmarkSnapshot? capacityBenchmarkCache;
     private const string RollupCtes = """
         repeated_chute AS (
             SELECT conveyor_key, parcel_id
@@ -369,6 +716,1271 @@ sealed class ConveyorDataService(DashboardConfig config)
         await connection.OpenAsync();
         await using var command = new MySqlCommand("SELECT 1", connection);
         return Convert.ToInt32(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture) == 1;
+    }
+
+    public async Task<LiveRoutesResponse> GetLiveRoutesAsync()
+    {
+        const string sql = """
+            WITH RECURSIVE
+            scheduled_today AS (
+                SELECT DISTINCT p.CUSTOMER_ID customer_id, p.ROUTE_ID route_id
+                FROM customer_schedule_pickup p
+                WHERE p.ROUTE_ID BETWEEN 50000 AND 50099
+                  AND CASE DAYOFWEEK(CURDATE())
+                        WHEN 1 THEN p.SUNDAY WHEN 2 THEN p.MONDAY WHEN 3 THEN p.TUESDAY
+                        WHEN 4 THEN p.WEDNESDAY WHEN 5 THEN p.THURSDAY WHEN 6 THEN p.FRIDAY
+                        WHEN 7 THEN p.SATURDAY END = 1
+            ),
+            route_map_raw AS (
+                SELECT customer_id, COUNT(DISTINCT route_id) route_count, MIN(route_id) route_id
+                FROM scheduled_today
+                GROUP BY customer_id
+            ),
+            route_map AS (
+                SELECT customer_id, route_id FROM route_map_raw WHERE route_count = 1
+            ),
+            route_list AS (
+                SELECT DISTINCT route_id FROM scheduled_today
+            ),
+            scanned_parcels AS (
+                SELECT ph.PARCEL_ID parcel_id, MAX(NULLIF(ph.CUSTOMER_ID,0)) customer_id,
+                       MAX(ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)) passed_high,
+                       MAX(ph.SOURCE_TYPE=200 AND ph.SOURCE_ID=3) passed_floor,
+                       MAX(ph.SOURCE_TYPE=201) passed_manual,
+                       MIN(CASE WHEN ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1) THEN ph.DATE_LIV END) first_high_scan,
+                       MIN(CASE WHEN ph.SOURCE_TYPE=200 AND ph.SOURCE_ID=3 THEN ph.DATE_LIV END) first_floor_scan,
+                       MIN(CASE WHEN ph.SOURCE_TYPE=201 THEN ph.DATE_LIV END) first_manual_scan,
+                       MIN(ph.DATE_LIV) first_seen, MAX(ph.DATE_LIV) last_seen
+                FROM parcel_history ph
+                WHERE ph.EXCEPTION=903 AND ph.DEPOT_ID=1
+                  AND ((ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR ph.SOURCE_TYPE=201)
+                  AND ph.PARCEL_ID IS NOT NULL AND ph.PARCEL_ID<>0 AND COALESCE(ph.VOID,0)=0
+                  AND ph.DATE_INSERT>=CURDATE()+INTERVAL 15 HOUR
+                  AND ph.DATE_INSERT<CURDATE()+INTERVAL 1 DAY
+                  AND ph.DATE_LIV>=CURDATE()+INTERVAL 16 HOUR
+                  AND ph.DATE_LIV<CURDATE()+INTERVAL 1 DAY
+                GROUP BY ph.PARCEL_ID
+            ),
+            passed_by_route AS (
+                SELECT rm.route_id, COUNT(*) parcels_passed,
+                       SUM(sp.passed_high) parcels_high,
+                       SUM(sp.passed_floor) parcels_floor,
+                       SUM(sp.passed_manual) parcels_manual,
+                       SUM(sp.last_seen>=NOW()-INTERVAL 5 MINUTE) parcels_last_5m,
+                       MIN(sp.first_seen) first_seen, MAX(sp.last_seen) last_seen
+                FROM scanned_parcels sp JOIN route_map rm ON rm.customer_id=sp.customer_id
+                GROUP BY rm.route_id
+            ),
+            today_created AS (
+                SELECT rm.route_id, COALESCE(SUM(s.PARCEL_NB),0) parcels_created_today
+                FROM route_map rm JOIN shipment s ON s.CUSTOMER_ID=rm.customer_id
+                  AND s.INSERT_DATE>=CURDATE() AND s.INSERT_DATE<CURDATE()+INTERVAL 1 DAY
+                GROUP BY rm.route_id
+            ),
+            history_created AS (
+                SELECT rm.route_id, ROUND(COALESCE(SUM(s.PARCEL_NB),0)/4.0) historical_average
+                FROM route_map rm JOIN shipment s ON s.CUSTOMER_ID=rm.customer_id
+                  AND s.INSERT_DATE>=CURDATE()-INTERVAL 28 DAY AND s.INSERT_DATE<CURDATE()
+                  AND DAYOFWEEK(s.INSERT_DATE)=DAYOFWEEK(CURDATE())
+                GROUP BY rm.route_id
+            ),
+            route_metrics AS (
+                SELECT rl.route_id,
+                       COALESCE(pbr.parcels_passed,0) parcels_passed,
+                       COALESCE(pbr.parcels_high,0) parcels_high,
+                       COALESCE(pbr.parcels_floor,0) parcels_floor,
+                       COALESCE(pbr.parcels_manual,0) parcels_manual,
+                       COALESCE(pbr.parcels_last_5m,0) parcels_last_5m,
+                       COALESCE(tc.parcels_created_today,0) parcels_created_today,
+                       COALESCE(hc.historical_average,0) historical_average,
+                       GREATEST(COALESCE(pbr.parcels_passed,0),COALESCE(tc.parcels_created_today,0),COALESCE(hc.historical_average,0)) estimated_total,
+                       pbr.first_seen, pbr.last_seen
+                FROM route_list rl
+                LEFT JOIN passed_by_route pbr ON pbr.route_id=rl.route_id
+                LEFT JOIN today_created tc ON tc.route_id=rl.route_id
+                LEFT JOIN history_created hc ON hc.route_id=rl.route_id
+            )
+            SELECT NOW() database_now,
+                   (SELECT MAX(last_seen) FROM scanned_parcels) latest_scan,
+                   (SELECT COUNT(*) FROM scanned_parcels) total_processed_parcels,
+                   (SELECT COALESCE(SUM(passed_high),0) FROM scanned_parcels) total_high_parcels,
+                   (SELECT COALESCE(SUM(passed_floor),0) FROM scanned_parcels) total_floor_parcels,
+                   (SELECT COALESCE(SUM(passed_manual),0) FROM scanned_parcels) total_manual_parcels,
+                   (SELECT MIN(first_high_scan) FROM scanned_parcels) first_high_scan,
+                   (SELECT MIN(first_floor_scan) FROM scanned_parcels) first_floor_scan,
+                   (SELECT MIN(first_manual_scan) FROM scanned_parcels) first_manual_scan,
+                   (SELECT COUNT(*) FROM scanned_parcels sp JOIN route_map rm ON rm.customer_id=sp.customer_id) mapped_processed_parcels,
+                   (SELECT COUNT(*) FROM scanned_parcels sp LEFT JOIN route_map_raw rmr ON rmr.customer_id=sp.customer_id WHERE rmr.customer_id IS NULL) unmapped_processed_parcels,
+                   (SELECT COUNT(*) FROM scanned_parcels sp JOIN route_map_raw rmr ON rmr.customer_id=sp.customer_id WHERE rmr.route_count>1) ambiguous_processed_parcels,
+                   rm.route_id, rm.parcels_passed, rm.parcels_high, rm.parcels_floor, rm.parcels_manual,
+                   rm.parcels_last_5m, rm.parcels_created_today,
+                   rm.historical_average, rm.estimated_total,
+                   GREATEST(rm.estimated_total-rm.parcels_passed,0) estimated_remaining,
+                   ROUND(100.0*rm.parcels_passed/NULLIF(rm.estimated_total,0),1) estimated_progress_pct,
+                   rm.first_seen, rm.last_seen
+            FROM route_metrics rm
+            ORDER BY (rm.last_seen>=NOW()-INTERVAL 5 MINUTE) DESC, rm.parcels_last_5m DESC, rm.last_seen DESC, rm.route_id
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        await using var reader = await command.ExecuteReaderAsync();
+        var routes = new List<LiveRouteRow>();
+        var databaseNow = DateTime.Now;
+        DateTime? latestScan = null;
+        DateTime? firstHighScan = null, firstFloorScan = null, firstManualScan = null;
+        long total = 0, totalHigh = 0, totalFloor = 0, totalManual = 0, mapped = 0, unmapped = 0, ambiguous = 0;
+        while (await reader.ReadAsync())
+        {
+            databaseNow = reader.GetDateTime("database_now");
+            latestScan = IsNull(reader, "latest_scan") ? null : reader.GetDateTime("latest_scan");
+            total = Int64OrZero(reader, "total_processed_parcels");
+            totalHigh = Int64OrZero(reader, "total_high_parcels");
+            totalFloor = Int64OrZero(reader, "total_floor_parcels");
+            totalManual = Int64OrZero(reader, "total_manual_parcels");
+            firstHighScan = IsNull(reader, "first_high_scan") ? null : reader.GetDateTime("first_high_scan");
+            firstFloorScan = IsNull(reader, "first_floor_scan") ? null : reader.GetDateTime("first_floor_scan");
+            firstManualScan = IsNull(reader, "first_manual_scan") ? null : reader.GetDateTime("first_manual_scan");
+            mapped = Int64OrZero(reader, "mapped_processed_parcels");
+            unmapped = Int64OrZero(reader, "unmapped_processed_parcels");
+            ambiguous = Int64OrZero(reader, "ambiguous_processed_parcels");
+            DateTime? firstSeen = IsNull(reader, "first_seen") ? null : reader.GetDateTime("first_seen");
+            DateTime? lastSeen = IsNull(reader, "last_seen") ? null : reader.GetDateTime("last_seen");
+            var last5 = Int64OrZero(reader, "parcels_last_5m");
+            var createdToday = Int64OrZero(reader, "parcels_created_today");
+            var historical = Int64OrZero(reader, "historical_average");
+            var status = lastSeen is null ? "pending"
+                : lastSeen >= databaseNow.AddMinutes(-5) && last5 >= 2
+                ? "active"
+                : lastSeen >= databaseNow.AddMinutes(-15) ? "recent" : "inactive";
+            var confidence = createdToday > 0 ? "moyenne" : historical > 0 ? "faible" : "très faible";
+            routes.Add(new LiveRouteRow(
+                reader.GetInt32("route_id"),
+                Int64OrZero(reader, "parcels_passed"),
+                Int64OrZero(reader, "parcels_high"),
+                Int64OrZero(reader, "parcels_floor"),
+                Int64OrZero(reader, "parcels_manual"),
+                last5,
+                createdToday,
+                historical,
+                Int64OrZero(reader, "estimated_total"),
+                Int64OrZero(reader, "estimated_remaining"),
+                IsNull(reader, "estimated_progress_pct") ? 0 : reader.GetDecimal("estimated_progress_pct"),
+                firstSeen,
+                lastSeen,
+                status,
+                confidence));
+        }
+
+        return new LiveRoutesResponse(
+            DateOnly.FromDateTime(databaseNow), databaseNow, latestScan, total, totalHigh, totalFloor, totalManual,
+            firstHighScan, firstFloorScan, firstManualScan, mapped, unmapped, ambiguous, routes,
+            [
+                "Périmètre : convoyeurs haut et sol et postes manuels à Saint-Hubert, colis uniques traités depuis 16:00, routes 50000 à 50099.",
+                "Toutes les routes 500xx et tous les clients dont le pickup est planifié aujourd'hui sont inclus, même si aucun colis n'a encore été observé.",
+                "Estimation totale : maximum entre les colis déjà passés, les colis créés aujourd'hui et la moyenne des quatre mêmes jours de semaine précédents.",
+                "Les restants soustraient l'union des colis vus en haut, au sol ou manuellement; un même colis vu par plusieurs sources n'est soustrait qu'une fois.",
+                "Les clients associés à plusieurs routes 500xx sont exclus des totaux par route afin d'éviter le double comptage."
+            ],
+            DateTimeOffset.Now);
+    }
+
+    public async Task<LiveRouteClientsResponse> GetLiveRouteClientsAsync(int routeId)
+    {
+        const string sql = """
+            WITH scheduled AS (
+                SELECT p.CUSTOMER_ID customer_id,
+                       COALESCE(c.NAME,CONCAT('Client ',p.CUSTOMER_ID)) customer_name,
+                       COALESCE(GROUP_CONCAT(DISTINCT TIME_FORMAT(p.END_TIME,'%H:%i') ORDER BY p.END_TIME SEPARATOR ' / '),'N/D') pickup_time,
+                       COALESCE(GROUP_CONCAT(DISTINCT NULLIF(TRIM(p.NOTE_FR),'') ORDER BY p.NOTE_FR SEPARATOR ' · '),'') note
+                FROM customer_schedule_pickup p
+                LEFT JOIN customer c ON c.CUSTOMER_ID=p.CUSTOMER_ID
+                WHERE p.ROUTE_ID=@routeId
+                  AND CASE DAYOFWEEK(CURDATE())
+                        WHEN 1 THEN p.SUNDAY WHEN 2 THEN p.MONDAY WHEN 3 THEN p.TUESDAY
+                        WHEN 4 THEN p.WEDNESDAY WHEN 5 THEN p.THURSDAY WHEN 6 THEN p.FRIDAY
+                        WHEN 7 THEN p.SATURDAY END = 1
+                GROUP BY p.CUSTOMER_ID,c.NAME
+            ),
+            scanned_parcels AS (
+                SELECT ph.PARCEL_ID parcel_id, MAX(NULLIF(ph.CUSTOMER_ID,0)) customer_id,
+                       MAX(ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)) passed_high,
+                       MAX(ph.SOURCE_TYPE=200 AND ph.SOURCE_ID=3) passed_floor,
+                       MAX(ph.SOURCE_TYPE=201) passed_manual,
+                       MIN(ph.DATE_LIV) first_seen, MAX(ph.DATE_LIV) last_seen
+                FROM parcel_history ph
+                WHERE ph.EXCEPTION=903 AND ph.DEPOT_ID=1
+                  AND ((ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR ph.SOURCE_TYPE=201)
+                  AND ph.PARCEL_ID IS NOT NULL AND ph.PARCEL_ID<>0 AND COALESCE(ph.VOID,0)=0
+                  AND ph.DATE_INSERT>=CURDATE()+INTERVAL 15 HOUR
+                  AND ph.DATE_INSERT<CURDATE()+INTERVAL 1 DAY
+                  AND ph.DATE_LIV>=CURDATE()+INTERVAL 16 HOUR
+                  AND ph.DATE_LIV<CURDATE()+INTERVAL 1 DAY
+                GROUP BY ph.PARCEL_ID
+            ),
+            passed AS (
+                SELECT customer_id,COUNT(*) parcels_passed,
+                       SUM(passed_high) parcels_high,SUM(passed_floor) parcels_floor,SUM(passed_manual) parcels_manual,
+                       MIN(first_seen) first_seen,MAX(last_seen) last_seen
+                FROM scanned_parcels GROUP BY customer_id
+            ),
+            created AS (
+                SELECT s.CUSTOMER_ID customer_id,COALESCE(SUM(s.PARCEL_NB),0) parcels_created_today
+                FROM shipment s
+                WHERE s.INSERT_DATE>=CURDATE() AND s.INSERT_DATE<CURDATE()+INTERVAL 1 DAY
+                GROUP BY s.CUSTOMER_ID
+            )
+            SELECT sc.customer_id,sc.customer_name,sc.pickup_time,sc.note,
+                   COALESCE(p.parcels_passed,0) parcels_passed,
+                   COALESCE(p.parcels_high,0) parcels_high,
+                   COALESCE(p.parcels_floor,0) parcels_floor,
+                   COALESCE(p.parcels_manual,0) parcels_manual,
+                   COALESCE(cr.parcels_created_today,0) parcels_created_today,
+                   p.first_seen,p.last_seen
+            FROM scheduled sc
+            LEFT JOIN passed p ON p.customer_id=sc.customer_id
+            LEFT JOIN created cr ON cr.customer_id=sc.customer_id
+            ORDER BY (COALESCE(p.parcels_passed,0)>0) DESC,p.first_seen,sc.pickup_time,sc.customer_name
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        command.Parameters.AddWithValue("@routeId", routeId);
+        await using var reader = await command.ExecuteReaderAsync();
+        var clients = new List<LiveRouteClientRow>();
+        while (await reader.ReadAsync())
+        {
+            var passed = Int64OrZero(reader, "parcels_passed");
+            clients.Add(new LiveRouteClientRow(
+                reader.GetInt32("customer_id"),
+                reader.GetString("customer_name").Trim(),
+                reader.GetString("pickup_time"),
+                reader.GetString("note"),
+                passed,
+                Int64OrZero(reader, "parcels_high"),
+                Int64OrZero(reader, "parcels_floor"),
+                Int64OrZero(reader, "parcels_manual"),
+                Int64OrZero(reader, "parcels_created_today"),
+                IsNull(reader, "first_seen") ? null : reader.GetDateTime("first_seen"),
+                IsNull(reader, "last_seen") ? null : reader.GetDateTime("last_seen"),
+                passed > 0 ? "planifié et observé" : "planifié seulement"));
+        }
+
+        var scheduleDay = CultureInfo.GetCultureInfo("fr-CA").DateTimeFormat.GetDayName(DateTime.Today.DayOfWeek);
+        scheduleDay = CultureInfo.GetCultureInfo("fr-CA").TextInfo.ToTitleCase(scheduleDay);
+
+        return new LiveRouteClientsResponse(
+            routeId,
+            scheduleDay,
+            clients.Count,
+            clients.Count(x => x.ParcelsPassed > 0),
+            clients.Sum(x => x.ParcelsPassed),
+            clients,
+            [
+                $"Horaire officiel du {scheduleDay.ToLowerInvariant()} : customer_schedule_pickup sur le serveur 101.",
+                "Vérification opérationnelle : colis uniques observés sur les convoyeurs haut et sol ou aux postes manuels de Saint-Hubert depuis 16:00."
+            ],
+            DateTimeOffset.Now);
+    }
+
+    public async Task<UnprocessedParcelsResponse> GetUnprocessedParcelsAsync()
+    {
+        const string sql = """
+            WITH scheduled_today AS (
+                SELECT p.CUSTOMER_ID customer_id,
+                       GROUP_CONCAT(DISTINCT p.ROUTE_ID ORDER BY p.ROUTE_ID SEPARATOR ' / ') routes,
+                       COALESCE(GROUP_CONCAT(DISTINCT TIME_FORMAT(p.END_TIME,'%H:%i') ORDER BY p.END_TIME SEPARATOR ' / '),'N/D') pickup_time
+                FROM customer_schedule_pickup p
+                WHERE p.ROUTE_ID BETWEEN 50000 AND 50099
+                  AND CASE DAYOFWEEK(CURDATE())
+                        WHEN 1 THEN p.SUNDAY WHEN 2 THEN p.MONDAY WHEN 3 THEN p.TUESDAY
+                        WHEN 4 THEN p.WEDNESDAY WHEN 5 THEN p.THURSDAY WHEN 6 THEN p.FRIDAY
+                        WHEN 7 THEN p.SATURDAY END = 1
+                GROUP BY p.CUSTOMER_ID
+            ),
+            created_parcels AS (
+                SELECT p.PARCEL_ID parcel_id,
+                       MAX(p.CUSTOMER_ID) customer_id,
+                       MIN(p.INSERT_DATE) created_at
+                FROM parcel p
+                JOIN scheduled_today st ON st.customer_id=p.CUSTOMER_ID
+                WHERE p.INSERT_DATE>=CURDATE()-INTERVAL 2 DAY
+                  AND p.INSERT_DATE<CURDATE()+INTERVAL 1 DAY
+                  AND p.PARCEL_ID IS NOT NULL
+                  AND p.PARCEL_ID<>0
+                GROUP BY p.PARCEL_ID
+            ),
+            passed_parcels AS (
+                SELECT DISTINCT ph.PARCEL_ID parcel_id
+                FROM parcel_history ph
+                JOIN created_parcels cp ON cp.parcel_id=ph.PARCEL_ID
+                WHERE ph.EXCEPTION=903
+                  AND ph.DEPOT_ID=1
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ((ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR ph.SOURCE_TYPE=201)
+            )
+            SELECT cp.customer_id,
+                   COALESCE(c.NAME,CONCAT('Client ',cp.customer_id)) customer_name,
+                   st.routes,
+                   st.pickup_time,
+                   COUNT(*) unprocessed_parcels,
+                   SUM(DATE(cp.created_at)=CURDATE()) created_today,
+                   SUM(DATE(cp.created_at)=CURDATE()-INTERVAL 1 DAY) created_yesterday,
+                   SUM(DATE(cp.created_at)=CURDATE()-INTERVAL 2 DAY) created_two_days_ago,
+                   MIN(cp.created_at) oldest_created,
+                   MAX(cp.created_at) newest_created
+            FROM created_parcels cp
+            JOIN scheduled_today st ON st.customer_id=cp.customer_id
+            LEFT JOIN passed_parcels pp ON pp.parcel_id=cp.parcel_id
+            LEFT JOIN customer c ON c.CUSTOMER_ID=cp.customer_id
+            WHERE pp.parcel_id IS NULL
+            GROUP BY cp.customer_id,c.NAME,st.routes,st.pickup_time
+            ORDER BY unprocessed_parcels DESC,st.pickup_time,customer_name
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
+        await using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<UnprocessedClientRow>();
+        while (await reader.ReadAsync())
+        {
+            rows.Add(new UnprocessedClientRow(
+                reader.GetInt32("customer_id"),
+                reader.GetString("customer_name").Trim(),
+                reader.GetString("routes"),
+                reader.GetString("pickup_time"),
+                Int64OrZero(reader, "created_today"),
+                Int64OrZero(reader, "created_yesterday"),
+                Int64OrZero(reader, "created_two_days_ago"),
+                Int64OrZero(reader, "unprocessed_parcels"),
+                reader.GetDateTime("oldest_created"),
+                reader.GetDateTime("newest_created")));
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var scheduleDay = CultureInfo.GetCultureInfo("fr-CA").DateTimeFormat.GetDayName(DateTime.Today.DayOfWeek);
+        scheduleDay = CultureInfo.GetCultureInfo("fr-CA").TextInfo.ToTitleCase(scheduleDay);
+        return new UnprocessedParcelsResponse(
+            today.AddDays(-2),
+            today,
+            scheduleDay,
+            rows.Count,
+            rows.Sum(row => row.UnprocessedParcels),
+            rows,
+            [
+                "Population : colis uniques créés aujourd'hui, hier ou avant-hier pour les clients d'une route 500xx planifiée aujourd'hui.",
+                "Un colis est retiré de la liste dès qu'il possède un passage valide au convoyeur haut, au convoyeur du sol ou au scan manuel de Saint-Hubert."
+            ],
+            DateTimeOffset.Now);
+    }
+
+    public async Task<IReadOnlyList<ScanDepotOption>> GetScanDepotsAsync()
+    {
+        const string sql = """
+            SELECT DEPOTNUMBER,DEPOTNAME,DEPOT_SHORT_LABEL,HAS_CONVEYOR
+            FROM depot
+            WHERE DEPOTNUMBER>0
+              AND DASHBOARD_ACTIVE=1
+              AND NULLIF(TRIM(DEPOTNAME),'') IS NOT NULL
+            ORDER BY COALESCE(DASHBOARD_ORDER,9999),DEPOTNAME
+            """;
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 30 };
+        await using var reader = await command.ExecuteReaderAsync();
+        var depots = new List<ScanDepotOption>();
+        while (await reader.ReadAsync())
+        {
+            depots.Add(new ScanDepotOption(
+                reader.GetInt32("DEPOTNUMBER"),
+                reader.GetString("DEPOTNAME").Trim(),
+                IsNull(reader, "DEPOT_SHORT_LABEL") ? string.Empty : reader.GetString("DEPOT_SHORT_LABEL").Trim(),
+                !IsNull(reader, "HAS_CONVEYOR") && reader.GetBoolean("HAS_CONVEYOR")));
+        }
+        return depots;
+    }
+
+    public async Task<QuebecDepotScansResponse> GetQuebecDepotScansAsync(int sourceDepotId, DateTime windowStart, DateTime windowEnd)
+    {
+        const string sql = """
+            WITH RECURSIVE
+            hours AS (
+                SELECT @windowStart bucket_start
+                UNION ALL
+                SELECT bucket_start+INTERVAL 1 HOUR
+                FROM hours
+                WHERE bucket_start+INTERVAL 1 HOUR<@windowEnd
+            ),
+            attribution_anchor AS (
+                SELECT @attributionStart code25_start,@attributionEnd code25_end
+            ),
+            first_by_code AS (
+                SELECT ph.EXCEPTION exception_code,ph.PARCEL_ID parcel_id,MIN(ph.DATE_LIV) first_scan
+                FROM parcel_history PARTITION (p2026) ph
+                WHERE ph.DEPOT_ID=@sourceDepotId
+                  AND ph.EXCEPTION IN (903,904,25)
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.PARCEL_ID IS NOT NULL
+                  AND ph.PARCEL_ID<>0
+                  AND ph.DATE_INSERT>=@insertStart
+                  AND ph.DATE_INSERT<@insertEnd
+                  AND ph.DATE_LIV>=@windowStart
+                  AND ph.DATE_LIV<@windowEnd
+                GROUP BY ph.EXCEPTION,ph.PARCEL_ID
+            ),
+            code25_since_anchor AS (
+                SELECT ph.PARCEL_HISTORY_ID code25_history_id,
+                       ph.PARCEL_ID parcel_id,
+                       ph.DEPOT_ID code25_depot_id,
+                       ph.DATE_LIV code25_time
+                FROM parcel_history PARTITION (p2026) ph
+                CROSS JOIN attribution_anchor a
+                WHERE ph.EXCEPTION=25
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.PARCEL_ID IS NOT NULL
+                  AND ph.PARCEL_ID<>0
+                  AND ph.DEPOT_ID IS NOT NULL
+                  AND ph.DEPOT_ID<>0
+                  AND ph.DATE_INSERT>=a.code25_start-INTERVAL 1 DAY
+                  AND ph.DATE_INSERT<a.code25_end+INTERVAL 1 DAY
+                  AND ph.DATE_LIV>=a.code25_start
+                  AND ph.DATE_LIV<a.code25_end
+            ),
+            last_conveyor_ranked AS (
+                SELECT c.parcel_id,c.code25_history_id,c.code25_depot_id,
+                       conveyor.DEPOT_ID conveyor_depot_id,
+                       ROW_NUMBER() OVER(
+                           PARTITION BY c.code25_history_id
+                           ORDER BY conveyor.DATE_LIV DESC,conveyor.PARCEL_HISTORY_ID DESC
+                       ) rn
+                FROM code25_since_anchor c
+                JOIN parcel_history PARTITION (p2026) conveyor
+                  ON conveyor.PARCEL_ID=c.parcel_id
+                 AND conveyor.EXCEPTION=903
+                 AND COALESCE(conveyor.VOID,0)=0
+                 AND (conveyor.DATE_LIV<c.code25_time OR
+                      (conveyor.DATE_LIV=c.code25_time AND conveyor.PARCEL_HISTORY_ID<c.code25_history_id))
+            ),
+            rerouted_25 AS (
+                SELECT COUNT(DISTINCT parcel_id) total_code25_rerouted_elsewhere
+                FROM last_conveyor_ranked
+                WHERE rn=1
+                  AND conveyor_depot_id=@sourceDepotId
+                  AND code25_depot_id<>conveyor_depot_id
+            ),
+            hourly AS (
+                SELECT @windowStart+INTERVAL TIMESTAMPDIFF(HOUR,@windowStart,first_scan) HOUR bucket_start,
+                       SUM(exception_code=903) conveyor_903,
+                       SUM(exception_code=904) floor_904,
+                       SUM(exception_code=25) code_25
+                FROM first_by_code
+                GROUP BY bucket_start
+            ),
+            summary AS (
+                SELECT SUM(exception_code=903) total_conveyor_903,
+                       SUM(exception_code=904) total_floor_904,
+                       SUM(exception_code=25) total_code_25,
+                       MAX(first_scan) latest_scan
+                FROM first_by_code
+            )
+            SELECT NOW() database_now,@windowStart day_start,@windowEnd day_end,a.code25_start code25_attribution_since,
+                   HOUR(h.bucket_start) hour_value,h.bucket_start,COALESCE(x.conveyor_903,0) conveyor_903,
+                   COALESCE(x.floor_904,0) floor_904,COALESCE(x.code_25,0) code_25,
+                   COALESCE(s.total_conveyor_903,0) total_conveyor_903,
+                   COALESCE(s.total_floor_904,0) total_floor_904,
+                   COALESCE(s.total_code_25,0) total_code_25,
+                   COALESCE(r25.total_code25_rerouted_elsewhere,0) total_code25_rerouted_elsewhere,
+                   s.latest_scan
+            FROM hours h
+            LEFT JOIN hourly x ON x.bucket_start=h.bucket_start
+            CROSS JOIN summary s
+            CROSS JOIN rerouted_25 r25
+            CROSS JOIN attribution_anchor a
+            ORDER BY h.bucket_start
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
+        command.Parameters.AddWithValue("@sourceDepotId", sourceDepotId);
+        command.Parameters.AddWithValue("@windowStart", windowStart);
+        command.Parameters.AddWithValue("@windowEnd", windowEnd);
+        command.Parameters.AddWithValue("@insertStart", windowStart.AddDays(-1));
+        command.Parameters.AddWithValue("@insertEnd", windowEnd.AddDays(1));
+        var attributionStart = windowStart.Date.AddDays(-1).AddHours(22);
+        var attributionEnd = windowStart.Date.AddDays(1);
+        if (DateTime.Now < attributionEnd) attributionEnd = DateTime.Now;
+        command.Parameters.AddWithValue("@attributionStart", attributionStart);
+        command.Parameters.AddWithValue("@attributionEnd", attributionEnd);
+        await using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<QuebecScanHourlyRow>(24);
+        var databaseNow = DateTime.Now;
+        var dayStart = DateTime.Today;
+        var dayEnd = dayStart.AddDays(1);
+        var code25AttributionSince = DateTime.Today.AddDays(-1).AddHours(22);
+        DateTime? latestScan = null;
+        long totalConveyor903 = 0, totalFloor904 = 0, totalCode25 = 0, totalCode25ReroutedElsewhere = 0;
+        while (await reader.ReadAsync())
+        {
+            databaseNow = reader.GetDateTime("database_now");
+            dayStart = reader.GetDateTime("day_start");
+            dayEnd = reader.GetDateTime("day_end");
+            code25AttributionSince = reader.GetDateTime("code25_attribution_since");
+            latestScan = IsNull(reader, "latest_scan") ? null : reader.GetDateTime("latest_scan");
+            totalConveyor903 = Int64OrZero(reader, "total_conveyor_903");
+            totalFloor904 = Int64OrZero(reader, "total_floor_904");
+            totalCode25 = Int64OrZero(reader, "total_code_25");
+            totalCode25ReroutedElsewhere = Int64OrZero(reader, "total_code25_rerouted_elsewhere");
+            rows.Add(new QuebecScanHourlyRow(
+                reader.GetInt32("hour_value"),
+                reader.GetDateTime("bucket_start"),
+                Int64OrZero(reader, "conveyor_903"),
+                Int64OrZero(reader, "floor_904"),
+                Int64OrZero(reader, "code_25")));
+        }
+
+        return new QuebecDepotScansResponse(
+            DateOnly.FromDateTime(dayStart), databaseNow, dayStart, dayEnd, latestScan,
+            totalConveyor903, totalFloor904, totalCode25, totalCode25ReroutedElsewhere, code25AttributionSince, rows,
+            [
+                $"Fenêtre opérationnelle enregistrée pour le dépôt {sourceDepotId} : {windowStart:yyyy-MM-dd HH:mm} à {windowEnd.AddMinutes(-1):yyyy-MM-dd HH:mm}.",
+                "Les exceptions 903, 904 et 25 incluent tous les SOURCE_TYPE et SOURCE_ID.",
+                "Le compteur d'attribution examine les codes 25 de tous les dépôts depuis 22 h la veille et les rattache au dépôt du dernier scan convoyeur 903 antérieur lorsque les deux dépôts diffèrent.",
+                "Chaque colis est compté une fois par code, dans l'heure de son premier événement valide de la journée.",
+                "Les trois couleurs ne forment pas un total de colis uniques : un colis peut avoir un scan convoyeur 903, un scan 904 et un code 25."
+            ],
+            DateTimeOffset.Now);
+    }
+
+    public async Task<QuebecCode25DestinationsResponse> GetQuebecCode25DestinationsAsync(int sourceDepotId, DateTime windowStart, DateTime windowEnd)
+    {
+        const string sql = """
+            WITH code25_parcels AS (
+                SELECT ph.PARCEL_ID,MAX(ph.SHIPPING_ID) shipping_id,MAX(ph.EXP_DATE) exp_date,
+                       MIN(ph.DATE_LIV) first_scan,MAX(ph.DATE_LIV) last_scan
+                FROM parcel_history PARTITION (p2026) ph
+                WHERE ph.DEPOT_ID=@sourceDepotId AND ph.EXCEPTION=25
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.PARCEL_ID IS NOT NULL AND ph.PARCEL_ID<>0
+                  AND ph.DATE_INSERT>=@insertStart
+                  AND ph.DATE_INSERT<@insertEnd
+                  AND ph.DATE_LIV>=@windowStart AND ph.DATE_LIV<@windowEnd
+                GROUP BY ph.PARCEL_ID
+            ),
+            parcel_destination AS (
+                SELECT cp.PARCEL_ID,cp.first_scan,cp.last_scan,
+                       MAX(s.DEST_ROUTE_ID) destination_route_id,
+                       MAX(COALESCE(NULLIF(r.END_DEPOT_ID,0),si.DEPOTNUMBER)) destination_depot_id,
+                       COUNT(DISTINCT s.DEST_ROUTE_ID) destination_matches
+                FROM code25_parcels cp
+                LEFT JOIN shipment s ON s.SHIPPING_ID=cp.shipping_id AND s.EXP_DATE=cp.exp_date
+                LEFT JOIN route r ON r.ROUTE_ID=s.DEST_ROUTE_ID
+                LEFT JOIN sector_info si ON si.SECTOR_ID=s.DEST_SECTOR_ID
+                GROUP BY cp.PARCEL_ID,cp.first_scan,cp.last_scan
+            ),
+            destination_counts AS (
+                SELECT pd.destination_depot_id,
+                       COALESCE(NULLIF(TRIM(d.DEPOTNAME),''),d.DEPOT_SHORT_LABEL,d.DEPOTNAMESHORT,
+                                CONCAT('Dépôt ',pd.destination_depot_id),'Non déterminé') destination_name,
+                       COUNT(DISTINCT pd.destination_route_id) route_count,
+                       COUNT(*) parcels,MIN(pd.first_scan) first_scan,MAX(pd.last_scan) last_scan,
+                       SUM(pd.destination_matches>1) ambiguous_parcels
+                FROM parcel_destination pd
+                LEFT JOIN depot d ON d.DEPOTNUMBER=pd.destination_depot_id
+                GROUP BY pd.destination_depot_id,d.DEPOT_SHORT_LABEL,d.DEPOTNAMESHORT,d.DEPOTNAME
+            )
+            SELECT NOW() database_now,dc.*,
+                   SUM(dc.parcels) OVER() total_code_25
+            FROM destination_counts dc
+            ORDER BY dc.parcels DESC,dc.destination_depot_id
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
+        command.Parameters.AddWithValue("@sourceDepotId", sourceDepotId);
+        command.Parameters.AddWithValue("@windowStart", windowStart);
+        command.Parameters.AddWithValue("@windowEnd", windowEnd);
+        command.Parameters.AddWithValue("@insertStart", windowStart.AddDays(-1));
+        command.Parameters.AddWithValue("@insertEnd", windowEnd.AddDays(1));
+        await using var reader = await command.ExecuteReaderAsync();
+        var rawRows = new List<(int? DepotId, string DepotName, int RouteCount, long Parcels, DateTime First, DateTime Last)>();
+        var databaseNow = DateTime.Now;
+        long total = 0;
+        while (await reader.ReadAsync())
+        {
+            databaseNow = reader.GetDateTime("database_now");
+            total = Int64OrZero(reader, "total_code_25");
+            rawRows.Add((
+                NullableInt32(reader, "destination_depot_id"),
+                reader.GetString("destination_name").Trim(),
+                reader.GetInt32("route_count"),
+                Int64OrZero(reader, "parcels"),
+                reader.GetDateTime("first_scan"),
+                reader.GetDateTime("last_scan")));
+        }
+        var rows = rawRows.Select(row => new QuebecCode25DestinationRow(
+            row.DepotId, row.DepotName, row.RouteCount, row.Parcels,
+            total == 0 ? 0 : Math.Round(100m * row.Parcels / total, 1),
+            row.First, row.Last)).ToArray();
+
+        return new QuebecCode25DestinationsResponse(
+            DateOnly.FromDateTime(windowStart), databaseNow, total, rows,
+            [
+                "Regroupement par dépôt de destination; toutes les routes du même dépôt sont additionnées.",
+                "Le dépôt est obtenu par shipment.DEST_ROUTE_ID, route.END_DEPOT_ID et depot.DEPOTNUMBER.",
+                "Lorsque END_DEPOT_ID vaut 0, le dépôt du secteur de destination est utilisé comme repli.",
+                "Tous les SOURCE_TYPE et SOURCE_ID sont inclus.",
+                $"Chaque colis avec un code 25 valide au dépôt analysé ({sourceDepotId}) est compté une seule fois."
+            ],
+            DateTimeOffset.Now);
+    }
+
+    public async Task<AttributedCode25ParcelsResponse> GetAttributedCode25ParcelsAsync(int attributionDepotId, DateOnly analysisDate)
+    {
+        const string sql = """
+            WITH
+            attribution_anchor AS (
+                SELECT @attributionStart code25_start,@attributionEnd code25_end
+            ),
+            code25_since_anchor AS (
+                SELECT ph.PARCEL_HISTORY_ID code25_history_id,
+                       ph.PARCEL_ID parcel_id,
+                       ph.DEPOT_ID code25_depot_id,
+                       ph.DATE_LIV code25_time,
+                       NULLIF(ph.CUSTOMER_ID,0) history_customer_id,
+                       ph.SHIPPING_ID shipping_id,
+                       ph.EXP_DATE exp_date
+                FROM parcel_history PARTITION (p2026) ph
+                CROSS JOIN attribution_anchor a
+                WHERE ph.EXCEPTION=25
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.PARCEL_ID IS NOT NULL
+                  AND ph.PARCEL_ID<>0
+                  AND ph.DEPOT_ID IS NOT NULL
+                  AND ph.DEPOT_ID<>0
+                  AND ph.DATE_INSERT>=a.code25_start-INTERVAL 1 DAY
+                  AND ph.DATE_INSERT<a.code25_end+INTERVAL 1 DAY
+                  AND ph.DATE_LIV>=a.code25_start
+                  AND ph.DATE_LIV<a.code25_end
+            ),
+            last_conveyor_ranked AS (
+                SELECT c.*,
+                       conveyor.DEPOT_ID conveyor_depot_id,
+                       conveyor.DATE_LIV conveyor_time,
+                       ROW_NUMBER() OVER(
+                           PARTITION BY c.code25_history_id
+                           ORDER BY conveyor.DATE_LIV DESC,conveyor.PARCEL_HISTORY_ID DESC
+                       ) conveyor_rn
+                FROM code25_since_anchor c
+                JOIN parcel_history PARTITION (p2026) conveyor
+                  ON conveyor.PARCEL_ID=c.parcel_id
+                 AND conveyor.EXCEPTION=903
+                 AND COALESCE(conveyor.VOID,0)=0
+                 AND (conveyor.DATE_LIV<c.code25_time OR
+                      (conveyor.DATE_LIV=c.code25_time AND conveyor.PARCEL_HISTORY_ID<c.code25_history_id))
+            ),
+            qualifying_ranked AS (
+                SELECT lcr.*,
+                       ROW_NUMBER() OVER(
+                           PARTITION BY lcr.parcel_id
+                           ORDER BY lcr.code25_time DESC,lcr.code25_history_id DESC
+                       ) parcel_rn
+                FROM last_conveyor_ranked lcr
+                WHERE lcr.conveyor_rn=1
+                  AND lcr.conveyor_depot_id=@attributionDepotId
+                  AND lcr.code25_depot_id<>lcr.conveyor_depot_id
+            ),
+            final_parcels AS (
+                SELECT qr.*,
+                       COALESCE(qr.history_customer_id,(
+                           SELECT MAX(NULLIF(s.CUSTOMER_ID,0))
+                           FROM shipment s
+                           WHERE s.SHIPPING_ID=qr.shipping_id AND s.EXP_DATE=qr.exp_date
+                       )) customer_id
+                FROM qualifying_ranked qr
+                WHERE qr.parcel_rn=1
+            )
+            SELECT NOW() database_now,a.code25_start,
+                   COALESCE(NULLIF(TRIM(ad.DEPOTNAME),''),ad.DEPOT_SHORT_LABEL,ad.DEPOTNAMESHORT,
+                            CONCAT('Dépôt ',@attributionDepotId)) attribution_depot_name,
+                   fp.parcel_id,fp.customer_id,
+                   CASE WHEN fp.parcel_id IS NULL THEN NULL
+                        ELSE COALESCE(NULLIF(TRIM(c.NAME),''),CONCAT('Client ',fp.customer_id),'Client non identifié') END customer_name,
+                   fp.conveyor_time,fp.code25_time,fp.code25_depot_id,
+                   CASE WHEN fp.parcel_id IS NULL THEN NULL
+                        ELSE COALESCE(NULLIF(TRIM(cd.DEPOTNAME),''),cd.DEPOT_SHORT_LABEL,cd.DEPOTNAMESHORT,
+                                      CONCAT('Dépôt ',fp.code25_depot_id)) END code25_depot_name,
+                   COUNT(fp.parcel_id) OVER() total_parcels
+            FROM attribution_anchor a
+            LEFT JOIN depot ad ON ad.DEPOTNUMBER=@attributionDepotId
+            LEFT JOIN final_parcels fp ON TRUE
+            LEFT JOIN customer c ON c.CUSTOMER_ID=fp.customer_id
+            LEFT JOIN depot cd ON cd.DEPOTNUMBER=fp.code25_depot_id
+            ORDER BY fp.code25_time DESC,fp.parcel_id
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
+        command.Parameters.AddWithValue("@attributionDepotId", attributionDepotId);
+        var attributionStart = analysisDate.AddDays(-1).ToDateTime(new TimeOnly(22, 0));
+        var attributionEnd = analysisDate.AddDays(1).ToDateTime(TimeOnly.MinValue);
+        if (DateTime.Now < attributionEnd) attributionEnd = DateTime.Now;
+        command.Parameters.AddWithValue("@attributionStart", attributionStart);
+        command.Parameters.AddWithValue("@attributionEnd", attributionEnd);
+        await using var reader = await command.ExecuteReaderAsync();
+        var parcels = new List<AttributedCode25ParcelRow>();
+        var databaseNow = DateTime.Now;
+        var since = attributionStart;
+        var depotName = $"Dépôt {attributionDepotId}";
+        long total = 0;
+        while (await reader.ReadAsync())
+        {
+            databaseNow = reader.GetDateTime("database_now");
+            since = reader.GetDateTime("code25_start");
+            depotName = reader.GetString("attribution_depot_name").Trim();
+            total = Int64OrZero(reader, "total_parcels");
+            if (IsNull(reader, "parcel_id")) continue;
+            parcels.Add(new AttributedCode25ParcelRow(
+                reader.GetInt64("parcel_id"),
+                NullableInt32(reader, "customer_id"),
+                reader.GetString("customer_name").Trim(),
+                reader.GetDateTime("conveyor_time"),
+                reader.GetDateTime("code25_time"),
+                reader.GetInt32("code25_depot_id"),
+                reader.GetString("code25_depot_name").Trim()));
+        }
+
+        return new AttributedCode25ParcelsResponse(
+            databaseNow, since, attributionDepotId, depotName, total, parcels, DateTimeOffset.Now);
+    }
+
+    public async Task<QuebecCode25ParcelsResponse> GetQuebecCode25ParcelsAsync(int sourceDepotId, int depotId, DateTime windowStart, DateTime windowEnd)
+    {
+        const string sql = """
+            WITH code25_parcels AS (
+                SELECT ph.PARCEL_ID,MAX(ph.SHIPPING_ID) shipping_id,MAX(ph.EXP_DATE) exp_date,
+                       MAX(NULLIF(ph.CUSTOMER_ID,0)) history_customer_id,
+                       MIN(ph.DATE_LIV) first_scan
+                FROM parcel_history PARTITION (p2026) ph
+                WHERE ph.DEPOT_ID=@sourceDepotId AND ph.EXCEPTION=25
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.PARCEL_ID IS NOT NULL AND ph.PARCEL_ID<>0
+                  AND ph.DATE_INSERT>=@insertStart
+                  AND ph.DATE_INSERT<@insertEnd
+                  AND ph.DATE_LIV>=@windowStart AND ph.DATE_LIV<@windowEnd
+                GROUP BY ph.PARCEL_ID
+            ),
+            parcel_destination AS (
+                SELECT cp.PARCEL_ID,cp.first_scan,
+                       MAX(s.DEST_ROUTE_ID) destination_route_id,
+                       MAX(s.DEST_SECTOR_ID) destination_sector_id,
+                       MAX(COALESCE(NULLIF(r.END_DEPOT_ID,0),si.DEPOTNUMBER)) destination_depot_id,
+                       MAX(COALESCE(cp.history_customer_id,NULLIF(s.CUSTOMER_ID,0))) customer_id
+                FROM code25_parcels cp
+                LEFT JOIN shipment s ON s.SHIPPING_ID=cp.shipping_id AND s.EXP_DATE=cp.exp_date
+                LEFT JOIN route r ON r.ROUTE_ID=s.DEST_ROUTE_ID
+                LEFT JOIN sector_info si ON si.SECTOR_ID=s.DEST_SECTOR_ID
+                GROUP BY cp.PARCEL_ID,cp.first_scan
+            ),
+            first_qc_ranked AS (
+                SELECT ph.PARCEL_ID,ph.PARCEL_HISTORY_ID,ph.DATE_LIV,
+                       ROW_NUMBER() OVER(PARTITION BY ph.PARCEL_ID ORDER BY ph.DATE_LIV,ph.PARCEL_HISTORY_ID) rn
+                FROM parcel_history PARTITION (p2026) ph
+                JOIN code25_parcels cp ON cp.PARCEL_ID=ph.PARCEL_ID
+                WHERE ph.DEPOT_ID=@sourceDepotId AND COALESCE(ph.VOID,0)=0
+            ),
+            first_qc AS (
+                SELECT PARCEL_ID,PARCEL_HISTORY_ID,DATE_LIV
+                FROM first_qc_ranked
+                WHERE rn=1
+            ),
+            prior_ranked AS (
+                SELECT ph.PARCEL_ID,ph.DATE_LIV,ph.EXCEPTION,ph.WEIGHT,ph.LENGTH,ph.WIDTH,ph.HEIGHT,
+                       ROW_NUMBER() OVER(
+                           PARTITION BY ph.PARCEL_ID
+                           ORDER BY CASE ph.EXCEPTION WHEN 903 THEN 0 ELSE 1 END,
+                                    ph.DATE_LIV DESC,ph.PARCEL_HISTORY_ID DESC
+                       ) rn
+                FROM parcel_history PARTITION (p2026) ph
+                JOIN first_qc q ON q.PARCEL_ID=ph.PARCEL_ID
+                  AND (ph.DATE_LIV<q.DATE_LIV OR (ph.DATE_LIV=q.DATE_LIV AND ph.PARCEL_HISTORY_ID<q.PARCEL_HISTORY_ID))
+                WHERE COALESCE(ph.VOID,0)=0 AND ph.EXCEPTION IN (903,901)
+            ),
+            prior_scan AS (
+                SELECT PARCEL_ID,DATE_LIV,EXCEPTION,WEIGHT,LENGTH,WIDTH,HEIGHT
+                FROM prior_ranked
+                WHERE rn=1
+            )
+            SELECT NOW() database_now,pd.PARCEL_ID,pd.customer_id,
+                   COALESCE(NULLIF(TRIM(c.NAME),''),CONCAT('Client ',pd.customer_id),'Client non identifié') customer_name,
+                   pd.destination_sector_id,pd.first_scan,
+                   CASE WHEN ps.WEIGHT>0 THEN ps.WEIGHT END previous_weight,
+                   CASE WHEN ps.LENGTH>0 THEN ps.LENGTH END previous_length,
+                   CASE WHEN ps.WIDTH>0 THEN ps.WIDTH END previous_width,
+                   CASE WHEN ps.HEIGHT>0 THEN ps.HEIGHT END previous_height,
+                   ps.DATE_LIV previous_scan_date,
+                   ps.EXCEPTION previous_scan_code,
+                   COALESCE(NULLIF(TRIM(d.DEPOTNAME),''),d.DEPOT_SHORT_LABEL,d.DEPOTNAMESHORT,
+                            CONCAT('Dépôt ',@depotId)) destination_name,
+                   COUNT(*) OVER() total_parcels
+            FROM parcel_destination pd
+            LEFT JOIN customer c ON c.CUSTOMER_ID=pd.customer_id
+            LEFT JOIN depot d ON d.DEPOTNUMBER=pd.destination_depot_id
+            LEFT JOIN prior_scan ps ON ps.PARCEL_ID=pd.PARCEL_ID
+            WHERE pd.destination_depot_id=@depotId
+            ORDER BY pd.first_scan,pd.PARCEL_ID
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
+        command.Parameters.AddWithValue("@sourceDepotId", sourceDepotId);
+        command.Parameters.AddWithValue("@depotId", depotId);
+        command.Parameters.AddWithValue("@windowStart", windowStart);
+        command.Parameters.AddWithValue("@windowEnd", windowEnd);
+        command.Parameters.AddWithValue("@insertStart", windowStart.AddDays(-1));
+        command.Parameters.AddWithValue("@insertEnd", windowEnd.AddDays(1));
+        await using var reader = await command.ExecuteReaderAsync();
+        var parcels = new List<QuebecCode25ParcelRow>();
+        var databaseNow = DateTime.Now;
+        var depotName = $"Dépôt {depotId}";
+        long total = 0;
+        while (await reader.ReadAsync())
+        {
+            databaseNow = reader.GetDateTime("database_now");
+            depotName = reader.GetString("destination_name").Trim();
+            total = Int64OrZero(reader, "total_parcels");
+            parcels.Add(new QuebecCode25ParcelRow(
+                reader.GetInt64("PARCEL_ID"),
+                NullableInt32(reader, "customer_id"),
+                reader.GetString("customer_name").Trim(),
+                NullableInt32(reader, "destination_sector_id"),
+                NullableDecimal(reader, "previous_weight"),
+                NullableDecimal(reader, "previous_length"),
+                NullableDecimal(reader, "previous_width"),
+                NullableDecimal(reader, "previous_height"),
+                IsNull(reader, "previous_scan_date") ? null : reader.GetDateTime("previous_scan_date"),
+                NullableInt32(reader, "previous_scan_code"),
+                reader.GetDateTime("first_scan")));
+        }
+
+        return new QuebecCode25ParcelsResponse(
+            DateOnly.FromDateTime(windowStart), databaseNow, depotId, depotName, total, parcels, DateTimeOffset.Now);
+    }
+
+    public async Task<ParcelHistoryResponse> GetParcelHistoryAsync(long parcelId)
+    {
+        const string sql = """
+            WITH shipment_address_ranked AS (
+                SELECT NULLIF(TRIM(CONCAT_WS(' ',s.DEST_ADDRESS1,s.DEST_ADDRESS2)),'') destination_address,
+                       NULLIF(TRIM(s.DEST_CITY),'') destination_city,
+                       ROW_NUMBER() OVER(ORDER BY ph.DATE_LIV DESC,ph.PARCEL_HISTORY_ID DESC) rn
+                FROM parcel_history ph
+                JOIN shipment s ON s.SHIPPING_ID=ph.SHIPPING_ID AND s.EXP_DATE=ph.EXP_DATE
+                WHERE ph.PARCEL_ID=@parcelId
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.SHIPPING_ID IS NOT NULL
+            )
+            SELECT NOW() database_now,ph.PARCEL_HISTORY_ID,ph.EXCEPTION exception_code,
+                   COALESCE(NULLIF(TRIM(e.TXTFRENCH),''),NULLIF(TRIM(e.EX_NAME_FR),''),CONCAT('Code ',ph.EXCEPTION)) description,
+                   NULLIF(TRIM(se.DESCRIPTION_FR),'') sub_description,
+                   ph.DATE_LIV event_date,
+                   (SELECT destination_address FROM shipment_address_ranked WHERE rn=1) destination_address,
+                   (SELECT destination_city FROM shipment_address_ranked WHERE rn=1) destination_city,
+                   COALESCE(
+                       NULLIF(TRIM(CONCAT_WS(' ',nu.FIRSTNAME,nu.LASTNAME)),''),
+                       CASE WHEN ph.EXCEPTION=903 AND ph.CHUTE_NO IS NOT NULL
+                            THEN CONCAT('CONVOYEUR CHUTE ',ph.CHUTE_NO) END,
+                       CASE WHEN ph.TPSL IS NOT NULL AND ph.TPSL<>0
+                            THEN CONCAT('TPSL:',ph.TPSL,
+                                CASE WHEN NULLIF(TRIM(COALESCE(tr.ROUTE_DRIVER_NAME,tr.USERNAME,tr.ROUTE_NAME)),'') IS NULL THEN ''
+                                     ELSE CONCAT(' ',TRIM(COALESCE(tr.ROUTE_DRIVER_NAME,tr.USERNAME,tr.ROUTE_NAME))) END)
+                            END,
+                       NULLIF(TRIM(psi.SOURCE_DESCRIPTION),''),
+                       NULLIF(TRIM(ph.CONTACT),''),
+                       '—'
+                   ) user_or_tpsl,
+                   ph.DEPOT_ID depot_id,
+                   COALESCE(NULLIF(TRIM(d.DEPOTNAME),''),
+                            CASE WHEN ph.DEPOT_ID IS NULL OR ph.DEPOT_ID=0 THEN '—'
+                                 ELSE CONCAT('Dépôt ',ph.DEPOT_ID) END) depot_name
+            FROM parcel_history ph
+            LEFT JOIN exceptions e ON e.CODE=ph.EXCEPTION
+            LEFT JOIN sub_exceptions se ON se.SUB_EXCEPTION_ID=ph.SUB_EXCEPTION_ID
+            LEFT JOIN nat_user nu ON nu.NAT_USER_ID=ph.USER_ID
+            LEFT JOIN route tr ON tr.ROUTE_ID=ph.TPSL
+            LEFT JOIN parcel_history_source_id psi ON psi.SOURCE_ID=ph.SOURCE_ID
+            LEFT JOIN depot d ON d.DEPOTNUMBER=ph.DEPOT_ID
+            WHERE ph.PARCEL_ID=@parcelId AND COALESCE(ph.VOID,0)=0
+            ORDER BY ph.DATE_LIV DESC,ph.PARCEL_HISTORY_ID DESC
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
+        command.Parameters.AddWithValue("@parcelId", parcelId);
+        await using var reader = await command.ExecuteReaderAsync();
+        var events = new List<ParcelHistoryEventRow>();
+        var databaseNow = DateTime.Now;
+        var destinationAddress = string.Empty;
+        var destinationCity = string.Empty;
+        while (await reader.ReadAsync())
+        {
+            databaseNow = reader.GetDateTime("database_now");
+            destinationAddress = IsNull(reader, "destination_address") ? string.Empty : reader.GetString("destination_address").Trim();
+            destinationCity = IsNull(reader, "destination_city") ? string.Empty : reader.GetString("destination_city").Trim();
+            var description = reader.GetString("description").Trim();
+            if (!IsNull(reader, "sub_description"))
+            {
+                var subDescription = reader.GetString("sub_description").Trim();
+                if (subDescription.Length > 0) description += $" — {subDescription}";
+            }
+            events.Add(new ParcelHistoryEventRow(
+                reader.GetInt64("PARCEL_HISTORY_ID"),
+                reader.GetInt32("exception_code"),
+                description,
+                reader.GetDateTime("event_date"),
+                reader.GetString("user_or_tpsl").Trim(),
+                NullableInt32(reader, "depot_id"),
+                reader.GetString("depot_name").Trim()));
+        }
+
+        return new ParcelHistoryResponse(parcelId, databaseNow, destinationAddress, destinationCity, events, DateTimeOffset.Now);
+    }
+
+    public async Task<ConveyorHourlyResponse> GetConveyorHourlyAsync()
+    {
+        const string sql = """
+            WITH RECURSIVE
+            shift_anchor AS (
+                SELECT CASE
+                    WHEN CURTIME()<'04:00:00' THEN CURDATE()-INTERVAL 1 DAY+INTERVAL 16 HOUR
+                    ELSE CURDATE()+INTERVAL 16 HOUR
+                END shift_start
+            ),
+            shift_bounds AS (
+                SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end
+                FROM shift_anchor
+            ),
+            hour_slots AS (
+                SELECT 0 slot_index,16 hour_value
+                UNION ALL
+                SELECT slot_index+1,MOD(hour_value+1,24) FROM hour_slots WHERE slot_index<11
+            ),
+            sources AS (
+                SELECT 'high' source_key
+                UNION ALL SELECT 'floor'
+                UNION ALL SELECT 'manual'
+            ),
+            classified_scans AS (
+                SELECT ph.PARCEL_ID parcel_id,
+                       CASE
+                           WHEN ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1) THEN 'high'
+                           WHEN ph.SOURCE_TYPE=200 AND ph.SOURCE_ID=3 THEN 'floor'
+                           WHEN ph.SOURCE_TYPE=201 THEN 'manual'
+                       END source_key,
+                       ph.DATE_LIV scan_time
+                FROM parcel_history ph
+                CROSS JOIN shift_bounds sb
+                WHERE ph.EXCEPTION=903
+                  AND ph.DEPOT_ID=1
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.PARCEL_ID IS NOT NULL
+                  AND ph.PARCEL_ID<>0
+                  AND ((ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR ph.SOURCE_TYPE=201)
+                  AND ph.DATE_INSERT>=sb.shift_start-INTERVAL 1 HOUR
+                  AND ph.DATE_INSERT<sb.shift_end
+                  AND ph.DATE_LIV>=sb.shift_start
+                  AND ph.DATE_LIV<sb.shift_end
+            ),
+            first_by_source AS (
+                SELECT source_key,parcel_id,MIN(scan_time) first_scan
+                FROM classified_scans
+                GROUP BY source_key,parcel_id
+            ),
+            hourly_counts AS (
+                SELECT source_key,HOUR(first_scan) hour_value,COUNT(*) parcels
+                FROM first_by_source
+                GROUP BY source_key,HOUR(first_scan)
+            ),
+            source_summary AS (
+                SELECT source_key,COUNT(*) total_parcels,MIN(first_scan) first_scan
+                FROM first_by_source
+                GROUP BY source_key
+            )
+            SELECT NOW() database_now,DATE(sb.shift_start) shift_date,sb.shift_start,sb.shift_end,
+                   s.source_key,h.slot_index,h.hour_value,COALESCE(hc.parcels,0) parcels,
+                   COALESCE(ss.total_parcels,0) total_parcels,ss.first_scan
+            FROM sources s
+            CROSS JOIN shift_bounds sb
+            CROSS JOIN hour_slots h
+            LEFT JOIN hourly_counts hc ON hc.source_key=s.source_key AND hc.hour_value=h.hour_value
+            LEFT JOIN source_summary ss ON ss.source_key=s.source_key
+            ORDER BY FIELD(s.source_key,'high','floor','manual'),h.slot_index
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        await using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<ConveyorHourlyRow>();
+        var databaseNow = DateTime.Now;
+        var shiftStart = DateTime.Today.AddHours(16);
+        var shiftEnd = shiftStart.AddHours(12);
+        long totalHigh = 0, totalFloor = 0, totalManual = 0;
+        DateTime? firstHigh = null, firstFloor = null, firstManual = null;
+        while (await reader.ReadAsync())
+        {
+            databaseNow = reader.GetDateTime("database_now");
+            shiftStart = reader.GetDateTime("shift_start");
+            shiftEnd = reader.GetDateTime("shift_end");
+            var source = reader.GetString("source_key");
+            var sourceTotal = Int64OrZero(reader, "total_parcels");
+            DateTime? firstScan = IsNull(reader, "first_scan") ? null : reader.GetDateTime("first_scan");
+            if (source == "high") { totalHigh = sourceTotal; firstHigh = firstScan; }
+            else if (source == "floor") { totalFloor = sourceTotal; firstFloor = firstScan; }
+            else { totalManual = sourceTotal; firstManual = firstScan; }
+            rows.Add(new ConveyorHourlyRow(
+                source,
+                reader.GetInt32("hour_value"),
+                Int64OrZero(reader, "parcels")));
+        }
+
+        return new ConveyorHourlyResponse(
+            DateOnly.FromDateTime(shiftStart),
+            databaseNow,
+            shiftStart,
+            shiftEnd,
+            totalHigh,
+            totalFloor,
+            totalManual,
+            firstHigh,
+            firstFloor,
+            firstManual,
+            rows,
+            [
+                "Chaque colis unique est compté dans l'heure de son premier passage sur la source concernée.",
+                "Le quart opérationnel commence à 16 h et se termine à 3 h 59 le lendemain; après minuit, les données restent rattachées au quart de la veille."
+            ],
+            DateTimeOffset.Now);
+    }
+
+    public async Task<HighConveyorCapacityResponse> GetHighConveyorCapacityAsync()
+    {
+        var benchmark = await GetHighCapacityBenchmarkAsync();
+        const string sql = """
+            WITH
+            shift_anchor AS (
+                SELECT CASE
+                    WHEN CURTIME()<'04:00:00' THEN CURDATE()-INTERVAL 1 DAY+INTERVAL 16 HOUR
+                    ELSE CURDATE()+INTERVAL 16 HOUR
+                END shift_start
+            ),
+            shift_bounds AS (
+                SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end FROM shift_anchor
+            ),
+            first_parcel AS (
+                SELECT ph.PARCEL_ID parcel_id,MIN(ph.DATE_LIV) first_scan
+                FROM parcel_history PARTITION (p2026) ph
+                CROSS JOIN shift_bounds sb
+                WHERE ph.EXCEPTION=903
+                  AND ph.DEPOT_ID=1
+                  AND ph.SOURCE_TYPE=200
+                  AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.PARCEL_ID IS NOT NULL
+                  AND ph.PARCEL_ID<>0
+                  AND ph.DATE_INSERT>=sb.shift_start-INTERVAL 1 HOUR
+                  AND ph.DATE_INSERT<sb.shift_end
+                  AND ph.DATE_LIV>=sb.shift_start
+                  AND ph.DATE_LIV<sb.shift_end
+                GROUP BY ph.PARCEL_ID
+            ),
+            minute_counts AS (
+                SELECT CAST(DATE_FORMAT(first_scan,'%Y-%m-%d %H:%i:00') AS DATETIME) minute_start,
+                       COUNT(*) parcels
+                FROM first_parcel
+                GROUP BY CAST(DATE_FORMAT(first_scan,'%Y-%m-%d %H:%i:00') AS DATETIME)
+            )
+            SELECT NOW() database_now,sb.shift_start,sb.shift_end,mc.minute_start,mc.parcels
+            FROM shift_bounds sb
+            LEFT JOIN minute_counts mc ON 1=1
+            ORDER BY mc.minute_start
+            """;
+
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
+        await using var reader = await command.ExecuteReaderAsync();
+        var minuteCounts = new Dictionary<DateTime, long>();
+        var databaseNow = DateTime.Now;
+        var shiftStart = DateTime.Today.AddHours(16);
+        var shiftEnd = shiftStart.AddHours(12);
+        while (await reader.ReadAsync())
+        {
+            databaseNow = reader.GetDateTime("database_now");
+            shiftStart = reader.GetDateTime("shift_start");
+            shiftEnd = reader.GetDateTime("shift_end");
+            if (!IsNull(reader, "minute_start"))
+                minuteCounts[reader.GetDateTime("minute_start")] = Int64OrZero(reader, "parcels");
+        }
+
+        var analysisEnd = databaseNow < shiftStart ? shiftStart : databaseNow > shiftEnd ? shiftEnd : databaseNow;
+        var buckets = new List<HighCapacityBucket>(48);
+        for (var bucketStart = shiftStart; bucketStart < shiftEnd; bucketStart = bucketStart.AddMinutes(15))
+        {
+            var bucketEnd = bucketStart.AddMinutes(15);
+            var isFuture = bucketStart >= analysisEnd;
+            var measuredEnd = bucketEnd < analysisEnd ? bucketEnd : analysisEnd;
+            var measuredMinutes = isFuture ? 0 : Math.Max(1, (int)Math.Ceiling((measuredEnd - bucketStart).TotalMinutes));
+            var parcels = isFuture ? 0 : minuteCounts.Where(x => x.Key >= bucketStart && x.Key < measuredEnd).Sum(x => x.Value);
+            var rate = measuredMinutes == 0 ? 0 : Math.Round(60m * parcels / measuredMinutes, 0);
+            var utilization = benchmark.PracticalCapacityPerHour == 0 ? 0 : Math.Round(100m * rate / benchmark.PracticalCapacityPerHour, 1);
+            var status = isFuture ? "future" : utilization >= 80 ? "capacity" : utilization >= 40 ? "under" : "gap";
+            buckets.Add(new HighCapacityBucket(bucketStart, parcels, rate, utilization, status, isFuture));
+        }
+
+        var firstScan = minuteCounts.Count == 0 ? (DateTime?)null : minuteCounts.Keys.Min();
+        var totalParcels = minuteCounts.Where(x => x.Key < analysisEnd).Sum(x => x.Value);
+        var elapsedMinutes = firstScan is null ? 0 : Math.Max(1, (int)Math.Ceiling((analysisEnd - firstScan.Value).TotalMinutes));
+        var average = elapsedMinutes == 0 ? 0 : Math.Round(60m * totalParcels / elapsedMinutes, 0);
+        var averageUtilization = benchmark.PracticalCapacityPerHour == 0 ? 0 : Math.Round(100m * average / benchmark.PracticalCapacityPerHour, 1);
+        var capacityThreshold = (long)Math.Ceiling(benchmark.PracticalCapacityPerHour / 60m * 0.8m);
+        var minutesAtCapacity = minuteCounts.Count(x => x.Key < analysisEnd && x.Value >= capacityThreshold);
+        var gaps = BuildHighCapacityGaps(firstScan, analysisEnd, minuteCounts, benchmark.PracticalCapacityPerHour);
+        var currentRate = buckets.LastOrDefault(x => !x.IsFuture)?.ParcelsPerHour ?? 0;
+
+        return new HighConveyorCapacityResponse(
+            DateOnly.FromDateTime(shiftStart), databaseNow, shiftStart, shiftEnd,
+            benchmark.DailyPeaks.Count, benchmark.PracticalCapacityPerHour, benchmark.MaximumObservedPerHour,
+            currentRate, average, averageUtilization,
+            minutesAtCapacity, gaps.Sum(x => x.DurationMinutes), benchmark.DailyPeaks, buckets, gaps,
+            [
+                "CapacitÃ© pratique : 75e percentile du meilleur volume observÃ© dans une fenÃªtre continue de 60 minutes pour chaque quart complÃ©tÃ© des 14 derniers jours.",
+                "Un intervalle est Ã  capacitÃ© Ã  partir de 80 % du benchmark; un creux est une pÃ©riode d'au moins 5 minutes sous 40 %.",
+                "Le benchmark dÃ©crit le dÃ©bit pratique observÃ©, pas la capacitÃ© mÃ©canique maximale. Les creux n'en indiquent pas automatiquement la cause."
+            ],
+            DateTimeOffset.Now);
+    }
+
+    private async Task<CapacityBenchmarkSnapshot> GetHighCapacityBenchmarkAsync()
+    {
+        if (capacityBenchmarkCache is { } cached && DateTimeOffset.Now - cached.LoadedAt < TimeSpan.FromHours(1)) return cached;
+        await capacityBenchmarkLock.WaitAsync();
+        try
+        {
+            if (capacityBenchmarkCache is { } refreshed && DateTimeOffset.Now - refreshed.LoadedAt < TimeSpan.FromHours(1)) return refreshed;
+            const string sql = """
+                WITH
+                shift_anchor AS (
+                    SELECT CASE
+                        WHEN CURTIME()<'04:00:00' THEN CURDATE()-INTERVAL 1 DAY+INTERVAL 16 HOUR
+                        ELSE CURDATE()+INTERVAL 16 HOUR
+                    END current_shift_start
+                ),
+                first_by_shift AS (
+                    SELECT DATE(ph.DATE_LIV-INTERVAL 4 HOUR) shift_date,
+                           ph.PARCEL_ID parcel_id,MIN(ph.DATE_LIV) first_scan
+                    FROM parcel_history PARTITION (p2026) ph
+                    CROSS JOIN shift_anchor sa
+                    WHERE ph.EXCEPTION=903
+                      AND ph.DEPOT_ID=1
+                      AND ph.SOURCE_TYPE=200
+                      AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                      AND COALESCE(ph.VOID,0)=0
+                      AND ph.PARCEL_ID IS NOT NULL
+                      AND ph.PARCEL_ID<>0
+                      AND ph.DATE_INSERT>=sa.current_shift_start-INTERVAL 14 DAY-INTERVAL 1 HOUR
+                      AND ph.DATE_INSERT<sa.current_shift_start
+                      AND ph.DATE_LIV>=sa.current_shift_start-INTERVAL 14 DAY
+                      AND ph.DATE_LIV<sa.current_shift_start
+                      AND (HOUR(ph.DATE_LIV)>=16 OR HOUR(ph.DATE_LIV)<4)
+                    GROUP BY DATE(ph.DATE_LIV-INTERVAL 4 HOUR),ph.PARCEL_ID
+                ),
+                minute_counts AS (
+                    SELECT shift_date,CAST(DATE_FORMAT(first_scan,'%Y-%m-%d %H:%i:00') AS DATETIME) minute_start,COUNT(*) parcels
+                    FROM first_by_shift
+                    GROUP BY shift_date,CAST(DATE_FORMAT(first_scan,'%Y-%m-%d %H:%i:00') AS DATETIME)
+                ),
+                rolling_60_minutes AS (
+                    SELECT m1.shift_date,m1.minute_start window_start,SUM(m2.parcels) parcels_per_hour
+                    FROM minute_counts m1
+                    JOIN minute_counts m2
+                      ON m2.shift_date=m1.shift_date
+                     AND m2.minute_start>=m1.minute_start
+                     AND m2.minute_start<m1.minute_start+INTERVAL 60 MINUTE
+                    WHERE m1.minute_start<=TIMESTAMP(m1.shift_date)+INTERVAL 27 HOUR
+                    GROUP BY m1.shift_date,m1.minute_start
+                ),
+                ranked_hours AS (
+                    SELECT shift_date,window_start,parcels_per_hour,
+                           ROW_NUMBER() OVER (PARTITION BY shift_date ORDER BY parcels_per_hour DESC,window_start) peak_rank
+                    FROM rolling_60_minutes
+                ),
+                shift_totals AS (
+                    SELECT shift_date,COUNT(*) total_parcels
+                    FROM first_by_shift
+                    GROUP BY shift_date
+                )
+                SELECT rh.shift_date,rh.window_start,rh.parcels_per_hour,st.total_parcels
+                FROM ranked_hours rh
+                JOIN shift_totals st ON st.shift_date=rh.shift_date
+                WHERE rh.peak_rank=1
+                ORDER BY rh.shift_date DESC
+                """;
+            await using var connection = await OpenAsync();
+            await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 180 };
+            await using var reader = await command.ExecuteReaderAsync();
+            var peaks = new List<HighCapacityDailyPeak>();
+            while (await reader.ReadAsync())
+                peaks.Add(new HighCapacityDailyPeak(
+                    DateOnly.FromDateTime(reader.GetDateTime("shift_date")),
+                    Int64OrZero(reader, "parcels_per_hour"), reader.GetDateTime("window_start"),
+                    Int64OrZero(reader, "total_parcels")));
+            var sortedPeaks = peaks.Select(x => x.PeakPerHour).Order().ToArray();
+            var practicalCapacity = sortedPeaks.Length == 0 ? 0 : sortedPeaks[Math.Max(0, (int)Math.Ceiling(sortedPeaks.Length * 0.75) - 1)];
+            capacityBenchmarkCache = new CapacityBenchmarkSnapshot(DateTimeOffset.Now, practicalCapacity, sortedPeaks.DefaultIfEmpty(0).Max(), peaks);
+            return capacityBenchmarkCache;
+        }
+        finally
+        {
+            capacityBenchmarkLock.Release();
+        }
+    }
+
+    private static IReadOnlyList<HighCapacityGap> BuildHighCapacityGaps(
+        DateTime? firstScan, DateTime analysisEnd, IReadOnlyDictionary<DateTime, long> minuteCounts, long practicalCapacityPerHour)
+    {
+        if (firstScan is null || practicalCapacityPerHour <= 0) return [];
+        var firstWindow = firstScan.Value;
+        var lowWindows = new List<(DateTime Start, DateTime End, long Parcels)>();
+        for (var start = firstWindow; start.AddMinutes(5) <= analysisEnd; start = start.AddMinutes(5))
+        {
+            var end = start.AddMinutes(5);
+            var parcels = minuteCounts.Where(x => x.Key >= start && x.Key < end).Sum(x => x.Value);
+            if (60m * parcels / 5 < practicalCapacityPerHour * 0.4m) lowWindows.Add((start, end, parcels));
+        }
+        if (lowWindows.Count == 0) return [];
+        var gaps = new List<HighCapacityGap>();
+        var gapStart = lowWindows[0].Start;
+        var gapEnd = lowWindows[0].End;
+        long gapParcels = lowWindows[0].Parcels;
+        foreach (var window in lowWindows.Skip(1))
+        {
+            if (window.Start == gapEnd)
+            {
+                gapEnd = window.End;
+                gapParcels += window.Parcels;
+                continue;
+            }
+            gaps.Add(CreateGap(gapStart, gapEnd, gapParcels, practicalCapacityPerHour));
+            gapStart = window.Start;
+            gapEnd = window.End;
+            gapParcels = window.Parcels;
+        }
+        gaps.Add(CreateGap(gapStart, gapEnd, gapParcels, practicalCapacityPerHour));
+        return gaps.OrderByDescending(x => x.DurationMinutes).ThenBy(x => x.Start).ToArray();
+    }
+
+    private static HighCapacityGap CreateGap(DateTime start, DateTime end, long parcels, long practicalCapacityPerHour)
+    {
+        var duration = (int)(end - start).TotalMinutes;
+        var average = Math.Round(60m * parcels / duration, 0);
+        return new HighCapacityGap(start, end, duration, parcels, average, Math.Round(100m * average / practicalCapacityPerHour, 1));
     }
 
     public async Task<AvailableRange> GetAvailableRangeAsync()
