@@ -4,18 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des routes 500xx traitées à Saint-Hubert.">
-  <title>Routes 500xx — Traitement Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260903-13">
+  <title>Nationex - Saint-Hubert</title>
+  <link rel="stylesheet" href="/live-routes.css?v=20260904-9">
 </head>
 <body>
   <main class="dashboard-shell">
     <header class="topbar">
       <div class="brand-lockup">
         <span class="brand-mark" aria-hidden="true">N</span>
-        <div>
-          <p class="eyebrow">Nationex · Saint-Hubert</p>
-          <h1>Routes 500xx <span>haut · sol · manuel</span></h1>
-        </div>
+        <h1>Nationex - Saint-Hubert</h1>
       </div>
       <div class="live-panel">
         <span id="connection-dot" class="live-dot waiting" aria-hidden="true"></span>
@@ -27,6 +24,7 @@
     <nav class="dashboard-tabs" role="tablist" aria-label="Sections du tableau de bord">
       <button id="routes-tab-button" class="dashboard-tab active" type="button" role="tab" aria-selected="true" aria-controls="routes-tab" data-tab="routes-tab">Routes 500xx</button>
       <button id="conveyor-tab-button" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="conveyor-tab" data-tab="conveyor-tab">Données convoyeur</button>
+      <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
     </nav>
 
     <div id="routes-tab" class="tab-panel" role="tabpanel" aria-labelledby="routes-tab-button">
@@ -100,12 +98,32 @@
     <section id="conveyor-tab" class="tab-panel conveyor-tab-panel" role="tabpanel" aria-labelledby="conveyor-tab-button" hidden>
       <div class="section-heading conveyor-heading">
         <div><p class="section-kicker">Quart de 16:00 à 03:59</p><h2>Données convoyeur</h2></div>
+        <div class="conveyor-date-context">
+          <span>Date analysée</span>
+          <div class="conveyor-date-navigation">
+            <button id="previous-conveyor-date" type="button" aria-label="Jour précédent">‹</button>
+            <input id="conveyor-analysis-date" type="date" aria-label="Date analysée">
+            <button id="next-conveyor-date" type="button" aria-label="Jour suivant">›</button>
+          </div>
+        </div>
       </div>
       <div class="conveyor-pill-grid" aria-live="polite">
-        <article class="conveyor-pill conveyor-pill-high"><span>Convoyeur du haut</span><strong id="conveyor-high-total">—</strong><small>Début <b id="conveyor-high-start">—</b></small></article>
-        <article class="conveyor-pill conveyor-pill-floor"><span>Convoyeur du bas</span><strong id="conveyor-floor-total">—</strong><small>Début <b id="conveyor-floor-start">—</b></small></article>
-        <article class="conveyor-pill conveyor-pill-manual"><span>Scan manuel</span><strong id="conveyor-manual-total">—</strong><small>Début <b id="conveyor-manual-start">—</b></small></article>
+        <article class="conveyor-pill conveyor-pill-high"><span>Convoyeur du haut</span><div class="conveyor-pill-content"><div class="conveyor-pill-volume"><strong id="conveyor-high-total">—</strong><small id="conveyor-high-average-stat" class="historical-conveyor-stat" hidden><b id="conveyor-high-average">—</b></small></div><div class="conveyor-pill-times"><small>Début <b id="conveyor-high-start">—</b></small><small id="conveyor-high-end-stat" class="historical-conveyor-stat" hidden>Fin <b id="conveyor-high-end">—</b></small><small id="conveyor-high-duration-stat" class="historical-conveyor-stat" hidden>Durée <b id="conveyor-high-duration">—</b></small></div></div></article>
+        <article class="conveyor-pill conveyor-pill-floor"><span>Convoyeur du bas</span><div class="conveyor-pill-content"><div class="conveyor-pill-volume"><strong id="conveyor-floor-total">—</strong><small id="conveyor-floor-average-stat" class="historical-conveyor-stat" hidden><b id="conveyor-floor-average">—</b></small></div><div class="conveyor-pill-times"><small>Début <b id="conveyor-floor-start">—</b></small><small id="conveyor-floor-end-stat" class="historical-conveyor-stat" hidden>Fin <b id="conveyor-floor-end">—</b></small><small id="conveyor-floor-duration-stat" class="historical-conveyor-stat" hidden>Durée <b id="conveyor-floor-duration">—</b></small></div></div></article>
+        <article class="conveyor-pill conveyor-pill-manual"><span>Scan manuel</span><div class="conveyor-pill-content"><div class="conveyor-pill-volume"><strong id="conveyor-manual-total">—</strong><small id="conveyor-manual-average-stat" class="historical-conveyor-stat" hidden><b id="conveyor-manual-average">—</b></small></div><div class="conveyor-pill-times"><small>Début <b id="conveyor-manual-start">—</b></small><small id="conveyor-manual-end-stat" class="historical-conveyor-stat" hidden>Fin <b id="conveyor-manual-end">—</b></small><small id="conveyor-manual-duration-stat" class="historical-conveyor-stat" hidden>Durée <b id="conveyor-manual-duration">—</b></small></div></div></article>
       </div>
+      <section class="conveyor-quality-section" aria-labelledby="conveyor-quality-title">
+        <div class="section-heading conveyor-quality-heading">
+          <div><p class="section-kicker">Qualité du tri automatique</p><h2 id="conveyor-quality-title">Incidents du quart</h2></div>
+          <p id="conveyor-quality-context">Pourcentage des passages sur les convoyeurs haut et bas.</p>
+        </div>
+        <div class="conveyor-quality-grid" aria-live="polite">
+          <article class="conveyor-quality-card quality-chute98"><span>Chute 98</span><strong id="quality-chute98-rate">— %</strong><small id="quality-chute98-total">— passages</small></article>
+          <article class="conveyor-quality-card quality-noread"><span>Non-lus caméra</span><strong id="quality-noread-rate">— %</strong><small id="quality-noread-total">— passages</small></article>
+          <article class="conveyor-quality-card quality-recirculated"><span>Recirculation</span><strong id="quality-recirculated-rate">— %</strong><small id="quality-recirculated-total">— passages</small><div class="quality-top-chutes"><span>Top 5 chutes</span><ol id="quality-recirculated-top"><li>—</li></ol></div></article>
+          <article class="conveyor-quality-card quality-capacity-potential"><span>Potentiel à capacité</span><strong id="quality-capacity-potential">—</strong><small id="quality-capacity-potential-context">Référence théorique</small></article>
+        </div>
+      </section>
       <section class="capacity-section" aria-labelledby="capacity-title">
         <div class="section-heading capacity-heading">
           <div><p class="section-kicker">Rendement du convoyeur du haut</p><h2 id="capacity-title">Capacité pratique et creux de production</h2></div>
@@ -170,6 +188,6 @@
     <p id="dialog-source" class="dialog-source">Horaire officiel du jour sur le serveur 101, vérifié avec les colis observés en haut, au sol et aux postes manuels depuis 16:00.</p>
   </dialog>
 
-  <script src="/live-routes.js?v=20260903-13" defer></script>
+  <script src="/live-routes.js?v=20260904-10" defer></script>
 </body>
 </html>

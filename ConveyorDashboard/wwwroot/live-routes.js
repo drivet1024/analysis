@@ -6,6 +6,40 @@ const blockTime = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2
 const shortDateTime = new Intl.DateTimeFormat('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 let countdown = REFRESH_SECONDS;
 let loading = false;
+let conveyorRequestVersion = 0;
+
+function isoLocalDate(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function currentOperationalDate() {
+  const date = new Date();
+  if (date.getHours() < 4) date.setDate(date.getDate() - 1);
+  return isoLocalDate(date);
+}
+
+let selectedConveyorDate = currentOperationalDate();
+
+function syncConveyorDateControls() {
+  const maximumDate = currentOperationalDate();
+  $('conveyor-analysis-date').value = selectedConveyorDate;
+  $('conveyor-analysis-date').max = maximumDate;
+  $('next-conveyor-date').disabled = selectedConveyorDate >= maximumDate;
+}
+
+function applyConveyorDate(value) {
+  if (!value) return;
+  selectedConveyorDate = value > currentOperationalDate() ? currentOperationalDate() : value;
+  syncConveyorDateControls();
+  loadConveyorData();
+}
+
+function moveConveyorDate(days) {
+  const date = new Date(`${selectedConveyorDate}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  applyConveyorDate(isoLocalDate(date));
+}
 
 function formatTime(value) {
   if (!value) return '—';
@@ -15,6 +49,14 @@ function formatTime(value) {
 function formatShortDateTime(value) {
   if (!value) return '—';
   return shortDateTime.format(new Date(value));
+}
+
+function formatDuration(firstScan, lastScan) {
+  if (!firstScan || !lastScan) return '—';
+  const totalMinutes = Math.max(0, Math.floor((new Date(lastScan) - new Date(firstScan)) / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours} h ${String(minutes).padStart(2, '0')} min`;
 }
 
 function statusLabel(status) {
@@ -207,12 +249,27 @@ function renderUnprocessed(data) {
 
 function renderHourly(data) {
   const rows = data.rows || [];
-  $('conveyor-high-total').textContent = number.format(data.totalHighParcels);
-  $('conveyor-floor-total').textContent = number.format(data.totalFloorParcels);
-  $('conveyor-manual-total').textContent = number.format(data.totalManualParcels);
-  $('conveyor-high-start').textContent = formatTime(data.firstHighScan);
-  $('conveyor-floor-start').textContent = formatTime(data.firstFloorScan);
-  $('conveyor-manual-start').textContent = formatTime(data.firstManualScan);
+  const historical = data.date < currentOperationalDate();
+  const sources = [
+    ['high', data.totalHighParcels, data.firstHighScan, data.lastHighScan],
+    ['floor', data.totalFloorParcels, data.firstFloorScan, data.lastFloorScan],
+    ['manual', data.totalManualParcels, data.firstManualScan, data.lastManualScan]
+  ];
+  sources.forEach(([source, total, firstScan, lastScan]) => {
+    $(`conveyor-${source}-total`).textContent = number.format(total);
+    $(`conveyor-${source}-start`).textContent = firstScan ? blockTime.format(new Date(firstScan)) : '—';
+    $(`conveyor-${source}-end`).textContent = lastScan ? blockTime.format(new Date(lastScan)) : '—';
+    $(`conveyor-${source}-duration`).textContent = formatDuration(firstScan, lastScan);
+    const elapsedMinutes = firstScan && lastScan
+      ? Math.max(1, (new Date(lastScan) - new Date(firstScan)) / 60000)
+      : 0;
+    $(`conveyor-${source}-average`).textContent = elapsedMinutes
+      ? `${number.format(Math.round(Number(total) * 60 / elapsedMinutes))} colis/h`
+      : '—';
+    $(`conveyor-${source}-average-stat`).hidden = !historical;
+    $(`conveyor-${source}-end-stat`).hidden = !historical;
+    $(`conveyor-${source}-duration-stat`).hidden = !historical;
+  });
   const commonMax = Math.max(1, ...rows.map((row) => Number(row.parcels) || 0));
   const charts = [
     ['high', 'hourly-high-chart'],
@@ -237,6 +294,63 @@ function renderHourly(data) {
   });
 }
 
+function renderHourlyError() {
+  ['conveyor-high-total', 'conveyor-floor-total', 'conveyor-manual-total',
+    'conveyor-high-start', 'conveyor-floor-start', 'conveyor-manual-start',
+    'conveyor-high-average', 'conveyor-floor-average', 'conveyor-manual-average',
+    'conveyor-high-end', 'conveyor-floor-end', 'conveyor-manual-end',
+    'conveyor-high-duration', 'conveyor-floor-duration', 'conveyor-manual-duration']
+    .forEach((id) => { $(id).textContent = '—'; });
+  ['high', 'floor', 'manual'].forEach((source) => {
+    const hidden = selectedConveyorDate >= currentOperationalDate();
+    $(`conveyor-${source}-average-stat`).hidden = hidden;
+    $(`conveyor-${source}-end-stat`).hidden = hidden;
+    $(`conveyor-${source}-duration-stat`).hidden = hidden;
+  });
+  ['hourly-high-chart', 'hourly-floor-chart', 'hourly-manual-chart'].forEach((id) => {
+    $(id).innerHTML = '<span class="empty-chart">Données indisponibles pour cette date.</span>';
+  });
+}
+
+function renderConveyorQuality(data) {
+  const metrics = [
+    ['chute98', data.chute98, data.chute98Percent],
+    ['noread', data.noRead, data.noReadPercent],
+    ['recirculated', data.sameChuteRecirculated, data.sameChuteRecirculatedPercent]
+  ];
+  metrics.forEach(([metric, total, rate]) => {
+    $(`quality-${metric}-rate`).textContent = `${Number(rate || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %`;
+    $(`quality-${metric}-total`).textContent = `${number.format(total)} passages`;
+  });
+  const topChutes = $('quality-recirculated-top');
+  topChutes.replaceChildren();
+  if (!(data.topRecirculationChutes || []).length) {
+    const empty = document.createElement('li');
+    empty.textContent = 'Aucune';
+    topChutes.append(empty);
+  } else {
+    data.topRecirculationChutes.forEach((item) => {
+      const row = document.createElement('li');
+      const chute = document.createElement('span');
+      const parcels = document.createElement('b');
+      chute.textContent = `Chute ${number.format(item.chute)}`;
+      parcels.textContent = number.format(item.parcels);
+      row.append(chute, parcels);
+      topChutes.append(row);
+    });
+  }
+  $('conveyor-quality-context').textContent = `${number.format(data.totalConveyed)} passages · lignes automatiques haut et bas`;
+}
+
+function renderConveyorQualityError() {
+  ['chute98', 'noread', 'recirculated'].forEach((metric) => {
+    $(`quality-${metric}-rate`).textContent = '— %';
+    $(`quality-${metric}-total`).textContent = 'Données indisponibles';
+  });
+  $('quality-recirculated-top').innerHTML = '<li>—</li>';
+  $('conveyor-quality-context').textContent = 'Les indicateurs de qualité n’ont pas pu être chargés.';
+}
+
 function renderCapacity(data) {
   const benchmarkHourly = Number(data.practicalCapacityPerHour) || 0;
   const maximumHourly = Number(data.maximumObservedPerHour) || 0;
@@ -251,6 +365,16 @@ function renderCapacity(data) {
   const currentBucket = observedBuckets.at(-1);
   const currentHourly = Number(data.currentRatePerHour) || 0;
   const averageHourly = Number(data.averagePerHourSinceStart) || 0;
+  const potentialMinutes = Number(data.potentialMinutes) || 0;
+  const excludedZeroMinutes = Number(data.excludedZeroMinutes) || 0;
+  const potentialParcels = Number(data.potentialParcelsAtPracticalCapacity) || 0;
+
+  $('quality-capacity-potential').textContent = beforeShift || !potentialParcels
+    ? '—'
+    : `${number.format(potentialParcels)} colis`;
+  $('quality-capacity-potential-context').textContent = beforeShift
+    ? 'Le quart commence à 16 h'
+    : `sur ${number.format(Math.floor(potentialMinutes / 60))} h ${String(potentialMinutes % 60).padStart(2, '0')} min · ${number.format(excludedZeroMinutes)} min à zéro exclues · ${number.format(benchmarkHourly)}/h`;
 
   $('capacity-benchmark').textContent = benchmarkHourly ? `${number.format(benchmarkHourly)}/h` : '—';
   $('capacity-maximum').textContent = maximumHourly ? `${number.format(maximumHourly)}/h` : '—';
@@ -316,7 +440,7 @@ function renderCapacity(data) {
   $('capacity-gap-minutes').textContent = beforeShift ? '—' : `${number.format(gapMinutes)} min`;
   $('capacity-gap-context').textContent = beforeShift
     ? 'L’analyse commencera avec le premier colis'
-    : `${number.format((data.gaps || []).length)} période(s) sous ${number.format(Math.ceil(benchmarkHourly * .4))} colis/heure`;
+    : `${number.format((data.gaps || []).length)} période(s) sous ${number.format(Math.ceil(benchmarkHourly * .4))} colis/heure · ouverture et fermeture exclues`;
   const body = $('capacity-gap-body');
   body.replaceChildren();
   if (beforeShift) {
@@ -341,6 +465,35 @@ function renderCapacity(data) {
 function renderCapacityError() {
   $('capacity-summary').textContent = 'Analyse de capacité temporairement indisponible';
   $('capacity-gap-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Impossible de charger le benchmark et les creux.</td></tr>';
+  $('quality-capacity-potential').textContent = '—';
+  $('quality-capacity-potential-context').textContent = 'Données indisponibles';
+}
+
+async function loadConveyorData(timestamp = Date.now()) {
+  const requestVersion = ++conveyorRequestVersion;
+  const requestedDate = selectedConveyorDate;
+  const query = `date=${encodeURIComponent(requestedDate)}&t=${timestamp}`;
+  const [hourlyResult, qualityResult, capacityResult] = await Promise.allSettled([
+    fetch(`/api/conveyor-hourly?${query}`, { cache: 'no-store' }).then((response) => {
+      if (!response.ok) throw new Error(`Hourly response ${response.status}`);
+      return response.json();
+    }),
+    fetch(`/api/conveyor-quality?${query}`, { cache: 'no-store' }).then((response) => {
+      if (!response.ok) throw new Error(`Quality response ${response.status}`);
+      return response.json();
+    }),
+    fetch(`/api/high-conveyor-capacity?${query}`, { cache: 'no-store' }).then((response) => {
+      if (!response.ok) throw new Error(`Capacity response ${response.status}`);
+      return response.json();
+    })
+  ]);
+  if (requestVersion !== conveyorRequestVersion) return;
+  if (hourlyResult.status === 'fulfilled') renderHourly(hourlyResult.value);
+  else renderHourlyError();
+  if (qualityResult.status === 'fulfilled') renderConveyorQuality(qualityResult.value);
+  else renderConveyorQualityError();
+  if (capacityResult.status === 'fulfilled') renderCapacity(capacityResult.value);
+  else renderCapacityError();
 }
 
 async function load() {
@@ -350,27 +503,19 @@ async function load() {
   $('error-banner').hidden = true;
   try {
     const timestamp = Date.now();
-    const capacityPromise = fetch(`/api/high-conveyor-capacity?t=${timestamp}`, { cache: 'no-store' }).catch(() => null);
-    const [routesResponse, unprocessedResponse, hourlyResponse] = await Promise.all([
+    const conveyorPromise = loadConveyorData(timestamp);
+    const [routesResponse, unprocessedResponse] = await Promise.all([
       fetch(`/api/live-routes?t=${timestamp}`, { cache: 'no-store' }),
-      fetch(`/api/unprocessed-parcels?t=${timestamp}`, { cache: 'no-store' }),
-      fetch(`/api/conveyor-hourly?t=${timestamp}`, { cache: 'no-store' })
+      fetch(`/api/unprocessed-parcels?t=${timestamp}`, { cache: 'no-store' })
     ]);
-    if (!routesResponse.ok || !unprocessedResponse.ok || !hourlyResponse.ok) throw new Error(`Réponse ${routesResponse.status}/${unprocessedResponse.status}/${hourlyResponse.status}`);
-    const [data, unprocessed, hourly] = await Promise.all([routesResponse.json(), unprocessedResponse.json(), hourlyResponse.json()]);
+    if (!routesResponse.ok || !unprocessedResponse.ok) throw new Error(`Réponse ${routesResponse.status}/${unprocessedResponse.status}`);
+    const [data, unprocessed] = await Promise.all([routesResponse.json(), unprocessedResponse.json()]);
     render(data);
     renderUnprocessed(unprocessed);
-    renderHourly(hourly);
     setConnection('ok', 'Données en direct');
     $('last-refresh').textContent = `Actualisé à ${formatTime(data.databaseNow)}`;
     countdown = REFRESH_SECONDS;
-    try {
-      const capacityResponse = await capacityPromise;
-      if (!capacityResponse?.ok) throw new Error(`Capacity response ${capacityResponse?.status || 'unavailable'}`);
-      renderCapacity(await capacityResponse.json());
-    } catch (capacityError) {
-      renderCapacityError();
-    }
+    await conveyorPromise;
   } catch (error) {
     setConnection('error', 'Connexion interrompue');
     $('error-banner').textContent = `Impossible d’actualiser les données. Nouvelle tentative automatique dans ${countdown} secondes.`;
@@ -384,6 +529,9 @@ async function load() {
 $('refresh-button').addEventListener('click', () => { countdown = REFRESH_SECONDS; load(); });
 $('routes-tab-button').addEventListener('click', () => activateTab('routes-tab'));
 $('conveyor-tab-button').addEventListener('click', () => activateTab('conveyor-tab'));
+$('previous-conveyor-date').addEventListener('click', () => moveConveyorDate(-1));
+$('next-conveyor-date').addEventListener('click', () => moveConveyorDate(1));
+$('conveyor-analysis-date').addEventListener('change', (event) => applyConveyorDate(event.target.value));
 $('dialog-close').addEventListener('click', () => $('client-dialog').close());
 $('client-dialog').addEventListener('click', (event) => {
   if (event.target === $('client-dialog')) $('client-dialog').close();
@@ -397,6 +545,7 @@ setInterval(() => {
   $('countdown').textContent = countdown;
 }, 1000);
 
+syncConveyorDateControls();
 load();
 
 function activateTab(tabId) {

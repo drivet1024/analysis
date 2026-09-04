@@ -98,15 +98,24 @@ app.MapGet("/api/unprocessed-parcels", async (ConveyorDataService data) =>
     catch (Exception ex) { return Results.Problem($"La liste des colis non traités n'a pas pu être calculée : {ex.Message}"); }
 });
 
-app.MapGet("/api/conveyor-hourly", async (ConveyorDataService data) =>
+app.MapGet("/api/conveyor-hourly", async (string? date, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetConveyorHourlyAsync()); }
+    try { return Results.Ok(await data.GetConveyorHourlyAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Les volumes horaires du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
 });
 
-app.MapGet("/api/high-conveyor-capacity", async (ConveyorDataService data) =>
+app.MapGet("/api/conveyor-quality", async (string? date, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetHighConveyorCapacityAsync()); }
+    try { return Results.Ok(await data.GetConveyorQualityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Les indicateurs de qualité du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
+});
+
+app.MapGet("/api/high-conveyor-capacity", async (string? date, ConveyorDataService data) =>
+{
+    try { return Results.Ok(await data.GetHighConveyorCapacityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"L'analyse de capacité du convoyeur du haut n'a pas pu être calculée : {ex.Message}"); }
 });
 
@@ -261,6 +270,9 @@ static DateOnly ResolveAnalysisDate(string? value, DateOnly fallback)
     if (DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result)) return result;
     throw new ArgumentException("La date doit être au format AAAA-MM-JJ.");
 }
+
+static DateOnly CurrentOperationalDate(DateTime now) =>
+    DateOnly.FromDateTime(now.Hour < 4 ? now.AddDays(-1) : now);
 
 static TimeWindowBounds ResolveTimeWindow(string? dateValue, string? startValue, string? endValue, DateTime now)
 {
@@ -497,9 +509,27 @@ sealed record ConveyorHourlyResponse(
     DateTime? FirstHighScan,
     DateTime? FirstFloorScan,
     DateTime? FirstManualScan,
+    DateTime? LastHighScan,
+    DateTime? LastFloorScan,
+    DateTime? LastManualScan,
     IReadOnlyList<ConveyorHourlyRow> Rows,
     IReadOnlyList<string> Notes,
     DateTimeOffset GeneratedAt);
+sealed record RecirculationChute(int Chute, long Parcels);
+sealed record ConveyorQualityResponse(
+    DateOnly Date,
+    long TotalConveyed,
+    long Chute98,
+    long NoRead,
+    long SameChuteRecirculated,
+    IReadOnlyList<RecirculationChute> TopRecirculationChutes,
+    DateTimeOffset GeneratedAt)
+{
+    private double Rate(long value) => TotalConveyed == 0 ? 0 : 100d * value / TotalConveyed;
+    public double Chute98Percent => Rate(Chute98);
+    public double NoReadPercent => Rate(NoRead);
+    public double SameChuteRecirculatedPercent => Rate(SameChuteRecirculated);
+}
 sealed record HighCapacityDailyPeak(
     DateOnly ShiftDate,
     long PeakPerHour,
@@ -533,6 +563,10 @@ sealed record HighConveyorCapacityResponse(
     decimal CurrentRatePerHour,
     decimal AveragePerHourSinceStart,
     decimal UtilizationSinceStartPercent,
+    int ActiveMinutes,
+    int ExcludedZeroMinutes,
+    int PotentialMinutes,
+    long PotentialParcelsAtPracticalCapacity,
     int MinutesAtOrAboveCapacity,
     int GapMinutes,
     IReadOnlyList<HighCapacityDailyPeak> DailyPeaks,
@@ -1647,15 +1681,12 @@ sealed class ConveyorDataService(DashboardConfig config)
         return new ParcelHistoryResponse(parcelId, databaseNow, destinationAddress, destinationCity, events, DateTimeOffset.Now);
     }
 
-    public async Task<ConveyorHourlyResponse> GetConveyorHourlyAsync()
+    public async Task<ConveyorHourlyResponse> GetConveyorHourlyAsync(DateOnly date)
     {
         const string sql = """
             WITH RECURSIVE
             shift_anchor AS (
-                SELECT CASE
-                    WHEN CURTIME()<'04:00:00' THEN CURDATE()-INTERVAL 1 DAY+INTERVAL 16 HOUR
-                    ELSE CURDATE()+INTERVAL 16 HOUR
-                END shift_start
+                SELECT @shiftStart shift_start
             ),
             shift_bounds AS (
                 SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end
@@ -1703,13 +1734,13 @@ sealed class ConveyorDataService(DashboardConfig config)
                 GROUP BY source_key,HOUR(first_scan)
             ),
             source_summary AS (
-                SELECT source_key,COUNT(*) total_parcels,MIN(first_scan) first_scan
+                SELECT source_key,COUNT(*) total_parcels,MIN(first_scan) first_scan,MAX(first_scan) last_scan
                 FROM first_by_source
                 GROUP BY source_key
             )
             SELECT NOW() database_now,DATE(sb.shift_start) shift_date,sb.shift_start,sb.shift_end,
                    s.source_key,h.slot_index,h.hour_value,COALESCE(hc.parcels,0) parcels,
-                   COALESCE(ss.total_parcels,0) total_parcels,ss.first_scan
+                   COALESCE(ss.total_parcels,0) total_parcels,ss.first_scan,ss.last_scan
             FROM sources s
             CROSS JOIN shift_bounds sb
             CROSS JOIN hour_slots h
@@ -1720,6 +1751,7 @@ sealed class ConveyorDataService(DashboardConfig config)
 
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        command.Parameters.AddWithValue("@shiftStart", date.ToDateTime(new TimeOnly(16, 0)));
         await using var reader = await command.ExecuteReaderAsync();
         var rows = new List<ConveyorHourlyRow>();
         var databaseNow = DateTime.Now;
@@ -1727,6 +1759,7 @@ sealed class ConveyorDataService(DashboardConfig config)
         var shiftEnd = shiftStart.AddHours(12);
         long totalHigh = 0, totalFloor = 0, totalManual = 0;
         DateTime? firstHigh = null, firstFloor = null, firstManual = null;
+        DateTime? lastHigh = null, lastFloor = null, lastManual = null;
         while (await reader.ReadAsync())
         {
             databaseNow = reader.GetDateTime("database_now");
@@ -1735,9 +1768,10 @@ sealed class ConveyorDataService(DashboardConfig config)
             var source = reader.GetString("source_key");
             var sourceTotal = Int64OrZero(reader, "total_parcels");
             DateTime? firstScan = IsNull(reader, "first_scan") ? null : reader.GetDateTime("first_scan");
-            if (source == "high") { totalHigh = sourceTotal; firstHigh = firstScan; }
-            else if (source == "floor") { totalFloor = sourceTotal; firstFloor = firstScan; }
-            else { totalManual = sourceTotal; firstManual = firstScan; }
+            DateTime? lastScan = IsNull(reader, "last_scan") ? null : reader.GetDateTime("last_scan");
+            if (source == "high") { totalHigh = sourceTotal; firstHigh = firstScan; lastHigh = lastScan; }
+            else if (source == "floor") { totalFloor = sourceTotal; firstFloor = firstScan; lastFloor = lastScan; }
+            else { totalManual = sourceTotal; firstManual = firstScan; lastManual = lastScan; }
             rows.Add(new ConveyorHourlyRow(
                 source,
                 reader.GetInt32("hour_value"),
@@ -1755,6 +1789,9 @@ sealed class ConveyorDataService(DashboardConfig config)
             firstHigh,
             firstFloor,
             firstManual,
+            lastHigh,
+            lastFloor,
+            lastManual,
             rows,
             [
                 "Chaque colis unique est compté dans l'heure de son premier passage sur la source concernée.",
@@ -1763,16 +1800,82 @@ sealed class ConveyorDataService(DashboardConfig config)
             DateTimeOffset.Now);
     }
 
-    public async Task<HighConveyorCapacityResponse> GetHighConveyorCapacityAsync()
+    public async Task<ConveyorQualityResponse> GetConveyorQualityAsync(DateOnly date)
+    {
+        const string sql = """
+            WITH scope AS (
+                SELECT parcel_id,line_id,chute,camera_data
+                FROM parcel_scan_history
+                WHERE depot_id=1
+                  AND line_id IN (0,1,3)
+                  AND date_insert>=@shiftStart
+                  AND date_insert<@shiftEnd
+            ),
+            same_chute_repeat AS (
+                SELECT parcel_id,line_id,chute
+                FROM scope
+                WHERE parcel_id IS NOT NULL
+                  AND parcel_id<>0
+                  AND chute IS NOT NULL
+                  AND chute<>98
+                GROUP BY parcel_id,line_id,chute
+                HAVING COUNT(*)>=2
+            ),
+            quality_summary AS (
+                SELECT COUNT(*) total_conveyed,
+                       COALESCE(SUM(chute=98),0) chute_98,
+                       COALESCE(SUM((parcel_id IS NULL OR parcel_id=0) AND camera_data LIKE '?%'),0) no_read
+                FROM scope
+            ),
+            top_chutes AS (
+                SELECT chute,COUNT(*) recirculated_parcels
+                FROM same_chute_repeat
+                GROUP BY chute
+                ORDER BY recirculated_parcels DESC,chute
+                LIMIT 5
+            )
+            SELECT qs.total_conveyed,qs.chute_98,qs.no_read,
+                   (SELECT COUNT(DISTINCT parcel_id) FROM same_chute_repeat) same_chute_recirculated,
+                   tc.chute,tc.recirculated_parcels
+            FROM quality_summary qs
+            LEFT JOIN top_chutes tc ON 1=1
+            ORDER BY tc.recirculated_parcels DESC,tc.chute
+            """;
+
+        var shiftStart = date.ToDateTime(new TimeOnly(16, 0));
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        command.Parameters.AddWithValue("@shiftStart", shiftStart);
+        command.Parameters.AddWithValue("@shiftEnd", shiftStart.AddHours(12));
+        await using var reader = await command.ExecuteReaderAsync();
+        long totalConveyed = 0, chute98 = 0, noRead = 0, sameChuteRecirculated = 0;
+        var topChutes = new List<RecirculationChute>(5);
+        while (await reader.ReadAsync())
+        {
+            totalConveyed = Int64OrZero(reader, "total_conveyed");
+            chute98 = Int64OrZero(reader, "chute_98");
+            noRead = Int64OrZero(reader, "no_read");
+            sameChuteRecirculated = Int64OrZero(reader, "same_chute_recirculated");
+            if (!IsNull(reader, "chute"))
+                topChutes.Add(new RecirculationChute(reader.GetInt32("chute"), Int64OrZero(reader, "recirculated_parcels")));
+        }
+        return new ConveyorQualityResponse(
+            date,
+            totalConveyed,
+            chute98,
+            noRead,
+            sameChuteRecirculated,
+            topChutes,
+            DateTimeOffset.Now);
+    }
+
+    public async Task<HighConveyorCapacityResponse> GetHighConveyorCapacityAsync(DateOnly date)
     {
         var benchmark = await GetHighCapacityBenchmarkAsync();
         const string sql = """
             WITH
             shift_anchor AS (
-                SELECT CASE
-                    WHEN CURTIME()<'04:00:00' THEN CURDATE()-INTERVAL 1 DAY+INTERVAL 16 HOUR
-                    ELSE CURDATE()+INTERVAL 16 HOUR
-                END shift_start
+                SELECT @shiftStart shift_start
             ),
             shift_bounds AS (
                 SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end FROM shift_anchor
@@ -1857,6 +1960,7 @@ sealed class ConveyorDataService(DashboardConfig config)
 
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
+        command.Parameters.AddWithValue("@shiftStart", date.ToDateTime(new TimeOnly(16, 0)));
         await using var reader = await command.ExecuteReaderAsync();
         var uniqueMinuteCounts = new Dictionary<DateTime, long>();
         var totalMinuteCounts = new Dictionary<DateTime, long>();
@@ -1900,6 +2004,24 @@ sealed class ConveyorDataService(DashboardConfig config)
 
         var firstScan = uniqueMinuteCounts.Count == 0 ? (DateTime?)null : uniqueMinuteCounts.Keys.Min();
         var totalUniqueParcels = uniqueMinuteCounts.Where(x => x.Key < analysisEnd).Sum(x => x.Value);
+        var activeEnd = uniqueMinuteCounts.Count == 0
+            ? (DateTime?)null
+            : uniqueMinuteCounts.Keys.Where(x => x < analysisEnd).DefaultIfEmpty().Max().AddMinutes(1);
+        if (activeEnd > analysisEnd) activeEnd = analysisEnd;
+        var activeMinutes = firstScan is null || activeEnd is null
+            ? 0
+            : Math.Max(1, (int)Math.Ceiling((activeEnd.Value - firstScan.Value).TotalMinutes));
+        var excludedZeroMinutes = firstScan is null || activeEnd is null
+            ? 0
+            : 15 * buckets.Count(x =>
+                !x.IsFuture
+                && x.BucketStart >= firstScan.Value
+                && x.BucketStart.AddMinutes(15) <= activeEnd.Value
+                && x.TotalParcels == 0);
+        var potentialMinutes = Math.Max(0, activeMinutes - excludedZeroMinutes);
+        var potentialParcels = benchmark.PracticalCapacityPerHour == 0
+            ? 0
+            : (long)Math.Round(benchmark.PracticalCapacityPerHour * potentialMinutes / 60m, 0, MidpointRounding.AwayFromZero);
         var elapsedMinutes = firstScan is null ? 0 : Math.Max(1, (int)Math.Ceiling((analysisEnd - firstScan.Value).TotalMinutes));
         var average = elapsedMinutes == 0 ? 0 : Math.Round(60m * totalUniqueParcels / elapsedMinutes, 0);
         var averageUtilization = benchmark.PracticalCapacityPerHour == 0 ? 0 : Math.Round(100m * average / benchmark.PracticalCapacityPerHour, 1);
@@ -1912,6 +2034,7 @@ sealed class ConveyorDataService(DashboardConfig config)
             DateOnly.FromDateTime(shiftStart), databaseNow, shiftStart, shiftEnd,
             benchmark.DailyPeaks.Count, benchmark.PracticalCapacityPerHour, benchmark.MaximumObservedPerHour,
             currentRate, average, averageUtilization,
+            activeMinutes, excludedZeroMinutes, potentialMinutes, potentialParcels,
             minutesAtCapacity, gaps.Sum(x => x.DurationMinutes), benchmark.DailyPeaks, buckets, gaps,
             [
                 "CapacitÃ© pratique : 75e percentile du meilleur volume observÃ© dans une fenÃªtre continue de 60 minutes pour chaque quart complÃ©tÃ© des 14 derniers jours.",
@@ -2037,7 +2160,13 @@ sealed class ConveyorDataService(DashboardConfig config)
             gapParcels = window.Parcels;
         }
         gaps.Add(CreateGap(gapStart, gapEnd, gapParcels, practicalCapacityPerHour));
-        return gaps.OrderByDescending(x => x.DurationMinutes).ThenBy(x => x.Start).ToArray();
+
+        // The chronological edges normally represent startup and shutdown,
+        // rather than interruptions during active production.
+        var productionGaps = gaps.Count <= 2
+            ? Enumerable.Empty<HighCapacityGap>()
+            : gaps.Skip(1).Take(gaps.Count - 2);
+        return productionGaps.OrderByDescending(x => x.DurationMinutes).ThenBy(x => x.Start).ToArray();
     }
 
     private static HighCapacityGap CreateGap(DateTime start, DateTime end, long parcels, long practicalCapacityPerHour)
