@@ -2,6 +2,7 @@ const REFRESH_SECONDS = 30;
 const $ = (id) => document.getElementById(id);
 const number = new Intl.NumberFormat('fr-CA');
 const time = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const blockTime = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit' });
 const shortDateTime = new Intl.DateTimeFormat('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 let countdown = REFRESH_SECONDS;
 let loading = false;
@@ -266,22 +267,48 @@ function renderCapacity(data) {
     ? `${number.format(data.benchmarkShifts)} quarts · ${dates[0]} au ${dates[dates.length - 1]}`
     : 'Aucun quart historique disponible';
 
-  const maxRate = Math.max(1, benchmarkHourly * 1.2, ...buckets.map((bucket) => Number(bucket.parcelsPerHour) || 0));
+  const measuredMinutes = (bucket) => {
+    if (bucket.isFuture) return 0;
+    const elapsed = Math.ceil((databaseNow - new Date(bucket.bucketStart)) / 60000);
+    return Math.max(1, Math.min(15, elapsed));
+  };
+  const maxRate = Math.max(1, benchmarkHourly * 1.2, ...buckets.map((bucket) => {
+    const total = Number(bucket.totalParcels ?? bucket.parcels) || 0;
+    const totalRate = measuredMinutes(bucket) ? 60 * total / measuredMinutes(bucket) : 0;
+    return Math.max(totalRate, Number(bucket.parcelsPerHour) || 0);
+  }));
   const chart = $('capacity-chart');
   chart.style.setProperty('--benchmark-position', `${Math.min(100, 100 * benchmarkHourly / maxRate)}%`);
   chart.replaceChildren();
   buckets.forEach((bucket, index) => {
+    const uniqueParcels = Number(bucket.uniqueParcels ?? bucket.parcels) || 0;
+    const totalParcels = Number(bucket.totalParcels ?? bucket.parcels) || 0;
+    const recirculated = Number(bucket.recirculated ?? Math.max(0, totalParcels - uniqueParcels)) || 0;
+    const chute98 = Number(bucket.chute98) || 0;
     const hourlyRate = Number(bucket.parcelsPerHour) || 0;
+    const totalHourlyRate = measuredMinutes(bucket) ? Math.round(60 * totalParcels / measuredMinutes(bucket)) : 0;
     const utilization = Number(bucket.utilizationPercent) || 0;
     const bucketDate = new Date(bucket.bucketStart);
     const endDate = new Date(bucketDate.getTime() + 15 * 60 * 1000);
     const column = document.createElement('div');
     column.className = `capacity-bar ${bucket.status}`;
-    const height = bucket.isFuture ? 0 : Math.min(100, 100 * hourlyRate / maxRate);
-    column.title = bucket.isFuture
+    const uniqueHeight = bucket.isFuture ? 0 : Math.min(100, 100 * hourlyRate / maxRate);
+    const totalHeight = bucket.isFuture ? 0 : Math.min(100, 100 * totalHourlyRate / maxRate);
+    const accessibleSummary = bucket.isFuture
       ? `${bucketDate.getHours()} h ${String(bucketDate.getMinutes()).padStart(2, '0')} · à venir`
-      : `${number.format(bucket.parcels)} colis · ${number.format(hourlyRate)} colis/heure · ${utilization.toLocaleString('fr-CA')} % · ${formatTime(bucket.bucketStart)} à ${formatTime(endDate)}`;
-    column.innerHTML = `<i style="height:${height}%"></i>${index % 4 === 0 ? `<small>${bucketDate.getHours()} h</small>` : ''}`;
+      : `${number.format(recirculated)} recirculation(s) · ${number.format(chute98)} colis chute 98 · ${utilization.toLocaleString('fr-CA')} % de capacité · ${formatTime(bucket.bucketStart)} à ${formatTime(endDate)}`;
+    column.setAttribute('aria-label', accessibleSummary);
+    if (!bucket.isFuture) column.tabIndex = 0;
+    const tooltip = bucket.isFuture ? '' : `
+      <div class="capacity-tooltip" role="tooltip">
+        <strong>${blockTime.format(bucketDate)} – ${blockTime.format(endDate)}</strong>
+        <div class="capacity-tooltip-values">
+          <span class="recirculated"><small>Recirculations</small><b>${number.format(recirculated)}</b></span>
+          <span class="chute"><small>Chute 98</small><b>${number.format(chute98)}</b></span>
+        </div>
+        <div class="capacity-tooltip-rates"><span>${utilization.toLocaleString('fr-CA')} % capacité</span></div>
+      </div>`;
+    column.innerHTML = `<i class="capacity-total-bar" style="height:${totalHeight}%"></i><i class="capacity-unique-bar" style="height:${uniqueHeight}%"></i>${tooltip}${index % 4 === 0 ? `<small>${bucketDate.getHours()} h</small>` : ''}`;
     chart.append(column);
   });
 

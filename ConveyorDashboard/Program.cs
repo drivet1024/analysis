@@ -507,7 +507,10 @@ sealed record HighCapacityDailyPeak(
     long TotalParcels);
 sealed record HighCapacityBucket(
     DateTime BucketStart,
-    long Parcels,
+    long UniqueParcels,
+    long TotalParcels,
+    long Recirculated,
+    long Chute98,
     decimal ParcelsPerHour,
     decimal UtilizationPercent,
     string Status,
@@ -1774,8 +1777,8 @@ sealed class ConveyorDataService(DashboardConfig config)
             shift_bounds AS (
                 SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end FROM shift_anchor
             ),
-            first_parcel AS (
-                SELECT ph.PARCEL_ID parcel_id,MIN(ph.DATE_LIV) first_scan
+            scans AS (
+                SELECT ph.PARCEL_ID parcel_id,ph.DATE_LIV scan_time,ph.CHUTE_NO chute_no
                 FROM parcel_history PARTITION (p2026) ph
                 CROSS JOIN shift_bounds sb
                 WHERE ph.EXCEPTION=903
@@ -1789,24 +1792,76 @@ sealed class ConveyorDataService(DashboardConfig config)
                   AND ph.DATE_INSERT<sb.shift_end
                   AND ph.DATE_LIV>=sb.shift_start
                   AND ph.DATE_LIV<sb.shift_end
-                GROUP BY ph.PARCEL_ID
             ),
-            minute_counts AS (
+            first_parcel AS (
+                SELECT parcel_id,MIN(scan_time) first_scan
+                FROM scans
+                GROUP BY parcel_id
+            ),
+            unique_minute_counts AS (
                 SELECT CAST(DATE_FORMAT(first_scan,'%Y-%m-%d %H:%i:00') AS DATETIME) minute_start,
-                       COUNT(*) parcels
+                       COUNT(*) unique_parcels
                 FROM first_parcel
                 GROUP BY CAST(DATE_FORMAT(first_scan,'%Y-%m-%d %H:%i:00') AS DATETIME)
+            ),
+            total_minute_counts AS (
+                SELECT CAST(DATE_FORMAT(scan_time,'%Y-%m-%d %H:%i:00') AS DATETIME) minute_start,
+                       COUNT(*) total_parcels
+                FROM scans
+                GROUP BY CAST(DATE_FORMAT(scan_time,'%Y-%m-%d %H:%i:00') AS DATETIME)
+            ),
+            chute98_bucket_counts AS (
+                SELECT TIMESTAMP(DATE(scan_time),MAKETIME(HOUR(scan_time),FLOOR(MINUTE(scan_time)/15)*15,0)) bucket_start,
+                       COUNT(DISTINCT parcel_id) chute_98
+                FROM scans
+                WHERE chute_no=98
+                GROUP BY TIMESTAMP(DATE(scan_time),MAKETIME(HOUR(scan_time),FLOOR(MINUTE(scan_time)/15)*15,0))
+            ),
+            ordered_scans AS (
+                SELECT parcel_id,scan_time,
+                       ROW_NUMBER() OVER (PARTITION BY parcel_id ORDER BY scan_time) scan_sequence
+                FROM scans
+            ),
+            first_recirculation AS (
+                SELECT parcel_id,scan_time recirculation_time
+                FROM ordered_scans
+                WHERE scan_sequence=2
+            ),
+            recirculated_bucket_counts AS (
+                SELECT TIMESTAMP(DATE(recirculation_time),MAKETIME(HOUR(recirculation_time),FLOOR(MINUTE(recirculation_time)/15)*15,0)) bucket_start,
+                       COUNT(*) recirculated
+                FROM first_recirculation
+                GROUP BY TIMESTAMP(DATE(recirculation_time),MAKETIME(HOUR(recirculation_time),FLOOR(MINUTE(recirculation_time)/15)*15,0))
+            ),
+            minute_counts AS (
+                SELECT minute_start FROM unique_minute_counts
+                UNION
+                SELECT minute_start FROM total_minute_counts
             )
-            SELECT NOW() database_now,sb.shift_start,sb.shift_end,mc.minute_start,mc.parcels
+            SELECT NOW() database_now,sb.shift_start,sb.shift_end,mc.minute_start,
+                   COALESCE(uc.unique_parcels,0) unique_parcels,
+                   COALESCE(tc.total_parcels,0) total_parcels,
+                   TIMESTAMP(DATE(mc.minute_start),MAKETIME(HOUR(mc.minute_start),FLOOR(MINUTE(mc.minute_start)/15)*15,0)) bucket_start,
+                   COALESCE(rc.recirculated,0) recirculated,
+                   COALESCE(c98.chute_98,0) chute_98
             FROM shift_bounds sb
             LEFT JOIN minute_counts mc ON 1=1
+            LEFT JOIN unique_minute_counts uc ON uc.minute_start=mc.minute_start
+            LEFT JOIN total_minute_counts tc ON tc.minute_start=mc.minute_start
+            LEFT JOIN chute98_bucket_counts c98
+              ON c98.bucket_start=TIMESTAMP(DATE(mc.minute_start),MAKETIME(HOUR(mc.minute_start),FLOOR(MINUTE(mc.minute_start)/15)*15,0))
+            LEFT JOIN recirculated_bucket_counts rc
+              ON rc.bucket_start=TIMESTAMP(DATE(mc.minute_start),MAKETIME(HOUR(mc.minute_start),FLOOR(MINUTE(mc.minute_start)/15)*15,0))
             ORDER BY mc.minute_start
             """;
 
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
         await using var reader = await command.ExecuteReaderAsync();
-        var minuteCounts = new Dictionary<DateTime, long>();
+        var uniqueMinuteCounts = new Dictionary<DateTime, long>();
+        var totalMinuteCounts = new Dictionary<DateTime, long>();
+        var recirculatedBucketCounts = new Dictionary<DateTime, long>();
+        var chute98BucketCounts = new Dictionary<DateTime, long>();
         var databaseNow = DateTime.Now;
         var shiftStart = DateTime.Today.AddHours(16);
         var shiftEnd = shiftStart.AddHours(12);
@@ -1816,7 +1871,13 @@ sealed class ConveyorDataService(DashboardConfig config)
             shiftStart = reader.GetDateTime("shift_start");
             shiftEnd = reader.GetDateTime("shift_end");
             if (!IsNull(reader, "minute_start"))
-                minuteCounts[reader.GetDateTime("minute_start")] = Int64OrZero(reader, "parcels");
+            {
+                var minuteStart = reader.GetDateTime("minute_start");
+                uniqueMinuteCounts[minuteStart] = Int64OrZero(reader, "unique_parcels");
+                totalMinuteCounts[minuteStart] = Int64OrZero(reader, "total_parcels");
+                recirculatedBucketCounts[reader.GetDateTime("bucket_start")] = Int64OrZero(reader, "recirculated");
+                chute98BucketCounts[reader.GetDateTime("bucket_start")] = Int64OrZero(reader, "chute_98");
+            }
         }
 
         var analysisEnd = databaseNow < shiftStart ? shiftStart : databaseNow > shiftEnd ? shiftEnd : databaseNow;
@@ -1827,21 +1888,24 @@ sealed class ConveyorDataService(DashboardConfig config)
             var isFuture = bucketStart >= analysisEnd;
             var measuredEnd = bucketEnd < analysisEnd ? bucketEnd : analysisEnd;
             var measuredMinutes = isFuture ? 0 : Math.Max(1, (int)Math.Ceiling((measuredEnd - bucketStart).TotalMinutes));
-            var parcels = isFuture ? 0 : minuteCounts.Where(x => x.Key >= bucketStart && x.Key < measuredEnd).Sum(x => x.Value);
-            var rate = measuredMinutes == 0 ? 0 : Math.Round(60m * parcels / measuredMinutes, 0);
+            var uniqueParcels = isFuture ? 0 : uniqueMinuteCounts.Where(x => x.Key >= bucketStart && x.Key < measuredEnd).Sum(x => x.Value);
+            var totalParcels = isFuture ? 0 : totalMinuteCounts.Where(x => x.Key >= bucketStart && x.Key < measuredEnd).Sum(x => x.Value);
+            var recirculated = isFuture ? 0 : recirculatedBucketCounts.GetValueOrDefault(bucketStart);
+            var chute98 = isFuture ? 0 : chute98BucketCounts.GetValueOrDefault(bucketStart);
+            var rate = measuredMinutes == 0 ? 0 : Math.Round(60m * uniqueParcels / measuredMinutes, 0);
             var utilization = benchmark.PracticalCapacityPerHour == 0 ? 0 : Math.Round(100m * rate / benchmark.PracticalCapacityPerHour, 1);
             var status = isFuture ? "future" : utilization >= 80 ? "capacity" : utilization >= 40 ? "under" : "gap";
-            buckets.Add(new HighCapacityBucket(bucketStart, parcels, rate, utilization, status, isFuture));
+            buckets.Add(new HighCapacityBucket(bucketStart, uniqueParcels, totalParcels, recirculated, chute98, rate, utilization, status, isFuture));
         }
 
-        var firstScan = minuteCounts.Count == 0 ? (DateTime?)null : minuteCounts.Keys.Min();
-        var totalParcels = minuteCounts.Where(x => x.Key < analysisEnd).Sum(x => x.Value);
+        var firstScan = uniqueMinuteCounts.Count == 0 ? (DateTime?)null : uniqueMinuteCounts.Keys.Min();
+        var totalUniqueParcels = uniqueMinuteCounts.Where(x => x.Key < analysisEnd).Sum(x => x.Value);
         var elapsedMinutes = firstScan is null ? 0 : Math.Max(1, (int)Math.Ceiling((analysisEnd - firstScan.Value).TotalMinutes));
-        var average = elapsedMinutes == 0 ? 0 : Math.Round(60m * totalParcels / elapsedMinutes, 0);
+        var average = elapsedMinutes == 0 ? 0 : Math.Round(60m * totalUniqueParcels / elapsedMinutes, 0);
         var averageUtilization = benchmark.PracticalCapacityPerHour == 0 ? 0 : Math.Round(100m * average / benchmark.PracticalCapacityPerHour, 1);
         var capacityThreshold = (long)Math.Ceiling(benchmark.PracticalCapacityPerHour / 60m * 0.8m);
-        var minutesAtCapacity = minuteCounts.Count(x => x.Key < analysisEnd && x.Value >= capacityThreshold);
-        var gaps = BuildHighCapacityGaps(firstScan, analysisEnd, minuteCounts, benchmark.PracticalCapacityPerHour);
+        var minutesAtCapacity = uniqueMinuteCounts.Count(x => x.Key < analysisEnd && x.Value >= capacityThreshold);
+        var gaps = BuildHighCapacityGaps(firstScan, analysisEnd, uniqueMinuteCounts, benchmark.PracticalCapacityPerHour);
         var currentRate = buckets.LastOrDefault(x => !x.IsFuture)?.ParcelsPerHour ?? 0;
 
         return new HighConveyorCapacityResponse(

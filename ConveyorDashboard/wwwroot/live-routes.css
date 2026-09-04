@@ -78,11 +78,30 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .capacity-legend { display: flex; flex-wrap: wrap; justify-content: end; gap: 12px; color: var(--muted); font-size: .68rem; white-space: nowrap; }
 .capacity-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .capacity-dot { width: 8px; height: 8px; border-radius: 50%; }
-.capacity-dot.full { background: var(--green); }.capacity-dot.under { background: var(--amber); }.capacity-dot.gap { background: var(--red); }
+.capacity-dot.total { background: #60a5fa; }.capacity-dot.unique { background: var(--green); }.capacity-dot.chute98 { background: #f472b6; }.capacity-dot.full { background: var(--green); }.capacity-dot.under { background: var(--amber); }.capacity-dot.gap { background: var(--red); }
 .capacity-chart { --benchmark-position: 83.33%; position: relative; display: grid; grid-template-columns: repeat(48, minmax(0, 1fr)); align-items: end; gap: 2px; height: 175px; margin-top: 12px; padding-top: 6px; border-bottom: 1px solid rgba(173, 208, 229, .28); background: repeating-linear-gradient(to top, transparent 0, transparent 24.5%, rgba(173, 208, 229, .07) 25%); }
 .capacity-chart::after { content: "benchmark"; position: absolute; z-index: 2; left: 0; right: 0; bottom: var(--benchmark-position); border-top: 1px dashed rgba(244, 248, 251, .7); color: var(--text); font-size: .57rem; line-height: 1; text-align: right; text-transform: uppercase; pointer-events: none; }
 .capacity-bar { position: relative; height: 100%; min-width: 0; }
-.capacity-bar i { position: absolute; right: 0; bottom: 0; left: 0; display: block; min-height: 0; border-radius: 3px 3px 0 0; background: var(--bar-color); opacity: .92; transition: height .35s ease; }
+.capacity-bar i { position: absolute; bottom: 0; display: block; min-height: 0; border-radius: 3px 3px 0 0; transition: height .35s ease; }
+.capacity-total-bar { right: 0; left: 0; background: #60a5fa; opacity: .46; }
+.capacity-unique-bar { right: 0; left: 0; background: var(--bar-color); opacity: .96; }
+.capacity-tooltip { position: absolute; z-index: 20; top: 8px; left: 50%; width: 252px; padding: 10px; border: 1px solid rgba(173, 208, 229, .28); border-radius: 12px; background: rgba(5, 15, 22, .97); box-shadow: 0 12px 32px rgba(0, 0, 0, .48); color: var(--text); opacity: 0; visibility: hidden; translate: -50% 5px; transition: opacity .14s ease, translate .14s ease, visibility .14s; pointer-events: none; }
+.capacity-bar:hover .capacity-tooltip, .capacity-bar:focus .capacity-tooltip { opacity: 1; visibility: visible; translate: -50% 0; }
+.capacity-bar:focus { outline: none; }
+.capacity-bar:focus-visible::after { content: ""; position: absolute; inset: 0; border: 1px solid rgba(126, 200, 255, .78); border-radius: 4px 4px 0 0; pointer-events: none; }
+.capacity-tooltip > strong { display: block; margin-bottom: 8px; color: #dff3ff; font-size: .7rem; letter-spacing: .035em; text-align: center; }
+.capacity-tooltip-values { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+.capacity-tooltip-values span { padding: 6px 4px; border-radius: 8px; text-align: center; }
+.capacity-tooltip-values span.recirculated { background: rgba(251, 178, 71, .13); color: #fbc46e; }
+.capacity-tooltip-values span.chute { background: rgba(244, 114, 182, .13); color: #f9a8d4; }
+.capacity-tooltip-values small { display: block; margin-bottom: 2px; color: inherit; font-size: .55rem; font-weight: 800; letter-spacing: .035em; text-transform: uppercase; }
+.capacity-tooltip-values b { display: block; font-size: .92rem; line-height: 1; }
+.capacity-tooltip-rates { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 7px; }
+.capacity-tooltip-rates span { padding: 3px 6px; border-radius: 999px; background: rgba(173, 208, 229, .08); color: var(--muted); font-size: .57rem; white-space: nowrap; }
+.capacity-bar:nth-child(-n+7) .capacity-tooltip { left: 0; translate: 0 5px; }
+.capacity-bar:nth-child(-n+7):hover .capacity-tooltip, .capacity-bar:nth-child(-n+7):focus .capacity-tooltip { translate: 0 0; }
+.capacity-bar:nth-last-child(-n+7) .capacity-tooltip { right: 0; left: auto; translate: 0 5px; }
+.capacity-bar:nth-last-child(-n+7):hover .capacity-tooltip, .capacity-bar:nth-last-child(-n+7):focus .capacity-tooltip { translate: 0 0; }
 .capacity-bar.capacity { --bar-color: var(--green); }.capacity-bar.under { --bar-color: var(--amber); }.capacity-bar.gap { --bar-color: var(--red); }.capacity-bar.future { --bar-color: rgba(143, 166, 182, .08); }
 .capacity-bar small { position: absolute; top: calc(100% + 7px); left: 50%; translate: -50% 0; color: var(--muted); font-size: .57rem; white-space: nowrap; }
 .capacity-gap-layout { display: grid; grid-template-columns: minmax(170px, .24fr) 1fr; gap: 10px; margin-top: 20px; }
