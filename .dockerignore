@@ -1,0 +1,10 @@
+.git
+.github
+.kilo
+**/bin
+**/obj
+**/.env.local
+**/.env
+tmp
+publish
+publish.zip

@@ -1,9 +1,13 @@
-name: Deploy Docker
+name: Deploy Conveyor Dashboard
 
 on:
   push:
     branches:
       - main
+
+concurrency:
+  group: conveyor-dashboard-production
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -13,16 +17,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Docker information
+      - name: Docker versions
         run: |
           docker --version
           docker compose version
 
-      - name: Deploy
+      - name: Build and deploy
+        env:
+          APP_ENV_FILE: /home/deploy/secrets/analysis.env
         run: |
-          docker compose pull
-          docker compose up -d --remove-orphans
+          docker compose \
+            --project-name conveyor-dashboard \
+            up -d \
+            --build \
+            --remove-orphans
 
-      - name: Status
+      - name: Container status
+        env:
+          APP_ENV_FILE: /home/deploy/secrets/analysis.env
         run: |
-          docker compose ps
+          docker compose \
+            --project-name conveyor-dashboard \
+            ps
+
+      - name: Recent logs
+        if: always()
+        env:
+          APP_ENV_FILE: /home/deploy/secrets/analysis.env
+        run: |
+          docker compose \
+            --project-name conveyor-dashboard \
+            logs --tail=50
