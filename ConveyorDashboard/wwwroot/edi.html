@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI</title>
-  <link rel="stylesheet" href="/edi.css?v=20260908-7">
+  <link rel="stylesheet" href="/edi.css?v=20260908-9">
 </head>
 <body>
   <main class="shell">
@@ -103,14 +103,32 @@
         <table class="client-trend-table">
           <thead>
             <tr>
-              <th>Client</th>
-              <th id="client-date-current">Aujourd’hui</th>
-              <th>Moyenne 4 sem.</th>
-              <th>Tendance</th>
+              <th aria-sort="none">
+                <div class="client-heading-controls">
+                  <button type="button" class="client-sort-button" data-client-sort="customerName">
+                    <span>Client</span><span class="sort-indicator" aria-hidden="true">↕</span>
+                  </button>
+                  <input id="client-filter" class="client-filter" type="search" placeholder="Filtrer par nom" aria-label="Filtrer les clients par nom" autocomplete="off">
+                </div>
+              </th>
+              <th aria-sort="descending">
+                <button type="button" class="client-sort-button" data-client-sort="currentParcels">
+                  <span id="client-date-current">Aujourd’hui</span><span class="sort-indicator" aria-hidden="true">↓</span>
+                </button>
+              </th>
+              <th aria-sort="none">
+                <button type="button" class="client-sort-button" data-client-sort="historicalAverage">
+                  <span>Moyenne 4 sem.</span><span class="sort-indicator" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th aria-sort="none">
+                <button type="button" class="client-sort-button" data-client-sort="trendPercent">
+                  <span>Tendance</span><span class="sort-indicator" aria-hidden="true">↕</span>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody id="clients-body"><tr><td colspan="4" class="empty-cell">Chargement des clients…</td></tr></tbody>
-          <tfoot id="clients-foot"></tfoot>
         </table>
       </div>
     </section>
@@ -137,6 +155,6 @@
 
     <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
-  <script src="/edi.js?v=20260908-8" defer></script>
+  <script src="/edi.js?v=20260908-10" defer></script>
 </body>
 </html>

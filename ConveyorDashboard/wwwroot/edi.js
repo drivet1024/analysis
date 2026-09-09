@@ -9,6 +9,9 @@ const shortDate = new Intl.DateTimeFormat('fr-CA', { day: '2-digit', month: 'sho
 const columnDate = new Intl.DateTimeFormat('fr-CA', { day: '2-digit', month: 'short' });
 let countdown = REFRESH_SECONDS;
 let requestVersion = 0;
+let clientRows = [];
+let clientSortKey = 'currentParcels';
+let clientSortDirection = 'desc';
 
 function parseDate(value) {
   return new Date(`${value}T12:00:00`);
@@ -125,19 +128,6 @@ function renderRegions(regions) {
   $('pallets-today').textContent = number.format(totals.palletsToday);
 }
 
-function calculateClientTrend(currentParcels, history) {
-  const historicalAverage = history.reduce((sum, value) => sum + value, 0) / history.length;
-  if (historicalAverage === 0) {
-    return { historicalAverage, trendPercent: null, trendDirection: currentParcels > 0 ? 'new' : 'stable' };
-  }
-  const trendPercent = (currentParcels - historicalAverage) * 100 / historicalAverage;
-  return {
-    historicalAverage,
-    trendPercent,
-    trendDirection: currentParcels > historicalAverage ? 'up' : currentParcels < historicalAverage ? 'down' : 'stable'
-  };
-}
-
 function trendBadge(direction, percent) {
   if (direction === 'new') return '<span class="trend-pill new">Nouveau</span>';
   if (direction === 'stable') return '<span class="trend-pill stable">→ Stable</span>';
@@ -147,16 +137,49 @@ function trendBadge(direction, percent) {
   return `<span class="trend-pill ${safeDirection}">${arrow} ${sign}${decimal.format(Math.abs(Number(percent) || 0))} %</span>`;
 }
 
-function renderClients(clients, analysisDate, databaseNow) {
-  const isToday = analysisDate === currentEdiDate();
-  $('client-date-current').textContent = isToday ? 'Aujourd’hui' : columnDate.format(parseDate(analysisDate));
-  $('clients-trend-context').textContent = `Top ${number.format(clients.length)} selon le volume du jour · ${isToday ? `de 4 h à ${hourMinute.format(new Date(databaseNow))}` : 'journée complète de 4 h à 4 h'} · tendance comparée à la moyenne des quatre semaines`;
+function normalizedClientName(value) {
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr-CA');
+}
 
+function sortedFilteredClients() {
+  const filter = normalizedClientName($('client-filter').value.trim());
+  const filtered = filter
+    ? clientRows.filter((client) => normalizedClientName(client.customerName).includes(filter))
+    : [...clientRows];
+
+  return filtered.sort((left, right) => {
+    const leftValue = left[clientSortKey];
+    const rightValue = right[clientSortKey];
+    const leftMissing = leftValue === null || leftValue === undefined;
+    const rightMissing = rightValue === null || rightValue === undefined;
+    if (leftMissing !== rightMissing) return leftMissing ? 1 : -1;
+
+    let result = clientSortKey === 'customerName'
+      ? String(leftValue || '').localeCompare(String(rightValue || ''), 'fr-CA', { sensitivity: 'base', numeric: true })
+      : Number(leftValue || 0) - Number(rightValue || 0);
+    if (clientSortDirection === 'desc') result *= -1;
+    return result || String(left.customerName || '').localeCompare(String(right.customerName || ''), 'fr-CA', { sensitivity: 'base', numeric: true });
+  });
+}
+
+function syncClientSortHeaders() {
+  document.querySelectorAll('[data-client-sort]').forEach((button) => {
+    const active = button.dataset.clientSort === clientSortKey;
+    const header = button.closest('th');
+    const indicator = button.querySelector('.sort-indicator');
+    header.setAttribute('aria-sort', active ? (clientSortDirection === 'asc' ? 'ascending' : 'descending') : 'none');
+    indicator.textContent = active ? (clientSortDirection === 'asc' ? '↑' : '↓') : '↕';
+  });
+}
+
+function renderClientRows() {
+  const clients = sortedFilteredClients();
   const body = $('clients-body');
   body.replaceChildren();
   if (!clients.length) {
-    body.innerHTML = '<tr><td colspan="4" class="empty-cell">Aucun volume client trouvé pour cette période.</td></tr>';
-    $('clients-foot').replaceChildren();
+    const message = clientRows.length ? 'Aucun client ne correspond à ce filtre.' : 'Aucun volume client trouvé pour cette période.';
+    body.innerHTML = `<tr><td colspan="4" class="empty-cell">${message}</td></tr>`;
+    syncClientSortHeaders();
     return;
   }
 
@@ -169,16 +192,15 @@ function renderClients(clients, analysisDate, databaseNow) {
       <td>${trendBadge(client.trendDirection, client.trendPercent)}</td>`;
     body.append(row);
   });
+  syncClientSortHeaders();
+}
 
-  const totals = clients.reduce((sum, client) => ({
-    current: sum.current + Number(client.currentParcels || 0),
-    week1: sum.week1 + Number(client.week1Parcels || 0),
-    week2: sum.week2 + Number(client.week2Parcels || 0),
-    week3: sum.week3 + Number(client.week3Parcels || 0),
-    week4: sum.week4 + Number(client.week4Parcels || 0)
-  }), { current: 0, week1: 0, week2: 0, week3: 0, week4: 0 });
-  const totalTrend = calculateClientTrend(totals.current, [totals.week1, totals.week2, totals.week3, totals.week4]);
-  $('clients-foot').innerHTML = `<tr><td>Total top ${number.format(clients.length)}</td><td>${number.format(totals.current)}</td><td>${decimal.format(totalTrend.historicalAverage)}</td><td>${trendBadge(totalTrend.trendDirection, totalTrend.trendPercent)}</td></tr>`;
+function renderClients(clients, analysisDate, databaseNow) {
+  const isToday = analysisDate === currentEdiDate();
+  $('client-date-current').textContent = isToday ? 'Aujourd’hui' : columnDate.format(parseDate(analysisDate));
+  $('clients-trend-context').textContent = `Top ${number.format(clients.length)} selon le volume du jour · ${isToday ? `de 4 h à ${hourMinute.format(new Date(databaseNow))}` : 'journée complète de 4 h à 4 h'} · tendance comparée à la moyenne des quatre semaines`;
+  clientRows = clients;
+  renderClientRows();
 }
 
 function renderWeek(days, weeklyBudget, analysisDate) {
@@ -288,6 +310,19 @@ $('refresh-button').addEventListener('click', () => { countdown = REFRESH_SECOND
 $('previous-date').addEventListener('click', () => moveAnalysisDate(-1));
 $('next-date').addEventListener('click', () => moveAnalysisDate(1));
 $('analysis-date').addEventListener('change', (event) => selectAnalysisDate(event.target.value));
+$('client-filter').addEventListener('input', renderClientRows);
+document.querySelectorAll('[data-client-sort]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const key = button.dataset.clientSort;
+    if (clientSortKey === key) {
+      clientSortDirection = clientSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      clientSortKey = key;
+      clientSortDirection = key === 'customerName' ? 'asc' : 'desc';
+    }
+    renderClientRows();
+  });
+});
 setInterval(() => {
   countdown -= 1;
   if (countdown <= 0) {
