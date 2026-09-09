@@ -981,7 +981,7 @@ sealed class ConveyorDataService(DashboardConfig config)
               CROSS JOIN params x
               WHERE p.INSERT_DATE >= DATE_ADD(x.week_start, INTERVAL 4 HOUR)
                 AND p.INSERT_DATE < DATE_ADD(DATE_ADD(x.week_start, INTERVAL 7 DAY), INTERVAL 4 HOUR)
-                AND p.INSERT_DATE < @analysisEnd
+                AND p.INSERT_DATE < @weekDataEnd
                 AND p.PARCEL_STATUS NOT IN (500,501)
               GROUP BY DATEDIFF(DATE_SUB(p.INSERT_DATE, INTERVAL 4 HOUR), x.week_start)
             ),
@@ -1091,6 +1091,10 @@ sealed class ConveyorDataService(DashboardConfig config)
         var now = DateTime.Now;
         var currentEdiDate = DateOnly.FromDateTime(now.Hour < 4 ? now.AddDays(-1) : now);
         var analysisEnd = analysisDate == currentEdiDate ? now : analysisStart.AddDays(1);
+        var daysSinceSaturday = ((int)analysisDate.DayOfWeek + 1) % 7;
+        var selectedWeekStart = analysisDate.AddDays(-daysSinceSaturday).ToDateTime(new TimeOnly(4, 0));
+        var selectedWeekEnd = selectedWeekStart.AddDays(7);
+        var weekDataEnd = now < selectedWeekEnd ? now : selectedWeekEnd;
 
         await using var connection = await OpenAsync();
         var executionDate = analysisDate;
@@ -1168,7 +1172,7 @@ sealed class ConveyorDataService(DashboardConfig config)
         await using (var command = new MySqlCommand(weeklySql, connection) { CommandTimeout = 180 })
         {
             command.Parameters.AddWithValue("@analysisDate", analysisStart);
-            command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
+            command.Parameters.AddWithValue("@weekDataEnd", weekDataEnd);
             await using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {

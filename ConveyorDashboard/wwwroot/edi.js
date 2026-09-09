@@ -213,11 +213,12 @@ function renderClients(clients, analysisDate, databaseNow) {
 
 function renderWeek(days, weeklyBudget, analysisDate) {
   const body = $('week-body');
+  const operationalToday = currentEdiDate();
   body.replaceChildren();
   days.forEach((day) => {
     const budget = Number(day.budget || 0);
     const parcels = Number(day.parcels || 0);
-    const isFuture = day.date > analysisDate;
+    const isFuture = day.date > operationalToday;
     const difference = parcels - budget;
     const attainment = budget ? 100 * parcels / budget : 0;
     const row = document.createElement('tr');
@@ -248,7 +249,7 @@ function renderWeek(days, weeklyBudget, analysisDate) {
     const parcels = Number(day.parcels || 0);
     const budget = Number(day.budget || 0);
     const column = document.createElement('div');
-    column.className = `day-column${day.date > analysisDate ? ' future' : ''}`;
+    column.className = `day-column${day.date > operationalToday ? ' future' : ''}`;
     column.innerHTML = `
       <span class="day-value">${number.format(parcels)}</span>
       <div class="day-track" title="${number.format(parcels)} colis · budget ${number.format(budget)}">
