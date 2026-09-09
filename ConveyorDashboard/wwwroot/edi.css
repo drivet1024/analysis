@@ -90,7 +90,7 @@ td strong { color: #fff; font-size: .9rem; }
 .region-name { font-weight: 900; }
 .depots-cell { max-width: 360px; color: var(--muted); line-height: 1.35; }
 .client-trend-wrap { max-height: 620px; }
-.client-trend-table { min-width: 940px; }
+.client-trend-table { min-width: 620px; }
 .client-trend-table thead th { position: sticky; z-index: 2; top: 0; }
 .client-trend-table tfoot td { position: sticky; z-index: 2; bottom: 0; }
 .client-trend-table th:not(:first-child), .client-trend-table td:not(:first-child) { text-align: right; }

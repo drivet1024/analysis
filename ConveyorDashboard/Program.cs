@@ -1084,6 +1084,7 @@ sealed class ConveyorDataService(DashboardConfig config)
             LEFT JOIN customer c ON c.CUSTOMER_ID = v.customer_id
             GROUP BY v.customer_id, c.NAME
             ORDER BY current_parcels DESC, customer_name
+            LIMIT 50
             """;
 
         var analysisStart = analysisDate.ToDateTime(new TimeOnly(4, 0));

@@ -30,7 +30,6 @@ h1 { margin-bottom: 0; font-size: clamp(1.65rem, 3vw, 2.75rem); line-height: 1; 
 h1 span { color: inherit; font-weight: inherit; }
 h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -.025em; }
 .depot-selector { display: grid; gap: 4px; min-width: 205px; }
-.depot-selector > span { color: var(--muted); font-size: .62rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
 .depot-selector select { height: 40px; padding: 0 34px 0 11px; border: 1px solid rgba(81, 167, 255, .42); border-radius: 10px; background: var(--panel-2); color: var(--text); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 800; color-scheme: dark; }
 .depot-selector select:hover { border-color: var(--blue); }
 .depot-selector select:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }

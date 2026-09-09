@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI</title>
-  <link rel="stylesheet" href="/edi.css?v=20260908-6">
+  <link rel="stylesheet" href="/edi.css?v=20260908-7">
 </head>
 <body>
   <main class="shell">
@@ -96,7 +96,7 @@
 
     <section class="data-section" aria-labelledby="clients-title">
       <div class="section-heading">
-        <div><p>Tendance par client</p><h2 id="clients-title">Volumes des mêmes jours de semaine</h2></div>
+        <div><p>Tendance par client</p><h2 id="clients-title">50 plus gros clients</h2></div>
         <span id="clients-trend-context">Comparaison avec la moyenne des quatre semaines précédentes à la même heure</span>
       </div>
       <div class="table-wrap client-trend-wrap">
@@ -105,15 +105,11 @@
             <tr>
               <th>Client</th>
               <th id="client-date-current">Aujourd’hui</th>
-              <th id="client-date-week1">S−1</th>
-              <th id="client-date-week2">S−2</th>
-              <th id="client-date-week3">S−3</th>
-              <th id="client-date-week4">S−4</th>
               <th>Moyenne 4 sem.</th>
               <th>Tendance</th>
             </tr>
           </thead>
-          <tbody id="clients-body"><tr><td colspan="8" class="empty-cell">Chargement des clients…</td></tr></tbody>
+          <tbody id="clients-body"><tr><td colspan="4" class="empty-cell">Chargement des clients…</td></tr></tbody>
           <tfoot id="clients-foot"></tfoot>
         </table>
       </div>
@@ -141,6 +137,6 @@
 
     <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
-  <script src="/edi.js?v=20260908-7" defer></script>
+  <script src="/edi.js?v=20260908-8" defer></script>
 </body>
 </html>

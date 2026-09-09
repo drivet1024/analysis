@@ -37,7 +37,7 @@ function escapeHtml(value) {
 }
 
 function setConnection(state, label) {
-  $('live-dot').className = state;
+  $('live-dot').className = `live-dot ${state}`;
   $('live-label').textContent = label;
 }
 

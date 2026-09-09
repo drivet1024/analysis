@@ -68,12 +68,6 @@ function formatDate(value) {
   return value ? shortDate.format(parseDate(value)) : '—';
 }
 
-function offsetDate(value, days) {
-  const date = parseDate(value);
-  date.setDate(date.getDate() + days);
-  return isoLocalDate(date);
-}
-
 function formatTime(value) {
   return value ? time.format(new Date(value)) : '—';
 }
@@ -156,15 +150,12 @@ function trendBadge(direction, percent) {
 function renderClients(clients, analysisDate, databaseNow) {
   const isToday = analysisDate === currentEdiDate();
   $('client-date-current').textContent = isToday ? 'Aujourd’hui' : columnDate.format(parseDate(analysisDate));
-  for (let week = 1; week <= 4; week += 1) {
-    $(`client-date-week${week}`).textContent = columnDate.format(parseDate(offsetDate(analysisDate, -7 * week)));
-  }
-  $('clients-trend-context').textContent = `${number.format(clients.length)} client${clients.length === 1 ? '' : 's'} · ${isToday ? `de 4 h à ${hourMinute.format(new Date(databaseNow))}` : 'journées complètes de 4 h à 4 h'} · écart par rapport à la moyenne des quatre semaines`;
+  $('clients-trend-context').textContent = `Top ${number.format(clients.length)} selon le volume du jour · ${isToday ? `de 4 h à ${hourMinute.format(new Date(databaseNow))}` : 'journée complète de 4 h à 4 h'} · tendance comparée à la moyenne des quatre semaines`;
 
   const body = $('clients-body');
   body.replaceChildren();
   if (!clients.length) {
-    body.innerHTML = '<tr><td colspan="8" class="empty-cell">Aucun volume client trouvé pour ces cinq dates.</td></tr>';
+    body.innerHTML = '<tr><td colspan="4" class="empty-cell">Aucun volume client trouvé pour cette période.</td></tr>';
     $('clients-foot').replaceChildren();
     return;
   }
@@ -174,10 +165,6 @@ function renderClients(clients, analysisDate, databaseNow) {
     row.innerHTML = `
       <td class="client-name">${escapeHtml(client.customerName)}<small>Client ${number.format(client.customerId)}</small></td>
       <td><strong>${number.format(client.currentParcels)}</strong></td>
-      <td>${number.format(client.week1Parcels)}</td>
-      <td>${number.format(client.week2Parcels)}</td>
-      <td>${number.format(client.week3Parcels)}</td>
-      <td>${number.format(client.week4Parcels)}</td>
       <td class="client-average">${decimal.format(client.historicalAverage)}</td>
       <td>${trendBadge(client.trendDirection, client.trendPercent)}</td>`;
     body.append(row);
@@ -191,7 +178,7 @@ function renderClients(clients, analysisDate, databaseNow) {
     week4: sum.week4 + Number(client.week4Parcels || 0)
   }), { current: 0, week1: 0, week2: 0, week3: 0, week4: 0 });
   const totalTrend = calculateClientTrend(totals.current, [totals.week1, totals.week2, totals.week3, totals.week4]);
-  $('clients-foot').innerHTML = `<tr><td>Total</td><td>${number.format(totals.current)}</td><td>${number.format(totals.week1)}</td><td>${number.format(totals.week2)}</td><td>${number.format(totals.week3)}</td><td>${number.format(totals.week4)}</td><td>${decimal.format(totalTrend.historicalAverage)}</td><td>${trendBadge(totalTrend.trendDirection, totalTrend.trendPercent)}</td></tr>`;
+  $('clients-foot').innerHTML = `<tr><td>Total top ${number.format(clients.length)}</td><td>${number.format(totals.current)}</td><td>${decimal.format(totalTrend.historicalAverage)}</td><td>${trendBadge(totalTrend.trendDirection, totalTrend.trendPercent)}</td></tr>`;
 }
 
 function renderWeek(days, weeklyBudget, analysisDate) {
