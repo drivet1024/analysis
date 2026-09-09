@@ -555,6 +555,9 @@ sealed record EdiDailyRow(
     long Budget);
 sealed record EdiDashboardResponse(
     DateTime DatabaseNow,
+    DateOnly ExecutionDate,
+    long ParcelsTodaySnapshot,
+    long ParcelsLastWeekSameTime,
     DateOnly WeekStart,
     DateOnly WeekEnd,
     long WeeklyBudget,
@@ -826,6 +829,21 @@ sealed class ConveyorDataService(DashboardConfig config)
 
     public async Task<EdiDashboardResponse> GetEdiDashboardAsync()
     {
+        const string parcelSnapshotSql = """
+            SELECT
+              CURDATE() AS execution_date,
+              (SELECT COUNT(*)
+               FROM parcel
+               WHERE parcel_status NOT IN (500,501)
+                 AND INSERT_DATE >= CURDATE()
+                 AND INSERT_DATE < NOW()) AS parcels_today,
+              (SELECT COUNT(*)
+               FROM parcel
+               WHERE parcel_status NOT IN (500,501)
+                 AND INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                 AND INSERT_DATE < DATE_SUB(NOW(), INTERVAL 7 DAY)) AS parcels_last_week_same_time
+            """;
+
         const string regionsSql = """
             WITH rm AS (
               SELECT
@@ -988,6 +1006,19 @@ sealed class ConveyorDataService(DashboardConfig config)
             """;
 
         await using var connection = await OpenAsync();
+        var executionDate = DateOnly.FromDateTime(DateTime.Today);
+        long parcelsTodaySnapshot = 0, parcelsLastWeekSameTime = 0;
+        await using (var command = new MySqlCommand(parcelSnapshotSql, connection) { CommandTimeout = 180 })
+        await using (var reader = await command.ExecuteReaderAsync())
+        {
+            if (await reader.ReadAsync())
+            {
+                executionDate = DateOnly.FromDateTime(reader.GetDateTime("execution_date"));
+                parcelsTodaySnapshot = Int64OrZero(reader, "parcels_today");
+                parcelsLastWeekSameTime = Int64OrZero(reader, "parcels_last_week_same_time");
+            }
+        }
+
         var regions = new List<EdiRegionRow>();
         await using (var command = new MySqlCommand(regionsSql, connection) { CommandTimeout = 180 })
         await using (var reader = await command.ExecuteReaderAsync())
@@ -1026,6 +1057,9 @@ sealed class ConveyorDataService(DashboardConfig config)
         var weekStart = days.Count == 0 ? DateOnly.FromDateTime(databaseNow) : days[0].Date;
         return new EdiDashboardResponse(
             databaseNow,
+            executionDate,
+            parcelsTodaySnapshot,
+            parcelsLastWeekSameTime,
             weekStart,
             weekStart.AddDays(6),
             weeklyBudget,

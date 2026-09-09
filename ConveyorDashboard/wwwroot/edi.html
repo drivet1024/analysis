@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI</title>
-  <link rel="stylesheet" href="/edi.css?v=20260908-1">
+  <link rel="stylesheet" href="/edi.css?v=20260908-2">
 </head>
 <body>
   <main class="shell">
@@ -36,8 +36,19 @@
 
     <div id="error-banner" class="error-banner" role="alert" hidden></div>
 
+    <section class="parcel-snapshot" aria-label="Comparaison des colis à la même heure">
+      <article class="snapshot-pill snapshot-today">
+        <div><span>Colis aujourd’hui</span><small>Depuis minuit jusqu’à maintenant</small></div>
+        <strong id="snapshot-parcels-today">—</strong>
+      </article>
+      <article class="snapshot-pill snapshot-d7">
+        <div><span>Colis D−7</span><small>Même période et même heure</small></div>
+        <strong id="snapshot-parcels-d7">—</strong>
+      </article>
+    </section>
+
     <section class="kpi-grid" aria-label="Résumé EDI">
-      <article class="kpi-card accent-blue"><span>Colis aujourd’hui</span><strong id="parcels-today">—</strong><small>Expéditions par région jusqu’à maintenant</small></article>
+      <article class="kpi-card accent-blue"><span>Colis régionaux aujourd’hui</span><strong id="parcels-today">—</strong><small>Expéditions par région jusqu’à maintenant</small></article>
       <article class="kpi-card accent-green"><span>Palettes aujourd’hui</span><strong id="pallets-today">—</strong><small>Arrondi supérieur · 60 colis par palette</small></article>
       <article class="kpi-card accent-violet"><span>Colis cette semaine</span><strong id="weekly-parcels">—</strong><small>Du samedi au vendredi</small></article>
       <article class="kpi-card accent-amber"><span>Budget hebdomadaire</span><strong id="weekly-budget">—</strong><small id="weekly-progress">—</small></article>
@@ -92,6 +103,6 @@
 
     <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. La semaine débute le samedi.</p>
   </main>
-  <script src="/edi.js?v=20260908-1" defer></script>
+  <script src="/edi.js?v=20260908-2" defer></script>
 </body>
 </html>

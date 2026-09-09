@@ -46,6 +46,15 @@ h3 { font-size: 1rem; }
 .context-strip span { margin-bottom: 5px; color: var(--muted); font-size: .65rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 .context-strip strong { font-size: .88rem; }
 .error-banner { margin-bottom: 13px; padding: 12px 15px; border: 1px solid rgba(255, 107, 114, .35); border-radius: 12px; background: rgba(255, 107, 114, .1); color: #ffc2c6; }
+.parcel-snapshot { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+.snapshot-pill { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 86px; padding: 15px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); box-shadow: var(--shadow); }
+.snapshot-today { border-color: rgba(56, 220, 154, .42); background: linear-gradient(120deg, rgba(56, 220, 154, .09), var(--panel) 55%); }
+.snapshot-d7 { border-color: rgba(171, 140, 255, .42); background: linear-gradient(120deg, rgba(171, 140, 255, .09), var(--panel) 55%); }
+.snapshot-pill div { display: grid; gap: 4px; }
+.snapshot-pill span { color: var(--muted); font-size: .72rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.snapshot-pill small { color: var(--muted); font-size: .7rem; }
+.snapshot-pill strong { font-size: clamp(2rem, 4vw, 3.3rem); line-height: .9; letter-spacing: -.055em; }
+.snapshot-today strong { color: var(--green); }.snapshot-d7 strong { color: #c4b1ff; }
 .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .kpi-card { --accent: var(--blue); position: relative; overflow: hidden; min-height: 116px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 15px; background: linear-gradient(145deg, rgba(18, 35, 48, .96), rgba(11, 25, 35, .96)); box-shadow: var(--shadow); }
 .kpi-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--accent); }
@@ -105,7 +114,7 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
   .live-box { width: 100%; }.live-box > div { flex: 1; }
   .dashboard-tabs { width: 100%; overflow-x: auto; }
   .dashboard-tab { flex: 0 0 auto; }
-  .kpi-grid, .context-strip { grid-template-columns: 1fr; }
+  .kpi-grid, .context-strip, .parcel-snapshot { grid-template-columns: 1fr; }
   .context-strip div { border-right: 0; border-bottom: 1px solid var(--line); }
   .context-strip div:last-child { border-bottom: 0; }
   .section-heading > span { text-align: left; }

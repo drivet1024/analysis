@@ -131,6 +131,8 @@ function render(data) {
   const days = data.days || [];
   renderRegions(regions);
   renderWeek(days, Number(data.weeklyBudget || 0));
+  $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);
+  $('snapshot-parcels-d7').textContent = number.format(data.parcelsLastWeekSameTime || 0);
   $('week-range').textContent = `${formatDate(data.weekStart)} au ${formatDate(data.weekEnd)}`;
   $('database-time').textContent = formatTime(data.databaseNow);
   $('last-refresh').textContent = `Actualisé à ${formatTime(data.databaseNow)}`;
