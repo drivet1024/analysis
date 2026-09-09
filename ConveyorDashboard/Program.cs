@@ -38,7 +38,10 @@ app.Use(async (context, next) =>
     }
     await next();
 });
-app.UseDefaultFiles();
+var defaultFiles = new DefaultFilesOptions();
+defaultFiles.DefaultFileNames.Clear();
+defaultFiles.DefaultFileNames.Add("live-routes.html");
+app.UseDefaultFiles(defaultFiles);
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate",
@@ -253,7 +256,7 @@ app.MapPost("/api/ai-analysis", async (AiAnalysisRequest request, ConveyorDataSe
     catch (Exception ex) { return Results.Problem($"L'analyse OpenAI n'a pas pu être produite : {ex.Message}"); }
 });
 
-app.MapFallbackToFile("index.html");
+app.MapFallbackToFile("live-routes.html");
 app.Run();
 
 static DateOnly QueryDate(IQueryCollection query, string name, DateOnly fallback)
