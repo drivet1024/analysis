@@ -4,7 +4,7 @@ const number = new Intl.NumberFormat('fr-CA');
 const time = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 const shortDate = new Intl.DateTimeFormat('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' });
 let countdown = REFRESH_SECONDS;
-let loading = false;
+let requestVersion = 0;
 
 function parseDate(value) {
   return new Date(`${value}T12:00:00`);
@@ -13,6 +13,45 @@ function parseDate(value) {
 function isoLocalDate(date = new Date()) {
   const pad = (part) => String(part).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function validIsoDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
+  const parsed = parseDate(value);
+  return !Number.isNaN(parsed.getTime()) && isoLocalDate(parsed) === value;
+}
+
+function initialAnalysisDate() {
+  const requested = new URLSearchParams(window.location.search).get('date');
+  const today = isoLocalDate();
+  return validIsoDate(requested) && requested <= today ? requested : today;
+}
+
+let selectedAnalysisDate = initialAnalysisDate();
+
+function syncDateSelector() {
+  const today = isoLocalDate();
+  $('analysis-date').max = today;
+  $('analysis-date').value = selectedAnalysisDate;
+  $('next-date').disabled = selectedAnalysisDate >= today;
+}
+
+function selectAnalysisDate(value) {
+  if (!validIsoDate(value)) return;
+  selectedAnalysisDate = value > isoLocalDate() ? isoLocalDate() : value;
+  syncDateSelector();
+  const url = new URL(window.location.href);
+  url.searchParams.set('date', selectedAnalysisDate);
+  window.history.replaceState({}, '', url);
+  countdown = REFRESH_SECONDS;
+  $('countdown').textContent = countdown;
+  load();
+}
+
+function moveAnalysisDate(dayOffset) {
+  const date = parseDate(selectedAnalysisDate);
+  date.setDate(date.getDate() + dayOffset);
+  selectAnalysisDate(isoLocalDate(date));
 }
 
 function formatDate(value) {
@@ -76,18 +115,17 @@ function renderRegions(regions) {
   $('pallets-today').textContent = number.format(totals.palletsToday);
 }
 
-function renderWeek(days, weeklyBudget) {
-  const today = isoLocalDate();
+function renderWeek(days, weeklyBudget, analysisDate) {
   const body = $('week-body');
   body.replaceChildren();
   days.forEach((day) => {
     const budget = Number(day.budget || 0);
     const parcels = Number(day.parcels || 0);
-    const isFuture = day.date > today;
+    const isFuture = day.date > analysisDate;
     const difference = parcels - budget;
     const attainment = budget ? 100 * parcels / budget : 0;
     const row = document.createElement('tr');
-    if (day.date === today) row.classList.add('today-row');
+    if (day.date === analysisDate) row.classList.add('today-row');
     if (isFuture) row.classList.add('future-row');
     row.innerHTML = `
       <td class="day-name">${escapeHtml(day.dayName)}</td>
@@ -114,7 +152,7 @@ function renderWeek(days, weeklyBudget) {
     const parcels = Number(day.parcels || 0);
     const budget = Number(day.budget || 0);
     const column = document.createElement('div');
-    column.className = `day-column${day.date > today ? ' future' : ''}`;
+    column.className = `day-column${day.date > analysisDate ? ' future' : ''}`;
     column.innerHTML = `
       <span class="day-value">${number.format(parcels)}</span>
       <div class="day-track" title="${number.format(parcels)} colis · budget ${number.format(budget)}">
@@ -129,8 +167,24 @@ function renderWeek(days, weeklyBudget) {
 function render(data) {
   const regions = data.regions || [];
   const days = data.days || [];
+  selectedAnalysisDate = data.executionDate || selectedAnalysisDate;
+  syncDateSelector();
+  const isToday = selectedAnalysisDate === isoLocalDate();
+  const selectedDateLabel = formatDate(selectedAnalysisDate);
+
+  $('snapshot-today-label').textContent = isToday ? 'Colis aujourd’hui' : `Colis · ${selectedDateLabel}`;
+  $('snapshot-today-context').textContent = isToday ? 'Depuis minuit jusqu’à maintenant' : 'Journée complète';
+  $('snapshot-d7-context').textContent = isToday ? 'Même période et même heure' : 'Même journée, sept jours plus tôt';
+  $('linehaul-parcels-label').textContent = isToday ? 'Colis linehaul aujourd’hui' : `Colis linehaul · ${selectedDateLabel}`;
+  $('linehaul-pallets-label').textContent = isToday ? 'Palettes linehaul aujourd’hui' : `Palettes linehaul · ${selectedDateLabel}`;
+  $('linehaul-parcels-context').textContent = isToday ? 'Expéditions par région jusqu’à maintenant' : 'Expéditions par région pour la journée';
+  $('regions-period-label').textContent = isToday
+    ? 'Aujourd’hui, hier et même période la semaine dernière'
+    : `${selectedDateLabel}, veille et même journée la semaine précédente`;
+  $('regions-current-label').textContent = isToday ? 'Aujourd’hui' : selectedDateLabel;
+
   renderRegions(regions);
-  renderWeek(days, Number(data.weeklyBudget || 0));
+  renderWeek(days, Number(data.weeklyBudget || 0), selectedAnalysisDate);
   $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);
   $('snapshot-parcels-d7').textContent = number.format(data.parcelsLastWeekSameTime || 0);
   $('week-range').textContent = `${formatDate(data.weekStart)} au ${formatDate(data.weekEnd)}`;
@@ -139,28 +193,33 @@ function render(data) {
 }
 
 async function load() {
-  if (loading) return;
-  loading = true;
+  const version = ++requestVersion;
   $('refresh-button').disabled = true;
   $('error-banner').hidden = true;
   setConnection('waiting', 'Actualisation…');
   try {
-    const response = await fetch(`/api/edi?t=${Date.now()}`, { cache: 'no-store' });
+    const query = new URLSearchParams({ date: selectedAnalysisDate, t: Date.now().toString() });
+    const response = await fetch(`/api/edi?${query}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Réponse ${response.status}`);
-    render(await response.json());
+    const data = await response.json();
+    if (version !== requestVersion) return;
+    render(data);
     setConnection('ok', 'Données en direct');
     countdown = REFRESH_SECONDS;
   } catch (error) {
+    if (version !== requestVersion) return;
     setConnection('error', 'Connexion interrompue');
     $('error-banner').textContent = 'Impossible de charger les données EDI. Une nouvelle tentative sera faite automatiquement.';
     $('error-banner').hidden = false;
   } finally {
-    loading = false;
-    $('refresh-button').disabled = false;
+    if (version === requestVersion) $('refresh-button').disabled = false;
   }
 }
 
 $('refresh-button').addEventListener('click', () => { countdown = REFRESH_SECONDS; load(); });
+$('previous-date').addEventListener('click', () => moveAnalysisDate(-1));
+$('next-date').addEventListener('click', () => moveAnalysisDate(1));
+$('analysis-date').addEventListener('change', (event) => selectAnalysisDate(event.target.value));
 setInterval(() => {
   countdown -= 1;
   if (countdown <= 0) {
@@ -170,4 +229,5 @@ setInterval(() => {
   $('countdown').textContent = countdown;
 }, 1000);
 
+syncDateSelector();
 load();

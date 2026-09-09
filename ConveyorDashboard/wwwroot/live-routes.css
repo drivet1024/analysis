@@ -101,8 +101,12 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .hourly-chart-card { --chart-color: var(--blue); min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); box-shadow: var(--shadow); }
 .hourly-chart-floor { --chart-color: var(--green); }
 .hourly-chart-manual { --chart-color: var(--amber); }
+.hourly-chart-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
 .hourly-chart-card h3 { margin: 0; font-size: 1rem; }
 .hourly-chart-card p { margin: 5px 0 0; color: var(--muted); font-size: .72rem; }
+.hourly-chart-total { flex: 0 0 auto; min-width: 74px; padding-left: 12px; border-left: 1px solid var(--line); text-align: right; }
+.hourly-chart-total span { display: block; color: var(--muted); font-size: .58rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.hourly-chart-total strong { display: block; margin-top: 3px; color: var(--chart-color); font-size: 1.3rem; line-height: 1; letter-spacing: -.04em; }
 .hourly-chart { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: stretch; gap: 4px; height: 175px; margin-top: 10px; padding-top: 3px; }
 .empty-chart { grid-column: 1 / -1; align-self: center; color: var(--muted); font-size: .78rem; text-align: center; }
 .hour-column { display: grid; grid-template-rows: 28px 1fr 22px; align-items: end; min-width: 0; height: 100%; text-align: center; }
@@ -127,7 +131,7 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .capacity-dot.total { background: #60a5fa; }.capacity-dot.unique { background: var(--green); }.capacity-dot.chute98 { background: #f472b6; }.capacity-dot.full { background: var(--green); }.capacity-dot.under { background: var(--amber); }.capacity-dot.gap { background: var(--red); }
 .capacity-chart { --benchmark-position: 83.33%; position: relative; display: grid; grid-template-columns: repeat(48, minmax(0, 1fr)); align-items: end; gap: 2px; height: 175px; margin-top: 12px; padding-top: 6px; border-bottom: 1px solid rgba(173, 208, 229, .28); background: repeating-linear-gradient(to top, transparent 0, transparent 24.5%, rgba(173, 208, 229, .07) 25%); }
 .capacity-chart::after { content: "benchmark"; position: absolute; z-index: 2; left: 0; right: 0; bottom: var(--benchmark-position); border-top: 1px dashed rgba(244, 248, 251, .7); color: var(--text); font-size: .57rem; line-height: 1; text-align: right; text-transform: uppercase; pointer-events: none; }
-.capacity-bar { position: relative; height: 100%; min-width: 0; }
+.capacity-bar { position: relative; height: 100%; min-width: 0; cursor: help; }
 .capacity-bar i { position: absolute; bottom: 0; display: block; min-height: 0; border-radius: 3px 3px 0 0; transition: height .35s ease; }
 .capacity-total-bar { right: 0; left: 0; background: #60a5fa; opacity: .46; }
 .capacity-unique-bar { right: 0; left: 0; background: var(--bar-color); opacity: .96; }
@@ -136,6 +140,11 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .capacity-bar:focus { outline: none; }
 .capacity-bar:focus-visible::after { content: ""; position: absolute; inset: 0; border: 1px solid rgba(126, 200, 255, .78); border-radius: 4px 4px 0 0; pointer-events: none; }
 .capacity-tooltip > strong { display: block; margin-bottom: 8px; color: #dff3ff; font-size: .7rem; letter-spacing: .035em; text-align: center; }
+.capacity-tooltip-throughput { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; padding: 7px 8px; border-radius: 8px; background: rgba(56, 220, 154, .1); color: var(--green); }
+.capacity-tooltip-throughput span { display: grid; gap: 2px; }
+.capacity-tooltip-throughput small { font-size: .55rem; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+.capacity-tooltip-throughput b { font-size: 1rem; line-height: 1; }
+.capacity-tooltip-throughput em { color: var(--muted); font-size: .56rem; font-style: normal; text-align: right; }
 .capacity-tooltip-values { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
 .capacity-tooltip-values span { padding: 6px 4px; border-radius: 8px; text-align: center; }
 .capacity-tooltip-values span.recirculated { background: rgba(251, 178, 71, .13); color: #fbc46e; }

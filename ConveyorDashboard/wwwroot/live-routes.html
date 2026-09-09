@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des convoyeurs Nationex par dépôt.">
   <title>Nationex - Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260908-1">
+  <link rel="stylesheet" href="/live-routes.css?v=20260908-3">
 </head>
 <body>
   <main class="dashboard-shell">
@@ -151,7 +151,7 @@
         </div>
         <article class="capacity-chart-card">
           <div class="capacity-chart-head">
-            <div><h3>Débit en colis/heure par bloc de 15 minutes</h3><p>Le total est derrière les colis uniques. Un colis unique est placé à son premier passage du quart; ses passages suivants restent dans leur bloc réel, même plus tard. La ligne pointillée représente la capacité pratique des colis uniques.</p></div>
+            <div><h3>Débit en colis/heure par bloc de 15 minutes</h3><p>Le total est derrière les colis uniques. Un colis unique est placé à son premier passage du quart; ses passages suivants restent dans leur bloc réel, même plus tard. La ligne pointillée représente la capacité pratique des colis uniques. Survolez une barre pour voir le débit exact.</p></div>
             <div class="capacity-legend"><span><i class="capacity-dot total"></i>Colis total</span><span><i class="capacity-dot unique"></i>Colis uniques</span><span><i class="capacity-dot chute98"></i>Nombre chute 98</span><span><i class="capacity-dot full"></i>À capacité</span><span><i class="capacity-dot under"></i>Sous capacité</span><span><i class="capacity-dot gap"></i>Creux</span></div>
           </div>
           <div id="capacity-chart" class="capacity-chart" role="img" aria-label="Débit du convoyeur du haut par bloc de quinze minutes"></div>
@@ -172,15 +172,15 @@
       </section>
       <div class="conveyor-charts-grid">
         <article id="hourly-high-card" class="hourly-chart-card hourly-chart-high">
-          <div><h3 id="hourly-high-title">Convoyeur du haut</h3><p id="hourly-high-context">16 h à 3 h · colis uniques · échelle commune</p></div>
+          <div class="hourly-chart-heading"><div><h3 id="hourly-high-title">Convoyeur du haut</h3><p id="hourly-high-context">16 h à 3 h · colis uniques · échelle commune</p></div><div class="hourly-chart-total"><span>Total</span><strong id="hourly-high-total">—</strong></div></div>
           <div id="hourly-high-chart" class="hourly-chart" role="img" aria-label="Nombre de colis par heure sur le convoyeur du haut"></div>
         </article>
         <article id="hourly-floor-card" class="hourly-chart-card hourly-chart-floor">
-          <div><h3>Convoyeur du bas</h3><p>16 h à 3 h · colis uniques · échelle commune</p></div>
+          <div class="hourly-chart-heading"><div><h3>Convoyeur du bas</h3><p>16 h à 3 h · colis uniques · échelle commune</p></div><div class="hourly-chart-total"><span>Total</span><strong id="hourly-floor-total">—</strong></div></div>
           <div id="hourly-floor-chart" class="hourly-chart" role="img" aria-label="Nombre de colis par heure sur le convoyeur du bas"></div>
         </article>
         <article id="hourly-manual-card" class="hourly-chart-card hourly-chart-manual">
-          <div><h3>Scan manuel</h3><p id="hourly-manual-context">16 h à 3 h · colis uniques · échelle commune</p></div>
+          <div class="hourly-chart-heading"><div><h3>Scan manuel</h3><p id="hourly-manual-context">16 h à 3 h · colis uniques · échelle commune</p></div><div class="hourly-chart-total"><span>Total</span><strong id="hourly-manual-total">—</strong></div></div>
           <div id="hourly-manual-chart" class="hourly-chart" role="img" aria-label="Nombre de colis par heure au scan manuel"></div>
         </article>
       </div>
@@ -202,6 +202,6 @@
     <p id="dialog-source" class="dialog-source">Horaire officiel du jour sur le serveur 101, vérifié avec les colis observés en haut, au sol et aux postes manuels depuis 16:00.</p>
   </dialog>
 
-  <script src="/live-routes.js?v=20260908-1" defer></script>
+  <script src="/live-routes.js?v=20260908-3" defer></script>
 </body>
 </html>

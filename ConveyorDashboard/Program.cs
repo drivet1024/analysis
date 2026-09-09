@@ -101,9 +101,16 @@ app.MapGet("/api/unprocessed-parcels", async (ConveyorDataService data) =>
     catch (Exception ex) { return Results.Problem($"La liste des colis non traités n'a pas pu être calculée : {ex.Message}"); }
 });
 
-app.MapGet("/api/edi", async (ConveyorDataService data) =>
+app.MapGet("/api/edi", async (string? date, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetEdiDashboardAsync()); }
+    try
+    {
+        var analysisDate = ResolveAnalysisDate(date, DateOnly.FromDateTime(DateTime.Today));
+        if (analysisDate > DateOnly.FromDateTime(DateTime.Today))
+            throw new ArgumentException("La date analysée ne peut pas être dans le futur.");
+        return Results.Ok(await data.GetEdiDashboardAsync(analysisDate));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Le tableau de bord EDI n'a pas pu être calculé : {ex.Message}"); }
 });
 
@@ -827,21 +834,21 @@ sealed class ConveyorDataService(DashboardConfig config)
         return Convert.ToInt32(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture) == 1;
     }
 
-    public async Task<EdiDashboardResponse> GetEdiDashboardAsync()
+    public async Task<EdiDashboardResponse> GetEdiDashboardAsync(DateOnly analysisDate)
     {
         const string parcelSnapshotSql = """
             SELECT
-              CURDATE() AS execution_date,
+              DATE(@analysisDate) AS execution_date,
               (SELECT COUNT(*)
                FROM parcel
                WHERE parcel_status NOT IN (500,501)
-                 AND INSERT_DATE >= CURDATE()
-                 AND INSERT_DATE < NOW()) AS parcels_today,
+                 AND INSERT_DATE >= @analysisDate
+                 AND INSERT_DATE < @analysisEnd) AS parcels_today,
               (SELECT COUNT(*)
                FROM parcel
                WHERE parcel_status NOT IN (500,501)
-                 AND INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-                 AND INSERT_DATE < DATE_SUB(NOW(), INTERVAL 7 DAY)) AS parcels_last_week_same_time
+                 AND INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+                 AND INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)) AS parcels_last_week_same_time
             """;
 
         const string regionsSql = """
@@ -881,31 +888,31 @@ sealed class ConveyorDataService(DashboardConfig config)
               rm.region,
               dep.depots,
               SUM(CASE
-                    WHEN s.INSERT_DATE >= CURDATE() AND s.INSERT_DATE < NOW()
+                    WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
                     THEN s.PARCEL_NB ELSE 0
                   END) AS parcels_today,
               CEILING(SUM(CASE
-                            WHEN s.INSERT_DATE >= CURDATE() AND s.INSERT_DATE < NOW()
+                            WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
                             THEN s.PARCEL_NB ELSE 0
                           END) / 60.0) AS pallets_today,
               SUM(CASE
-                    WHEN s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                     AND s.INSERT_DATE < CURDATE()
+                    WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY)
+                     AND s.INSERT_DATE < @analysisDate
                     THEN s.PARCEL_NB ELSE 0
                   END) AS parcels_yesterday,
               CEILING(SUM(CASE
-                            WHEN s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                             AND s.INSERT_DATE < CURDATE()
+                            WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY)
+                             AND s.INSERT_DATE < @analysisDate
                             THEN s.PARCEL_NB ELSE 0
                           END) / 60.0) AS pallets_yesterday,
               SUM(CASE
-                    WHEN s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-                     AND s.INSERT_DATE < DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+                     AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
                     THEN s.PARCEL_NB ELSE 0
                   END) AS parcels_last_week,
               CEILING(SUM(CASE
-                            WHEN s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-                             AND s.INSERT_DATE < DATE_SUB(NOW(), INTERVAL 7 DAY)
+                            WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+                             AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
                             THEN s.PARCEL_NB ELSE 0
                           END) / 60.0) AS pallets_last_week
             FROM shipment s
@@ -915,8 +922,8 @@ sealed class ConveyorDataService(DashboardConfig config)
             JOIN dep ON dep.region = rm.region
             WHERE s.SHIPMENT_STATUS NOT IN (500,501)
               AND rm.region IS NOT NULL
-              AND s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-              AND s.INSERT_DATE < NOW()
+              AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+              AND s.INSERT_DATE < @analysisEnd
             GROUP BY rm.region, dep.depots
             ORDER BY rm.region
             """;
@@ -924,7 +931,7 @@ sealed class ConveyorDataService(DashboardConfig config)
         const string weeklySql = """
             WITH RECURSIVE
             params AS (
-              SELECT DATE_SUB(CURDATE(), INTERVAL MOD(WEEKDAY(CURDATE()) + 2, 7) DAY) AS week_start
+              SELECT DATE_SUB(DATE(@analysisDate), INTERVAL MOD(WEEKDAY(@analysisDate) + 2, 7) DAY) AS week_start
             ),
             days AS (
               SELECT
@@ -961,6 +968,7 @@ sealed class ConveyorDataService(DashboardConfig config)
               CROSS JOIN params x
               WHERE p.INSERT_DATE >= x.week_start
                 AND p.INSERT_DATE < DATE_ADD(x.week_start, INTERVAL 7 DAY)
+                AND p.INSERT_DATE < @analysisEnd
                 AND p.PARCEL_STATUS NOT IN (500,501)
               GROUP BY DATEDIFF(p.INSERT_DATE, x.week_start)
             ),
@@ -1005,12 +1013,18 @@ sealed class ConveyorDataService(DashboardConfig config)
             ORDER BY sort_order
             """;
 
+        var analysisStart = analysisDate.ToDateTime(TimeOnly.MinValue);
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var analysisEnd = analysisDate == today ? DateTime.Now : analysisStart.AddDays(1);
+
         await using var connection = await OpenAsync();
-        var executionDate = DateOnly.FromDateTime(DateTime.Today);
+        var executionDate = analysisDate;
         long parcelsTodaySnapshot = 0, parcelsLastWeekSameTime = 0;
         await using (var command = new MySqlCommand(parcelSnapshotSql, connection) { CommandTimeout = 180 })
-        await using (var reader = await command.ExecuteReaderAsync())
         {
+            command.Parameters.AddWithValue("@analysisDate", analysisStart);
+            command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
+            await using var reader = await command.ExecuteReaderAsync();
             if (await reader.ReadAsync())
             {
                 executionDate = DateOnly.FromDateTime(reader.GetDateTime("execution_date"));
@@ -1021,8 +1035,10 @@ sealed class ConveyorDataService(DashboardConfig config)
 
         var regions = new List<EdiRegionRow>();
         await using (var command = new MySqlCommand(regionsSql, connection) { CommandTimeout = 180 })
-        await using (var reader = await command.ExecuteReaderAsync())
         {
+            command.Parameters.AddWithValue("@analysisDate", analysisStart);
+            command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
+            await using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
                 regions.Add(new EdiRegionRow(
                     reader.GetString("region"),
@@ -1039,8 +1055,10 @@ sealed class ConveyorDataService(DashboardConfig config)
         var databaseNow = DateTime.Now;
         long weeklyBudget = 0;
         await using (var command = new MySqlCommand(weeklySql, connection) { CommandTimeout = 180 })
-        await using (var reader = await command.ExecuteReaderAsync())
         {
+            command.Parameters.AddWithValue("@analysisDate", analysisStart);
+            command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
+            await using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
                 databaseNow = reader.GetDateTime("database_now");

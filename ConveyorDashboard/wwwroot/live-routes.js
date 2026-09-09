@@ -11,6 +11,7 @@ const DEPOTS = {
   gilmore: { name: 'Gilmore', startHour: 15, endHour: 9, hasFloor: false, supportsMeasurements: false }
 };
 const requestedDepot = new URLSearchParams(window.location.search).get('depot');
+const requestedTab = new URLSearchParams(window.location.search).get('tab');
 const rememberedDepot = window.localStorage.getItem('nationex-dashboard-depot');
 let selectedDepotKey = Object.hasOwn(DEPOTS, requestedDepot) ? requestedDepot
   : Object.hasOwn(DEPOTS, rememberedDepot) ? rememberedDepot
@@ -308,6 +309,7 @@ function renderHourly(data) {
   ];
   sources.forEach(([source, total, firstScan, lastScan]) => {
     $(`conveyor-${source}-total`).textContent = number.format(total);
+    $(`hourly-${source}-total`).textContent = number.format(total);
     $(`conveyor-${source}-start`).textContent = firstScan ? blockTime.format(new Date(firstScan)) : '—';
     $(`conveyor-${source}-end`).textContent = lastScan ? blockTime.format(new Date(lastScan)) : '—';
     $(`conveyor-${source}-duration`).textContent = formatDuration(firstScan, lastScan);
@@ -349,6 +351,7 @@ function renderHourly(data) {
 
 function renderHourlyError() {
   ['conveyor-high-total', 'conveyor-floor-total', 'conveyor-manual-total',
+    'hourly-high-total', 'hourly-floor-total', 'hourly-manual-total',
     'conveyor-high-start', 'conveyor-floor-start', 'conveyor-manual-start',
     'conveyor-high-average', 'conveyor-floor-average', 'conveyor-manual-average',
     'conveyor-high-end', 'conveyor-floor-end', 'conveyor-manual-end',
@@ -485,12 +488,16 @@ function renderCapacity(data) {
     const totalHeight = bucket.isFuture ? 0 : Math.min(100, 100 * totalHourlyRate / maxRate);
     const accessibleSummary = bucket.isFuture
       ? `${bucketDate.getHours()} h ${String(bucketDate.getMinutes()).padStart(2, '0')} · à venir`
-      : `${number.format(recirculated)} recirculation(s) · ${number.format(chute98)} colis chute 98 · ${utilization.toLocaleString('fr-CA')} % de capacité · ${formatTime(bucket.bucketStart)} à ${formatTime(endDate)}`;
+      : `${number.format(hourlyRate)} colis uniques par heure · ${number.format(totalHourlyRate)} passages par heure · ${number.format(recirculated)} recirculation(s) · ${number.format(chute98)} colis chute 98 · ${utilization.toLocaleString('fr-CA')} % de capacité · ${formatTime(bucket.bucketStart)} à ${formatTime(endDate)}`;
     column.setAttribute('aria-label', accessibleSummary);
     if (!bucket.isFuture) column.tabIndex = 0;
     const tooltip = bucket.isFuture ? '' : `
       <div class="capacity-tooltip" role="tooltip">
         <strong>${blockTime.format(bucketDate)} – ${blockTime.format(endDate)}</strong>
+        <div class="capacity-tooltip-throughput">
+          <span><small>Débit</small><b>${number.format(hourlyRate)} colis/h</b></span>
+          <em>${number.format(totalHourlyRate)} passages/h au total</em>
+        </div>
         <div class="capacity-tooltip-values">
           <span class="recirculated"><small>Recirculations</small><b>${number.format(recirculated)}</b></span>
           <span class="chute"><small>Chute 98</small><b>${number.format(chute98)}</b></span>
@@ -632,6 +639,8 @@ setInterval(() => {
 }, 1000);
 
 applyDepotSelection(selectedDepotKey, false);
+if (requestedTab === 'routes-tab' && selectedDepotKey === 'st-hubert') activateTab('routes-tab');
+if (requestedTab === 'conveyor-tab') activateTab('conveyor-tab');
 load();
 
 function activateTab(tabId) {

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Scans en direct des dépôts Nationex.">
   <title>Scans des dépôts Nationex</title>
-  <link rel="stylesheet" href="/quebec-scans.css?v=20260903-21">
+  <link rel="stylesheet" href="/quebec-scans.css?v=20260908-22">
 </head>
 <body>
   <main class="shell">
@@ -33,6 +33,13 @@
         </div>
       </div>
     </header>
+
+    <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+      <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
+      <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
+      <a class="dashboard-tab active" href="/quebec-scans.html" aria-current="page">Analyse code 25</a>
+      <a class="dashboard-tab" href="/edi.html">EDI</a>
+    </nav>
 
     <section id="st-hubert-rerouted" class="rerouted-banner interactive" role="button" tabindex="0" aria-label="Voir les colis avec un code 25 attribué à St-Hubert" hidden>
       <div><span>Code 25 attribués · St-Hubert</span><strong id="st-hubert-rerouted-total">—</strong></div>
