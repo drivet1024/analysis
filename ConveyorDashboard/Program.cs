@@ -105,8 +105,9 @@ app.MapGet("/api/edi", async (string? date, ConveyorDataService data) =>
 {
     try
     {
-        var analysisDate = ResolveAnalysisDate(date, DateOnly.FromDateTime(DateTime.Today));
-        if (analysisDate > DateOnly.FromDateTime(DateTime.Today))
+        var currentEdiDate = CurrentOperationalDate(DateTime.Now);
+        var analysisDate = ResolveAnalysisDate(date, currentEdiDate);
+        if (analysisDate > currentEdiDate)
             throw new ArgumentException("La date analysée ne peut pas être dans le futur.");
         return Results.Ok(await data.GetEdiDashboardAsync(analysisDate));
     }
@@ -560,6 +561,17 @@ sealed record EdiDailyRow(
     string DayName,
     long Parcels,
     long Budget);
+sealed record EdiClientTrendRow(
+    long CustomerId,
+    string CustomerName,
+    long CurrentParcels,
+    long Week1Parcels,
+    long Week2Parcels,
+    long Week3Parcels,
+    long Week4Parcels,
+    double HistoricalAverage,
+    double? TrendPercent,
+    string TrendDirection);
 sealed record EdiDashboardResponse(
     DateTime DatabaseNow,
     DateOnly ExecutionDate,
@@ -570,6 +582,7 @@ sealed record EdiDashboardResponse(
     long WeeklyBudget,
     IReadOnlyList<EdiRegionRow> Regions,
     IReadOnlyList<EdiDailyRow> Days,
+    IReadOnlyList<EdiClientTrendRow> Clients,
     DateTimeOffset GeneratedAt);
 sealed record ConveyorHourlyRow(string Source, int Hour, long Parcels);
 sealed record ConveyorHourlyResponse(
@@ -962,15 +975,15 @@ sealed class ConveyorDataService(DashboardConfig config)
             ),
             actual AS (
               SELECT
-                DATEDIFF(p.INSERT_DATE, x.week_start) AS sort_order,
+                DATEDIFF(DATE_SUB(p.INSERT_DATE, INTERVAL 4 HOUR), x.week_start) AS sort_order,
                 COUNT(*) AS nb_colis
               FROM parcel p
               CROSS JOIN params x
-              WHERE p.INSERT_DATE >= x.week_start
-                AND p.INSERT_DATE < DATE_ADD(x.week_start, INTERVAL 7 DAY)
+              WHERE p.INSERT_DATE >= DATE_ADD(x.week_start, INTERVAL 4 HOUR)
+                AND p.INSERT_DATE < DATE_ADD(DATE_ADD(x.week_start, INTERVAL 7 DAY), INTERVAL 4 HOUR)
                 AND p.INSERT_DATE < @analysisEnd
                 AND p.PARCEL_STATUS NOT IN (500,501)
-              GROUP BY DATEDIFF(p.INSERT_DATE, x.week_start)
+              GROUP BY DATEDIFF(DATE_SUB(p.INSERT_DATE, INTERVAL 4 HOUR), x.week_start)
             ),
             weekly_budget AS (
               SELECT COALESCE(SUM(b.BUDGET_PARCELS_COUNT), 0) AS weekly_total
@@ -1013,9 +1026,70 @@ sealed class ConveyorDataService(DashboardConfig config)
             ORDER BY sort_order
             """;
 
-        var analysisStart = analysisDate.ToDateTime(TimeOnly.MinValue);
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        var analysisEnd = analysisDate == today ? DateTime.Now : analysisStart.AddDays(1);
+        const string clientsSql = """
+            WITH volumes AS (
+              SELECT
+                s.CUSTOMER_ID AS customer_id,
+                0 AS week_index,
+                SUM(s.PARCEL_NB) AS parcels
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL
+                AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= @analysisDate
+                AND s.INSERT_DATE < @analysisEnd
+              GROUP BY s.CUSTOMER_ID
+              UNION ALL
+              SELECT s.CUSTOMER_ID, 1, SUM(s.PARCEL_NB)
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+                AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
+              GROUP BY s.CUSTOMER_ID
+              UNION ALL
+              SELECT s.CUSTOMER_ID, 2, SUM(s.PARCEL_NB)
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 14 DAY)
+                AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 14 DAY)
+              GROUP BY s.CUSTOMER_ID
+              UNION ALL
+              SELECT s.CUSTOMER_ID, 3, SUM(s.PARCEL_NB)
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 21 DAY)
+                AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 21 DAY)
+              GROUP BY s.CUSTOMER_ID
+              UNION ALL
+              SELECT s.CUSTOMER_ID, 4, SUM(s.PARCEL_NB)
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 28 DAY)
+                AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 28 DAY)
+              GROUP BY s.CUSTOMER_ID
+            )
+            SELECT
+              v.customer_id,
+              COALESCE(NULLIF(TRIM(c.NAME), ''), CONCAT('Client ', v.customer_id)) AS customer_name,
+              SUM(CASE WHEN v.week_index = 0 THEN v.parcels ELSE 0 END) AS current_parcels,
+              SUM(CASE WHEN v.week_index = 1 THEN v.parcels ELSE 0 END) AS week_1_parcels,
+              SUM(CASE WHEN v.week_index = 2 THEN v.parcels ELSE 0 END) AS week_2_parcels,
+              SUM(CASE WHEN v.week_index = 3 THEN v.parcels ELSE 0 END) AS week_3_parcels,
+              SUM(CASE WHEN v.week_index = 4 THEN v.parcels ELSE 0 END) AS week_4_parcels
+            FROM volumes v
+            LEFT JOIN customer c ON c.CUSTOMER_ID = v.customer_id
+            GROUP BY v.customer_id, c.NAME
+            ORDER BY current_parcels DESC, customer_name
+            """;
+
+        var analysisStart = analysisDate.ToDateTime(new TimeOnly(4, 0));
+        var now = DateTime.Now;
+        var currentEdiDate = DateOnly.FromDateTime(now.Hour < 4 ? now.AddDays(-1) : now);
+        var analysisEnd = analysisDate == currentEdiDate ? now : analysisStart.AddDays(1);
 
         await using var connection = await OpenAsync();
         var executionDate = analysisDate;
@@ -1051,6 +1125,42 @@ sealed class ConveyorDataService(DashboardConfig config)
                     Int64OrZero(reader, "pallets_last_week")));
         }
 
+        var clients = new List<EdiClientTrendRow>();
+        await using (var command = new MySqlCommand(clientsSql, connection) { CommandTimeout = 180 })
+        {
+            command.Parameters.AddWithValue("@analysisDate", analysisStart);
+            command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var currentParcels = Int64OrZero(reader, "current_parcels");
+                var week1Parcels = Int64OrZero(reader, "week_1_parcels");
+                var week2Parcels = Int64OrZero(reader, "week_2_parcels");
+                var week3Parcels = Int64OrZero(reader, "week_3_parcels");
+                var week4Parcels = Int64OrZero(reader, "week_4_parcels");
+                var historicalAverage = (week1Parcels + week2Parcels + week3Parcels + week4Parcels) / 4.0;
+                double? trendPercent = historicalAverage > 0
+                    ? Math.Round((currentParcels - historicalAverage) * 100.0 / historicalAverage, 1)
+                    : null;
+                var trendDirection = historicalAverage == 0
+                    ? currentParcels > 0 ? "new" : "stable"
+                    : currentParcels > historicalAverage ? "up"
+                    : currentParcels < historicalAverage ? "down"
+                    : "stable";
+                clients.Add(new EdiClientTrendRow(
+                    reader.GetInt64("customer_id"),
+                    reader.GetString("customer_name").Trim(),
+                    currentParcels,
+                    week1Parcels,
+                    week2Parcels,
+                    week3Parcels,
+                    week4Parcels,
+                    historicalAverage,
+                    trendPercent,
+                    trendDirection));
+            }
+        }
+
         var days = new List<EdiDailyRow>(7);
         var databaseNow = DateTime.Now;
         long weeklyBudget = 0;
@@ -1083,6 +1193,7 @@ sealed class ConveyorDataService(DashboardConfig config)
             weeklyBudget,
             regions,
             days,
+            clients,
             DateTimeOffset.Now);
     }
 

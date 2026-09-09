@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des convoyeurs Nationex par dépôt.">
   <title>Nationex - Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260908-4">
+  <link rel="stylesheet" href="/live-routes.css?v=20260908-5">
 </head>
 <body>
   <main class="dashboard-shell">
@@ -34,12 +34,22 @@
       </div>
     </header>
 
-    <nav class="dashboard-tabs" role="tablist" aria-label="Sections du tableau de bord">
-      <button id="routes-tab-button" class="dashboard-tab active" type="button" role="tab" aria-selected="true" aria-controls="routes-tab" data-tab="routes-tab">Routes 500xx</button>
-      <button id="conveyor-tab-button" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="conveyor-tab" data-tab="conveyor-tab">Données convoyeur</button>
-      <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
-      <a class="dashboard-tab" href="/edi.html">EDI</a>
-    </nav>
+    <div class="dashboard-navigation">
+      <nav class="dashboard-tabs" role="tablist" aria-label="Sections du tableau de bord">
+        <button id="routes-tab-button" class="dashboard-tab active" type="button" role="tab" aria-selected="true" aria-controls="routes-tab" data-tab="routes-tab">Routes 500xx</button>
+        <button id="conveyor-tab-button" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="conveyor-tab" data-tab="conveyor-tab">Données convoyeur</button>
+        <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
+        <a class="dashboard-tab" href="/edi.html">EDI</a>
+      </nav>
+      <div class="conveyor-date-context">
+        <span>Date analysée</span>
+        <div class="conveyor-date-navigation">
+          <button id="previous-conveyor-date" type="button" aria-label="Jour précédent">‹</button>
+          <input id="conveyor-analysis-date" type="date" aria-label="Date analysée">
+          <button id="next-conveyor-date" type="button" aria-label="Jour suivant">›</button>
+        </div>
+      </div>
+    </div>
 
     <div id="routes-tab" class="tab-panel" role="tabpanel" aria-labelledby="routes-tab-button">
 
@@ -112,14 +122,6 @@
     <section id="conveyor-tab" class="tab-panel conveyor-tab-panel" role="tabpanel" aria-labelledby="conveyor-tab-button" hidden>
       <div class="section-heading conveyor-heading">
         <div><p id="conveyor-shift-kicker" class="section-kicker">Quart de 16:00 à 03:59</p><h2>Données convoyeur · <span id="conveyor-depot-heading">Saint-Hubert</span></h2></div>
-        <div class="conveyor-date-context">
-          <span>Date analysée</span>
-          <div class="conveyor-date-navigation">
-            <button id="previous-conveyor-date" type="button" aria-label="Jour précédent">‹</button>
-            <input id="conveyor-analysis-date" type="date" aria-label="Date analysée">
-            <button id="next-conveyor-date" type="button" aria-label="Jour suivant">›</button>
-          </div>
-        </div>
       </div>
       <div id="conveyor-pill-grid" class="conveyor-pill-grid" aria-live="polite">
         <article id="conveyor-high-card" class="conveyor-pill conveyor-pill-high"><span id="conveyor-high-label">Convoyeur du haut</span><div class="conveyor-pill-content"><div class="conveyor-pill-volume"><strong id="conveyor-high-total">—</strong><small id="conveyor-high-average-stat" class="historical-conveyor-stat" hidden><b id="conveyor-high-average">—</b></small></div><div class="conveyor-pill-times"><small>Début <b id="conveyor-high-start">—</b></small><small id="conveyor-high-end-stat" class="historical-conveyor-stat" hidden>Fin <b id="conveyor-high-end">—</b></small><small id="conveyor-high-duration-stat" class="historical-conveyor-stat" hidden>Durée <b id="conveyor-high-duration">—</b></small></div></div></article>

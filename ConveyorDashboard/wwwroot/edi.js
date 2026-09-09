@@ -1,8 +1,12 @@
 const REFRESH_SECONDS = 60;
+const EDI_DAY_START_HOUR = 4;
 const $ = (id) => document.getElementById(id);
 const number = new Intl.NumberFormat('fr-CA');
+const decimal = new Intl.NumberFormat('fr-CA', { maximumFractionDigits: 1 });
 const time = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const hourMinute = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit' });
 const shortDate = new Intl.DateTimeFormat('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' });
+const columnDate = new Intl.DateTimeFormat('fr-CA', { day: '2-digit', month: 'short' });
 let countdown = REFRESH_SECONDS;
 let requestVersion = 0;
 
@@ -15,6 +19,12 @@ function isoLocalDate(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+function currentEdiDate() {
+  const date = new Date();
+  if (date.getHours() < EDI_DAY_START_HOUR) date.setDate(date.getDate() - 1);
+  return isoLocalDate(date);
+}
+
 function validIsoDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
   const parsed = parseDate(value);
@@ -23,14 +33,14 @@ function validIsoDate(value) {
 
 function initialAnalysisDate() {
   const requested = new URLSearchParams(window.location.search).get('date');
-  const today = isoLocalDate();
+  const today = currentEdiDate();
   return validIsoDate(requested) && requested <= today ? requested : today;
 }
 
 let selectedAnalysisDate = initialAnalysisDate();
 
 function syncDateSelector() {
-  const today = isoLocalDate();
+  const today = currentEdiDate();
   $('analysis-date').max = today;
   $('analysis-date').value = selectedAnalysisDate;
   $('next-date').disabled = selectedAnalysisDate >= today;
@@ -38,7 +48,7 @@ function syncDateSelector() {
 
 function selectAnalysisDate(value) {
   if (!validIsoDate(value)) return;
-  selectedAnalysisDate = value > isoLocalDate() ? isoLocalDate() : value;
+  selectedAnalysisDate = value > currentEdiDate() ? currentEdiDate() : value;
   syncDateSelector();
   const url = new URL(window.location.href);
   url.searchParams.set('date', selectedAnalysisDate);
@@ -56,6 +66,12 @@ function moveAnalysisDate(dayOffset) {
 
 function formatDate(value) {
   return value ? shortDate.format(parseDate(value)) : '—';
+}
+
+function offsetDate(value, days) {
+  const date = parseDate(value);
+  date.setDate(date.getDate() + days);
+  return isoLocalDate(date);
 }
 
 function formatTime(value) {
@@ -115,6 +131,69 @@ function renderRegions(regions) {
   $('pallets-today').textContent = number.format(totals.palletsToday);
 }
 
+function calculateClientTrend(currentParcels, history) {
+  const historicalAverage = history.reduce((sum, value) => sum + value, 0) / history.length;
+  if (historicalAverage === 0) {
+    return { historicalAverage, trendPercent: null, trendDirection: currentParcels > 0 ? 'new' : 'stable' };
+  }
+  const trendPercent = (currentParcels - historicalAverage) * 100 / historicalAverage;
+  return {
+    historicalAverage,
+    trendPercent,
+    trendDirection: currentParcels > historicalAverage ? 'up' : currentParcels < historicalAverage ? 'down' : 'stable'
+  };
+}
+
+function trendBadge(direction, percent) {
+  if (direction === 'new') return '<span class="trend-pill new">Nouveau</span>';
+  if (direction === 'stable') return '<span class="trend-pill stable">→ Stable</span>';
+  const safeDirection = direction === 'up' ? 'up' : 'down';
+  const arrow = safeDirection === 'up' ? '↑' : '↓';
+  const sign = safeDirection === 'up' ? '+' : '−';
+  return `<span class="trend-pill ${safeDirection}">${arrow} ${sign}${decimal.format(Math.abs(Number(percent) || 0))} %</span>`;
+}
+
+function renderClients(clients, analysisDate, databaseNow) {
+  const isToday = analysisDate === currentEdiDate();
+  $('client-date-current').textContent = isToday ? 'Aujourd’hui' : columnDate.format(parseDate(analysisDate));
+  for (let week = 1; week <= 4; week += 1) {
+    $(`client-date-week${week}`).textContent = columnDate.format(parseDate(offsetDate(analysisDate, -7 * week)));
+  }
+  $('clients-trend-context').textContent = `${number.format(clients.length)} client${clients.length === 1 ? '' : 's'} · ${isToday ? `de 4 h à ${hourMinute.format(new Date(databaseNow))}` : 'journées complètes de 4 h à 4 h'} · écart par rapport à la moyenne des quatre semaines`;
+
+  const body = $('clients-body');
+  body.replaceChildren();
+  if (!clients.length) {
+    body.innerHTML = '<tr><td colspan="8" class="empty-cell">Aucun volume client trouvé pour ces cinq dates.</td></tr>';
+    $('clients-foot').replaceChildren();
+    return;
+  }
+
+  clients.forEach((client) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td class="client-name">${escapeHtml(client.customerName)}<small>Client ${number.format(client.customerId)}</small></td>
+      <td><strong>${number.format(client.currentParcels)}</strong></td>
+      <td>${number.format(client.week1Parcels)}</td>
+      <td>${number.format(client.week2Parcels)}</td>
+      <td>${number.format(client.week3Parcels)}</td>
+      <td>${number.format(client.week4Parcels)}</td>
+      <td class="client-average">${decimal.format(client.historicalAverage)}</td>
+      <td>${trendBadge(client.trendDirection, client.trendPercent)}</td>`;
+    body.append(row);
+  });
+
+  const totals = clients.reduce((sum, client) => ({
+    current: sum.current + Number(client.currentParcels || 0),
+    week1: sum.week1 + Number(client.week1Parcels || 0),
+    week2: sum.week2 + Number(client.week2Parcels || 0),
+    week3: sum.week3 + Number(client.week3Parcels || 0),
+    week4: sum.week4 + Number(client.week4Parcels || 0)
+  }), { current: 0, week1: 0, week2: 0, week3: 0, week4: 0 });
+  const totalTrend = calculateClientTrend(totals.current, [totals.week1, totals.week2, totals.week3, totals.week4]);
+  $('clients-foot').innerHTML = `<tr><td>Total</td><td>${number.format(totals.current)}</td><td>${number.format(totals.week1)}</td><td>${number.format(totals.week2)}</td><td>${number.format(totals.week3)}</td><td>${number.format(totals.week4)}</td><td>${decimal.format(totalTrend.historicalAverage)}</td><td>${trendBadge(totalTrend.trendDirection, totalTrend.trendPercent)}</td></tr>`;
+}
+
 function renderWeek(days, weeklyBudget, analysisDate) {
   const body = $('week-body');
   body.replaceChildren();
@@ -167,13 +246,14 @@ function renderWeek(days, weeklyBudget, analysisDate) {
 function render(data) {
   const regions = data.regions || [];
   const days = data.days || [];
+  const clients = data.clients || [];
   selectedAnalysisDate = data.executionDate || selectedAnalysisDate;
   syncDateSelector();
-  const isToday = selectedAnalysisDate === isoLocalDate();
+  const isToday = selectedAnalysisDate === currentEdiDate();
   const selectedDateLabel = formatDate(selectedAnalysisDate);
 
   $('snapshot-today-label').textContent = isToday ? 'Colis aujourd’hui' : `Colis · ${selectedDateLabel}`;
-  $('snapshot-today-context').textContent = isToday ? 'Depuis minuit jusqu’à maintenant' : 'Journée complète';
+  $('snapshot-today-context').textContent = isToday ? 'Depuis 4 h jusqu’à maintenant' : 'Journée complète · 4 h à 4 h';
   $('snapshot-d7-context').textContent = isToday ? 'Même période et même heure' : 'Même journée, sept jours plus tôt';
   $('linehaul-parcels-label').textContent = isToday ? 'Colis linehaul aujourd’hui' : `Colis linehaul · ${selectedDateLabel}`;
   $('linehaul-pallets-label').textContent = isToday ? 'Palettes linehaul aujourd’hui' : `Palettes linehaul · ${selectedDateLabel}`;
@@ -184,6 +264,7 @@ function render(data) {
   $('regions-current-label').textContent = isToday ? 'Aujourd’hui' : selectedDateLabel;
 
   renderRegions(regions);
+  renderClients(clients, selectedAnalysisDate, data.databaseNow);
   renderWeek(days, Number(data.weeklyBudget || 0), selectedAnalysisDate);
   $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);
   $('snapshot-parcels-d7').textContent = number.format(data.parcelsLastWeekSameTime || 0);

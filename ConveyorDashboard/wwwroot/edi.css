@@ -27,7 +27,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -.035em; }
 h1 { font-size: clamp(1.55rem, 3vw, 2.45rem); }
 h2 { font-size: clamp(1.25rem, 2vw, 1.75rem); }
 h3 { font-size: 1rem; }
-.analysis-date-context { display: grid; gap: 5px; }
+.analysis-date-context { display: grid; flex: 0 0 auto; gap: 5px; margin-left: auto; }
 .analysis-date-context > span:first-child { color: var(--muted); font-size: .65rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 .date-navigation { display: grid; grid-template-columns: 36px minmax(142px, 1fr) 36px; gap: 6px; }
 .date-navigation button, .date-navigation input { height: 36px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); color: var(--text); font: inherit; font-weight: 800; }
@@ -45,7 +45,8 @@ h3 { font-size: 1rem; }
 #live-dot.error { background: var(--red); }
 #refresh-button { border: 0; border-radius: 9px; padding: 8px 11px; background: var(--text); color: var(--bg); cursor: pointer; font-size: .8rem; font-weight: 850; }
 #refresh-button:disabled { opacity: .55; cursor: wait; }
-.dashboard-tabs { display: flex; gap: 5px; width: fit-content; max-width: 100%; margin-top: 13px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: rgba(14, 26, 36, .75); }
+.dashboard-navigation { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-top: 13px; }
+.dashboard-tabs { display: flex; gap: 5px; width: fit-content; max-width: 100%; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: rgba(14, 26, 36, .75); }
 .dashboard-tab { padding: 7px 12px; border-radius: 8px; color: var(--muted); font-size: .8rem; font-weight: 850; text-decoration: none; }
 .dashboard-tab.active { background: var(--text); color: var(--bg); }
 .dashboard-tab:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
@@ -88,6 +89,19 @@ tbody tr:last-child td { border-bottom: 0; }
 td strong { color: #fff; font-size: .9rem; }
 .region-name { font-weight: 900; }
 .depots-cell { max-width: 360px; color: var(--muted); line-height: 1.35; }
+.client-trend-wrap { max-height: 620px; }
+.client-trend-table { min-width: 940px; }
+.client-trend-table thead th { position: sticky; z-index: 2; top: 0; }
+.client-trend-table tfoot td { position: sticky; z-index: 2; bottom: 0; }
+.client-trend-table th:not(:first-child), .client-trend-table td:not(:first-child) { text-align: right; }
+.client-name { min-width: 250px; color: var(--text); font-weight: 850; }
+.client-name small { display: block; margin-top: 3px; color: var(--muted); font-size: .62rem; font-weight: 650; }
+.client-average { color: #c5d8e4; font-weight: 800; }
+.trend-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 86px; padding: 5px 8px; border-radius: 999px; font-size: .68rem; font-weight: 900; white-space: nowrap; }
+.trend-pill.up { background: rgba(56, 220, 154, .12); color: var(--green); }
+.trend-pill.down { background: rgba(255, 107, 114, .12); color: var(--red); }
+.trend-pill.stable { background: rgba(143, 166, 182, .12); color: #bfd0db; }
+.trend-pill.new { background: rgba(81, 167, 255, .13); color: #8dc5ff; }
 tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; background: rgba(81, 167, 255, .06); font-weight: 900; }
 .empty-cell { padding: 30px !important; color: var(--muted); text-align: center !important; }
 .week-layout { display: grid; grid-template-columns: minmax(650px, 1.1fr) minmax(420px, .9fr); gap: 12px; }
@@ -126,6 +140,8 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
   .live-box { width: 100%; }.live-box > div { flex: 1; }
   .dashboard-tabs { width: 100%; overflow-x: auto; }
   .dashboard-tab { flex: 0 0 auto; }
+  .dashboard-navigation { align-items: stretch; flex-direction: column; }
+  .analysis-date-context { width: 100%; margin-left: 0; }
   .kpi-grid, .context-strip, .parcel-snapshot { grid-template-columns: 1fr; }
   .context-strip div { border-right: 0; border-bottom: 1px solid var(--line); }
   .context-strip div:last-child { border-bottom: 0; }

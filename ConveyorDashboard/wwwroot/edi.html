@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI</title>
-  <link rel="stylesheet" href="/edi.css?v=20260908-4">
+  <link rel="stylesheet" href="/edi.css?v=20260908-6">
 </head>
 <body>
   <main class="shell">
@@ -15,14 +15,6 @@
         <div><p>Nationex · Opérations</p><h1>Tableau de bord EDI</h1></div>
       </div>
       <div class="topbar-actions">
-        <div class="analysis-date-context">
-          <span>Date analysée</span>
-          <span class="date-navigation">
-            <button id="previous-date" type="button" aria-label="Afficher la journée précédente">‹</button>
-            <input id="analysis-date" type="date" aria-label="Date analysée">
-            <button id="next-date" type="button" aria-label="Afficher la journée suivante">›</button>
-          </span>
-        </div>
         <div class="live-box">
           <i id="live-dot" aria-hidden="true"></i>
           <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
@@ -31,12 +23,22 @@
       </div>
     </header>
 
-    <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
-      <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
-      <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
-      <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
-      <a class="dashboard-tab active" href="/edi.html" aria-current="page">EDI</a>
-    </nav>
+    <div class="dashboard-navigation">
+      <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+        <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
+        <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
+        <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
+        <a class="dashboard-tab active" href="/edi.html" aria-current="page">EDI</a>
+      </nav>
+      <div class="analysis-date-context">
+        <span>Date analysée</span>
+        <span class="date-navigation">
+          <button id="previous-date" type="button" aria-label="Afficher la journée précédente">‹</button>
+          <input id="analysis-date" type="date" aria-label="Date analysée">
+          <button id="next-date" type="button" aria-label="Afficher la journée suivante">›</button>
+        </span>
+      </div>
+    </div>
 
     <section class="context-strip" aria-label="Contexte des données">
       <div><span>Semaine analysée</span><strong id="week-range">—</strong></div>
@@ -49,7 +51,7 @@
 
     <section class="parcel-snapshot" aria-label="Comparaison des colis à la même heure">
       <article class="snapshot-pill snapshot-today">
-        <div><span id="snapshot-today-label">Colis aujourd’hui</span><small id="snapshot-today-context">Depuis minuit jusqu’à maintenant</small></div>
+        <div><span id="snapshot-today-label">Colis aujourd’hui</span><small id="snapshot-today-context">Depuis 4 h jusqu’à maintenant</small></div>
         <strong id="snapshot-parcels-today">—</strong>
       </article>
       <article class="snapshot-pill snapshot-d7">
@@ -92,6 +94,31 @@
       </div>
     </section>
 
+    <section class="data-section" aria-labelledby="clients-title">
+      <div class="section-heading">
+        <div><p>Tendance par client</p><h2 id="clients-title">Volumes des mêmes jours de semaine</h2></div>
+        <span id="clients-trend-context">Comparaison avec la moyenne des quatre semaines précédentes à la même heure</span>
+      </div>
+      <div class="table-wrap client-trend-wrap">
+        <table class="client-trend-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th id="client-date-current">Aujourd’hui</th>
+              <th id="client-date-week1">S−1</th>
+              <th id="client-date-week2">S−2</th>
+              <th id="client-date-week3">S−3</th>
+              <th id="client-date-week4">S−4</th>
+              <th>Moyenne 4 sem.</th>
+              <th>Tendance</th>
+            </tr>
+          </thead>
+          <tbody id="clients-body"><tr><td colspan="8" class="empty-cell">Chargement des clients…</td></tr></tbody>
+          <tfoot id="clients-foot"></tfoot>
+        </table>
+      </div>
+    </section>
+
     <section class="data-section" aria-labelledby="week-title">
       <div class="section-heading">
         <div><p>Semaine analysée</p><h2 id="week-title">Colis par jour et budget</h2></div>
@@ -112,8 +139,8 @@
       </div>
     </section>
 
-    <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. La semaine débute le samedi.</p>
+    <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
-  <script src="/edi.js?v=20260908-3" defer></script>
+  <script src="/edi.js?v=20260908-7" defer></script>
 </body>
 </html>
