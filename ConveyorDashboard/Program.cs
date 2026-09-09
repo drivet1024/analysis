@@ -101,25 +101,37 @@ app.MapGet("/api/unprocessed-parcels", async (ConveyorDataService data) =>
     catch (Exception ex) { return Results.Problem($"La liste des colis non traités n'a pas pu être calculée : {ex.Message}"); }
 });
 
-app.MapGet("/api/conveyor-hourly", async (string? date, ConveyorDataService data) =>
+app.MapGet("/api/conveyor-hourly", async (string? date, string? depot, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetConveyorHourlyAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetConveyorHourlyAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot));
+    }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Les volumes horaires du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
 });
 
-app.MapGet("/api/conveyor-quality", async (string? date, ConveyorDataService data) =>
+app.MapGet("/api/conveyor-quality", async (string? date, string? depot, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetConveyorQualityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetConveyorQualityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot));
+    }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Les indicateurs de qualité du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
 });
 
-app.MapGet("/api/high-conveyor-capacity", async (string? date, ConveyorDataService data) =>
+app.MapGet("/api/high-conveyor-capacity", async (string? date, string? depot, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetHighConveyorCapacityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetHighConveyorCapacityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot));
+    }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
-    catch (Exception ex) { return Results.Problem($"L'analyse de capacité du convoyeur du haut n'a pas pu être calculée : {ex.Message}"); }
+    catch (Exception ex) { return Results.Problem($"L'analyse de capacité du convoyeur n'a pas pu être calculée : {ex.Message}"); }
 });
 
 app.MapGet("/api/scan-depots", async (ConveyorDataService data) =>
@@ -274,8 +286,8 @@ static DateOnly ResolveAnalysisDate(string? value, DateOnly fallback)
     throw new ArgumentException("La date doit être au format AAAA-MM-JJ.");
 }
 
-static DateOnly CurrentOperationalDate(DateTime now) =>
-    DateOnly.FromDateTime(now.Hour < 4 ? now.AddDays(-1) : now);
+static DateOnly CurrentOperationalDate(DateTime now, DepotDefinition? depot = null) =>
+    DateOnly.FromDateTime(now.Hour < (depot?.EndHour ?? 4) ? now.AddDays(-1) : now);
 
 static TimeWindowBounds ResolveTimeWindow(string? dateValue, string? startValue, string? endValue, DateTime now)
 {
@@ -340,9 +352,22 @@ sealed record DashboardConfig(string MySqlHost, uint MySqlPort, string MySqlData
 }
 
 sealed record ConveyorDefinition(string Key, string Name, string Site, int DepotId, int StartHour, int EndHour, string SourcePredicate, bool SupportsMeasurements);
+sealed record DepotDefinition(string Key, string Name, int DepotId, int StartHour, int EndHour, bool HasFloorConveyor, bool SupportsMeasurements)
+{
+    public DateTime ShiftStart(DateOnly date) => date.ToDateTime(new TimeOnly(StartHour, 0));
+    public DateTime ShiftEnd(DateOnly date) => date.AddDays(1).ToDateTime(new TimeOnly(EndHour, 0));
+}
 
 static class ConveyorCatalog
 {
+    public static readonly IReadOnlyList<DepotDefinition> Depots =
+    [
+        new("st-hubert", "Saint-Hubert", 1, 16, 4, true, true),
+        new("quebec", "Québec", 2, 13, 7, false, true),
+        new("toronto", "Toronto", 12, 15, 9, false, true),
+        new("gilmore", "Gilmore", 28, 15, 9, false, false),
+    ];
+
     public static readonly IReadOnlyList<ConveyorDefinition> All =
     [
         new("sth-top", "St-Hubert — haut", "St-Hubert", 1, 15, 3, "(ph.SOURCE_ID IS NULL OR ph.SOURCE_ID = 1)", true),
@@ -358,6 +383,13 @@ static class ConveyorCatalog
         if (key.Equals("st-hubert", StringComparison.OrdinalIgnoreCase)) return All.Where(x => x.DepotId == 1).ToArray();
         var item = All.FirstOrDefault(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
         return item is null ? throw new ArgumentException("Convoyeur inconnu.") : [item];
+    }
+
+    public static DepotDefinition ResolveDepot(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return Depots[0];
+        return Depots.FirstOrDefault(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
+            ?? throw new ArgumentException("Dépôt inconnu.");
     }
 }
 
@@ -683,7 +715,7 @@ sealed record ParcelHistoryResponse(
 sealed class ConveyorDataService(DashboardConfig config)
 {
     private readonly SemaphoreSlim capacityBenchmarkLock = new(1, 1);
-    private CapacityBenchmarkSnapshot? capacityBenchmarkCache;
+    private readonly Dictionary<string, CapacityBenchmarkSnapshot> capacityBenchmarkCache = new(StringComparer.OrdinalIgnoreCase);
     private const string RollupCtes = """
         repeated_chute AS (
             SELECT conveyor_key, parcel_id
@@ -1689,7 +1721,7 @@ sealed class ConveyorDataService(DashboardConfig config)
         return new ParcelHistoryResponse(parcelId, databaseNow, destinationAddress, destinationCity, events, DateTimeOffset.Now);
     }
 
-    public async Task<ConveyorHourlyResponse> GetConveyorHourlyAsync(DateOnly date)
+    public async Task<ConveyorHourlyResponse> GetConveyorHourlyAsync(DateOnly date, DepotDefinition depot)
     {
         const string sql = """
             WITH RECURSIVE
@@ -1697,13 +1729,15 @@ sealed class ConveyorDataService(DashboardConfig config)
                 SELECT @shiftStart shift_start
             ),
             shift_bounds AS (
-                SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end
+                SELECT shift_start,@shiftEnd shift_end
                 FROM shift_anchor
             ),
             hour_slots AS (
-                SELECT 0 slot_index,16 hour_value
+                SELECT 0 slot_index,HOUR(@shiftStart) hour_value,@shiftStart bucket_start
                 UNION ALL
-                SELECT slot_index+1,MOD(hour_value+1,24) FROM hour_slots WHERE slot_index<11
+                SELECT slot_index+1,MOD(hour_value+1,24),bucket_start+INTERVAL 1 HOUR
+                FROM hour_slots
+                WHERE bucket_start+INTERVAL 1 HOUR<@shiftEnd
             ),
             sources AS (
                 SELECT 'high' source_key
@@ -1713,19 +1747,19 @@ sealed class ConveyorDataService(DashboardConfig config)
             classified_scans AS (
                 SELECT ph.PARCEL_ID parcel_id,
                        CASE
-                           WHEN ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1) THEN 'high'
-                           WHEN ph.SOURCE_TYPE=200 AND ph.SOURCE_ID=3 THEN 'floor'
+                           WHEN ph.SOURCE_TYPE=200 AND @hasFloor=1 AND ph.SOURCE_ID=3 THEN 'floor'
+                           WHEN ph.SOURCE_TYPE=200 THEN 'high'
                            WHEN ph.SOURCE_TYPE=201 THEN 'manual'
                        END source_key,
                        ph.DATE_LIV scan_time
                 FROM parcel_history ph
                 CROSS JOIN shift_bounds sb
                 WHERE ph.EXCEPTION=903
-                  AND ph.DEPOT_ID=1
+                  AND ph.DEPOT_ID=@depotId
                   AND COALESCE(ph.VOID,0)=0
                   AND ph.PARCEL_ID IS NOT NULL
                   AND ph.PARCEL_ID<>0
-                  AND ((ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR ph.SOURCE_TYPE=201)
+                  AND ((ph.SOURCE_TYPE=200 AND ((@hasFloor=1 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR (@hasFloor=0 AND ph.SOURCE_ID IS NULL))) OR ph.SOURCE_TYPE=201)
                   AND ph.DATE_INSERT>=sb.shift_start-INTERVAL 1 HOUR
                   AND ph.DATE_INSERT<sb.shift_end
                   AND ph.DATE_LIV>=sb.shift_start
@@ -1759,7 +1793,10 @@ sealed class ConveyorDataService(DashboardConfig config)
 
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
-        command.Parameters.AddWithValue("@shiftStart", date.ToDateTime(new TimeOnly(16, 0)));
+        command.Parameters.AddWithValue("@shiftStart", depot.ShiftStart(date));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
         await using var reader = await command.ExecuteReaderAsync();
         var rows = new List<ConveyorHourlyRow>();
         var databaseNow = DateTime.Now;
@@ -1803,19 +1840,19 @@ sealed class ConveyorDataService(DashboardConfig config)
             rows,
             [
                 "Chaque colis unique est compté dans l'heure de son premier passage sur la source concernée.",
-                "Le quart opérationnel commence à 16 h et se termine à 3 h 59 le lendemain; après minuit, les données restent rattachées au quart de la veille."
+                $"Le quart opérationnel de {depot.Name} commence à {depot.StartHour} h et se termine à {depot.EndHour - 1} h 59 le lendemain; après minuit, les données restent rattachées au quart de la veille."
             ],
             DateTimeOffset.Now);
     }
 
-    public async Task<ConveyorQualityResponse> GetConveyorQualityAsync(DateOnly date)
+    public async Task<ConveyorQualityResponse> GetConveyorQualityAsync(DateOnly date, DepotDefinition depot)
     {
         const string sql = """
             WITH scope AS (
                 SELECT parcel_id,line_id,chute,camera_data
                 FROM parcel_scan_history
-                WHERE depot_id=1
-                  AND line_id IN (0,1)
+                WHERE depot_id=@depotId
+                  AND (@hasFloor=0 OR line_id IN (0,1))
                   AND date_insert>=@shiftStart
                   AND date_insert<@shiftEnd
             ),
@@ -1841,10 +1878,10 @@ sealed class ConveyorDataService(DashboardConfig config)
                 FROM parcel_history PARTITION (p2026) ph
                 WHERE ph.DATE_LIV>=@shiftStart
                   AND ph.DATE_LIV<@shiftEnd
-                  AND ph.DEPOT_ID=1
+                  AND ph.DEPOT_ID=@depotId
                   AND ph.EXCEPTION=903
                   AND ph.SOURCE_TYPE=200
-                  AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                  AND (ph.SOURCE_ID IS NULL OR (@hasFloor=1 AND ph.SOURCE_ID=1))
                   AND ph.PARCEL_ID IS NOT NULL
                   AND ph.PARCEL_ID<>0
                   AND COALESCE(ph.VOID,0)=0
@@ -1873,11 +1910,13 @@ sealed class ConveyorDataService(DashboardConfig config)
             ORDER BY tc.recirculated_parcels DESC,tc.chute
             """;
 
-        var shiftStart = date.ToDateTime(new TimeOnly(16, 0));
+        var shiftStart = depot.ShiftStart(date);
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
         command.Parameters.AddWithValue("@shiftStart", shiftStart);
-        command.Parameters.AddWithValue("@shiftEnd", shiftStart.AddHours(12));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
         await using var reader = await command.ExecuteReaderAsync();
         long totalConveyed = 0, chute98 = 0, chute16 = 0, noRead = 0, sameChuteRecirculated = 0, underTwoPounds = 0, highConveyorParcels = 0;
         var topChutes = new List<RecirculationChute>(5);
@@ -1906,25 +1945,25 @@ sealed class ConveyorDataService(DashboardConfig config)
             DateTimeOffset.Now);
     }
 
-    public async Task<HighConveyorCapacityResponse> GetHighConveyorCapacityAsync(DateOnly date)
+    public async Task<HighConveyorCapacityResponse> GetHighConveyorCapacityAsync(DateOnly date, DepotDefinition depot)
     {
-        var benchmark = await GetHighCapacityBenchmarkAsync();
+        var benchmark = await GetHighCapacityBenchmarkAsync(depot);
         const string sql = """
             WITH
             shift_anchor AS (
                 SELECT @shiftStart shift_start
             ),
             shift_bounds AS (
-                SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end FROM shift_anchor
+                SELECT shift_start,@shiftEnd shift_end FROM shift_anchor
             ),
             scans AS (
                 SELECT ph.PARCEL_ID parcel_id,ph.DATE_LIV scan_time,ph.CHUTE_NO chute_no
                 FROM parcel_history PARTITION (p2026) ph
                 CROSS JOIN shift_bounds sb
                 WHERE ph.EXCEPTION=903
-                  AND ph.DEPOT_ID=1
+                  AND ph.DEPOT_ID=@depotId
                   AND ph.SOURCE_TYPE=200
-                  AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                  AND (ph.SOURCE_ID IS NULL OR (@hasFloor=1 AND ph.SOURCE_ID=1))
                   AND COALESCE(ph.VOID,0)=0
                   AND ph.PARCEL_ID IS NOT NULL
                   AND ph.PARCEL_ID<>0
@@ -1997,7 +2036,10 @@ sealed class ConveyorDataService(DashboardConfig config)
 
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
-        command.Parameters.AddWithValue("@shiftStart", date.ToDateTime(new TimeOnly(16, 0)));
+        command.Parameters.AddWithValue("@shiftStart", depot.ShiftStart(date));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
         await using var reader = await command.ExecuteReaderAsync();
         var uniqueMinuteCounts = new Dictionary<DateTime, long>();
         var totalMinuteCounts = new Dictionary<DateTime, long>();
@@ -2022,7 +2064,7 @@ sealed class ConveyorDataService(DashboardConfig config)
         }
 
         var analysisEnd = databaseNow < shiftStart ? shiftStart : databaseNow > shiftEnd ? shiftEnd : databaseNow;
-        var buckets = new List<HighCapacityBucket>(48);
+        var buckets = new List<HighCapacityBucket>((int)(shiftEnd - shiftStart).TotalMinutes / 15);
         for (var bucketStart = shiftStart; bucketStart < shiftEnd; bucketStart = bucketStart.AddMinutes(15))
         {
             var bucketEnd = bucketStart.AddMinutes(15);
@@ -2081,30 +2123,27 @@ sealed class ConveyorDataService(DashboardConfig config)
             DateTimeOffset.Now);
     }
 
-    private async Task<CapacityBenchmarkSnapshot> GetHighCapacityBenchmarkAsync()
+    private async Task<CapacityBenchmarkSnapshot> GetHighCapacityBenchmarkAsync(DepotDefinition depot)
     {
-        if (capacityBenchmarkCache is { } cached && DateTimeOffset.Now - cached.LoadedAt < TimeSpan.FromHours(1)) return cached;
+        if (capacityBenchmarkCache.TryGetValue(depot.Key, out var cached) && DateTimeOffset.Now - cached.LoadedAt < TimeSpan.FromHours(1)) return cached;
         await capacityBenchmarkLock.WaitAsync();
         try
         {
-            if (capacityBenchmarkCache is { } refreshed && DateTimeOffset.Now - refreshed.LoadedAt < TimeSpan.FromHours(1)) return refreshed;
+            if (capacityBenchmarkCache.TryGetValue(depot.Key, out var refreshed) && DateTimeOffset.Now - refreshed.LoadedAt < TimeSpan.FromHours(1)) return refreshed;
             const string sql = """
                 WITH
                 shift_anchor AS (
-                    SELECT CASE
-                        WHEN CURTIME()<'04:00:00' THEN CURDATE()-INTERVAL 1 DAY+INTERVAL 16 HOUR
-                        ELSE CURDATE()+INTERVAL 16 HOUR
-                    END current_shift_start
+                    SELECT @currentShiftStart current_shift_start
                 ),
                 first_by_shift AS (
-                    SELECT DATE(ph.DATE_LIV-INTERVAL 4 HOUR) shift_date,
+                    SELECT DATE(ph.DATE_LIV-INTERVAL @shiftEndHour HOUR) shift_date,
                            ph.PARCEL_ID parcel_id,MIN(ph.DATE_LIV) first_scan
                     FROM parcel_history PARTITION (p2026) ph
                     CROSS JOIN shift_anchor sa
                     WHERE ph.EXCEPTION=903
-                      AND ph.DEPOT_ID=1
+                      AND ph.DEPOT_ID=@depotId
                       AND ph.SOURCE_TYPE=200
-                      AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                      AND (ph.SOURCE_ID IS NULL OR (@hasFloor=1 AND ph.SOURCE_ID=1))
                       AND COALESCE(ph.VOID,0)=0
                       AND ph.PARCEL_ID IS NOT NULL
                       AND ph.PARCEL_ID<>0
@@ -2112,8 +2151,8 @@ sealed class ConveyorDataService(DashboardConfig config)
                       AND ph.DATE_INSERT<sa.current_shift_start
                       AND ph.DATE_LIV>=sa.current_shift_start-INTERVAL 14 DAY
                       AND ph.DATE_LIV<sa.current_shift_start
-                      AND (HOUR(ph.DATE_LIV)>=16 OR HOUR(ph.DATE_LIV)<4)
-                    GROUP BY DATE(ph.DATE_LIV-INTERVAL 4 HOUR),ph.PARCEL_ID
+                      AND (HOUR(ph.DATE_LIV)>=@shiftStartHour OR HOUR(ph.DATE_LIV)<@shiftEndHour)
+                    GROUP BY DATE(ph.DATE_LIV-INTERVAL @shiftEndHour HOUR),ph.PARCEL_ID
                 ),
                 minute_counts AS (
                     SELECT shift_date,CAST(DATE_FORMAT(first_scan,'%Y-%m-%d %H:%i:00') AS DATETIME) minute_start,COUNT(*) parcels
@@ -2127,7 +2166,7 @@ sealed class ConveyorDataService(DashboardConfig config)
                       ON m2.shift_date=m1.shift_date
                      AND m2.minute_start>=m1.minute_start
                      AND m2.minute_start<m1.minute_start+INTERVAL 60 MINUTE
-                    WHERE m1.minute_start<=TIMESTAMP(m1.shift_date)+INTERVAL 27 HOUR
+                    WHERE m1.minute_start<=TIMESTAMP(m1.shift_date)+INTERVAL @lastWindowStartHour HOUR
                     GROUP BY m1.shift_date,m1.minute_start
                 ),
                 ranked_hours AS (
@@ -2148,6 +2187,14 @@ sealed class ConveyorDataService(DashboardConfig config)
                 """;
             await using var connection = await OpenAsync();
             await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 180 };
+            var now = DateTime.Now;
+            var currentShiftDate = DateOnly.FromDateTime(now.Hour < depot.EndHour ? now.AddDays(-1) : now);
+            command.Parameters.AddWithValue("@currentShiftStart", depot.ShiftStart(currentShiftDate));
+            command.Parameters.AddWithValue("@depotId", depot.DepotId);
+            command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
+            command.Parameters.AddWithValue("@shiftStartHour", depot.StartHour);
+            command.Parameters.AddWithValue("@shiftEndHour", depot.EndHour);
+            command.Parameters.AddWithValue("@lastWindowStartHour", 24 + depot.EndHour - 1);
             await using var reader = await command.ExecuteReaderAsync();
             var peaks = new List<HighCapacityDailyPeak>();
             while (await reader.ReadAsync())
@@ -2157,8 +2204,9 @@ sealed class ConveyorDataService(DashboardConfig config)
                     Int64OrZero(reader, "total_parcels")));
             var sortedPeaks = peaks.Select(x => x.PeakPerHour).Order().ToArray();
             var practicalCapacity = sortedPeaks.Length == 0 ? 0 : sortedPeaks[Math.Max(0, (int)Math.Ceiling(sortedPeaks.Length * 0.75) - 1)];
-            capacityBenchmarkCache = new CapacityBenchmarkSnapshot(DateTimeOffset.Now, practicalCapacity, sortedPeaks.DefaultIfEmpty(0).Max(), peaks);
-            return capacityBenchmarkCache;
+            var snapshot = new CapacityBenchmarkSnapshot(DateTimeOffset.Now, practicalCapacity, sortedPeaks.DefaultIfEmpty(0).Max(), peaks);
+            capacityBenchmarkCache[depot.Key] = snapshot;
+            return snapshot;
         }
         finally
         {

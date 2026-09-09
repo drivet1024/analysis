@@ -4,9 +4,21 @@ const number = new Intl.NumberFormat('fr-CA');
 const time = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 const blockTime = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit' });
 const shortDateTime = new Intl.DateTimeFormat('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const DEPOTS = {
+  'st-hubert': { name: 'Saint-Hubert', startHour: 16, endHour: 4, hasFloor: true, supportsMeasurements: true },
+  quebec: { name: 'Québec', startHour: 13, endHour: 7, hasFloor: false, supportsMeasurements: true },
+  toronto: { name: 'Toronto', startHour: 15, endHour: 9, hasFloor: false, supportsMeasurements: true },
+  gilmore: { name: 'Gilmore', startHour: 15, endHour: 9, hasFloor: false, supportsMeasurements: false }
+};
+const requestedDepot = new URLSearchParams(window.location.search).get('depot');
+const rememberedDepot = window.localStorage.getItem('nationex-dashboard-depot');
+let selectedDepotKey = Object.hasOwn(DEPOTS, requestedDepot) ? requestedDepot
+  : Object.hasOwn(DEPOTS, rememberedDepot) ? rememberedDepot
+  : 'st-hubert';
 let countdown = REFRESH_SECONDS;
 let loading = false;
 let conveyorRequestVersion = 0;
+let dashboardRequestVersion = 0;
 
 function isoLocalDate(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
@@ -15,11 +27,50 @@ function isoLocalDate(date = new Date()) {
 
 function currentOperationalDate() {
   const date = new Date();
-  if (date.getHours() < 4) date.setDate(date.getDate() - 1);
+  if (date.getHours() < DEPOTS[selectedDepotKey].endHour) date.setDate(date.getDate() - 1);
   return isoLocalDate(date);
 }
 
 let selectedConveyorDate = currentOperationalDate();
+
+function applyDepotSelection(depotKey, reload = true) {
+  if (!Object.hasOwn(DEPOTS, depotKey)) return;
+  selectedDepotKey = depotKey;
+  const depot = DEPOTS[depotKey];
+  $('depot-select').value = depotKey;
+  $('depot-heading').textContent = depot.name;
+  $('conveyor-depot-heading').textContent = depot.name;
+  $('conveyor-shift-kicker').textContent = `Quart de ${String(depot.startHour).padStart(2, '0')}:00 à ${String((depot.endHour + 23) % 24).padStart(2, '0')}:59`;
+  $('conveyor-high-label').textContent = depot.hasFloor ? 'Convoyeur du haut' : 'Convoyeur';
+  $('hourly-high-title').textContent = depot.hasFloor ? 'Convoyeur du haut' : 'Convoyeur';
+  const shiftContext = `${depot.startHour} h à ${(depot.endHour + 23) % 24} h · colis uniques · échelle commune`;
+  $('hourly-high-context').textContent = shiftContext;
+  $('hourly-manual-context').textContent = shiftContext;
+  $('hourly-high-chart').setAttribute('aria-label', `Nombre de colis par heure sur le convoyeur de ${depot.name}`);
+  $('capacity-chart').setAttribute('aria-label', `Débit du convoyeur de ${depot.name} par bloc de quinze minutes`);
+  $('conveyor-quality-title').textContent = `Incidents du quart · ${depot.hasFloor ? 'convoyeur du haut' : 'convoyeur'}`;
+  $('capacity-kicker').textContent = `Rendement du ${depot.hasFloor ? 'convoyeur du haut' : 'convoyeur'}`;
+  $('conveyor-floor-card').hidden = !depot.hasFloor;
+  $('hourly-floor-card').hidden = !depot.hasFloor;
+  $('conveyor-pill-grid').classList.toggle('single-conveyor', !depot.hasFloor);
+  document.querySelector('.conveyor-charts-grid').classList.toggle('single-conveyor', !depot.hasFloor);
+  $('quality-under2-card').classList.toggle('measurement-unavailable', !depot.supportsMeasurements);
+  $('routes-tab-button').hidden = depotKey !== 'st-hubert';
+  if (depotKey !== 'st-hubert') activateTab('conveyor-tab');
+  document.title = `Nationex - ${depot.name}`;
+  window.localStorage.setItem('nationex-dashboard-depot', depotKey);
+  const url = new URL(window.location.href);
+  url.searchParams.set('depot', depotKey);
+  window.history.replaceState(null, '', url);
+  const maximumDate = currentOperationalDate();
+  if (selectedConveyorDate > maximumDate) selectedConveyorDate = maximumDate;
+  syncConveyorDateControls();
+  if (reload) {
+    countdown = REFRESH_SECONDS;
+    loading = false;
+    load();
+  }
+}
 
 function syncConveyorDateControls() {
   const maximumDate = currentOperationalDate();
@@ -279,7 +330,9 @@ function renderHourly(data) {
   charts.forEach(([source, elementId]) => {
     const container = $(elementId);
     container.replaceChildren();
-    rows.filter((row) => row.source === source).forEach((row) => {
+    const sourceRows = rows.filter((row) => row.source === source);
+    container.style.gridTemplateColumns = `repeat(${Math.max(1, sourceRows.length)}, minmax(0, 1fr))`;
+    sourceRows.forEach((row) => {
       const parcels = Number(row.parcels) || 0;
       const height = parcels ? Math.max(2, 100 * parcels / commonMax) : 0;
       const nextHour = (row.hour + 1) % 24;
@@ -313,6 +366,7 @@ function renderHourlyError() {
 }
 
 function renderConveyorQuality(data) {
+  const depot = DEPOTS[selectedDepotKey];
   const metrics = [
     ['chute98', data.chute98, data.chute98Percent],
     ['chute16', data.chute16, data.chute16Percent],
@@ -323,8 +377,12 @@ function renderConveyorQuality(data) {
     $(`quality-${metric}-rate`).textContent = `${Number(rate || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %`;
     $(`quality-${metric}-total`).textContent = `${number.format(total)} passages`;
   });
-  $('quality-under2-rate').textContent = `${Number(data.underTwoPoundsPercent || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %`;
-  $('quality-under2-total').textContent = `${number.format(data.underTwoPounds || 0)} colis sur ${number.format(data.highConveyorParcels || 0)}`;
+  $('quality-under2-rate').textContent = depot.supportsMeasurements
+    ? `${Number(data.underTwoPoundsPercent || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %`
+    : 'N/D';
+  $('quality-under2-total').textContent = depot.supportsMeasurements
+    ? `${number.format(data.underTwoPounds || 0)} colis sur ${number.format(data.highConveyorParcels || 0)}`
+    : 'Poids non mesuré à Gilmore';
   const topChutes = $('quality-recirculated-top');
   topChutes.replaceChildren();
   if (!(data.topRecirculationChutes || []).length) {
@@ -342,7 +400,7 @@ function renderConveyorQuality(data) {
       topChutes.append(row);
     });
   }
-  $('conveyor-quality-context').textContent = `${number.format(data.totalConveyed)} passages · convoyeur du haut`;
+  $('conveyor-quality-context').textContent = `${number.format(data.totalConveyed)} passages · ${depot.hasFloor ? 'convoyeur du haut' : 'convoyeur'} · ${depot.name}`;
 }
 
 function renderConveyorQualityError() {
@@ -357,6 +415,7 @@ function renderConveyorQualityError() {
 }
 
 function renderCapacity(data) {
+  const depot = DEPOTS[selectedDepotKey];
   const benchmarkHourly = Number(data.practicalCapacityPerHour) || 0;
   const maximumHourly = Number(data.maximumObservedPerHour) || 0;
   const averageUtilization = Number(data.utilizationSinceStartPercent) || 0;
@@ -378,7 +437,7 @@ function renderCapacity(data) {
     ? '—'
     : `${number.format(potentialParcels)} colis`;
   $('quality-capacity-potential-context').textContent = beforeShift
-    ? 'Le quart commence à 16 h'
+    ? `Le quart commence à ${depot.startHour} h`
     : `sur ${number.format(Math.floor(potentialMinutes / 60))} h ${String(potentialMinutes % 60).padStart(2, '0')} min · ${number.format(excludedZeroMinutes)} min à zéro exclues · ${number.format(benchmarkHourly)}/h`;
 
   $('capacity-benchmark').textContent = benchmarkHourly ? `${number.format(benchmarkHourly)}/h` : '—';
@@ -386,11 +445,11 @@ function renderCapacity(data) {
   $('capacity-current-peak').textContent = beforeShift ? '—' : `${number.format(currentHourly)}/h`;
   $('capacity-average-utilization').textContent = beforeShift ? '—' : `${number.format(averageHourly)}/h`;
   $('capacity-current-context').textContent = beforeShift
-    ? 'Le quart commence à 16 h'
+    ? `Le quart commence à ${depot.startHour} h`
     : `${Number(currentBucket?.utilizationPercent || 0).toLocaleString('fr-CA', { maximumFractionDigits: 1 })} % de la capacité · mise à jour aux 10 s`;
   $('capacity-benchmark-context').textContent = `${number.format(data.benchmarkShifts || 0)} quarts complétés · 75e percentile`;
   $('capacity-average-context').textContent = beforeShift
-    ? 'Le quart commence à 16 h'
+    ? `Le quart commence à ${depot.startHour} h`
     : `${averageUtilization.toLocaleString('fr-CA', { maximumFractionDigits: 1 })} % de la capacité depuis le premier colis`;
   $('capacity-summary').textContent = dates.length
     ? `${number.format(data.benchmarkShifts)} quarts · ${dates[0]} au ${dates[dates.length - 1]}`
@@ -407,6 +466,7 @@ function renderCapacity(data) {
     return Math.max(totalRate, Number(bucket.parcelsPerHour) || 0);
   }));
   const chart = $('capacity-chart');
+  chart.style.gridTemplateColumns = `repeat(${Math.max(1, buckets.length)}, minmax(0, 1fr))`;
   chart.style.setProperty('--benchmark-position', `${Math.min(100, 100 * benchmarkHourly / maxRate)}%`);
   chart.replaceChildren();
   buckets.forEach((bucket, index) => {
@@ -477,7 +537,8 @@ function renderCapacityError() {
 async function loadConveyorData(timestamp = Date.now()) {
   const requestVersion = ++conveyorRequestVersion;
   const requestedDate = selectedConveyorDate;
-  const query = `date=${encodeURIComponent(requestedDate)}&t=${timestamp}`;
+  const requestedDepot = selectedDepotKey;
+  const query = `date=${encodeURIComponent(requestedDate)}&depot=${encodeURIComponent(requestedDepot)}&t=${timestamp}`;
   const [hourlyResult, qualityResult, capacityResult] = await Promise.allSettled([
     fetch(`/api/conveyor-hourly?${query}`, { cache: 'no-store' }).then((response) => {
       if (!response.ok) throw new Error(`Hourly response ${response.status}`);
@@ -492,27 +553,43 @@ async function loadConveyorData(timestamp = Date.now()) {
       return response.json();
     })
   ]);
-  if (requestVersion !== conveyorRequestVersion) return;
+  if (requestVersion !== conveyorRequestVersion || requestedDepot !== selectedDepotKey) return { success: false };
   if (hourlyResult.status === 'fulfilled') renderHourly(hourlyResult.value);
   else renderHourlyError();
   if (qualityResult.status === 'fulfilled') renderConveyorQuality(qualityResult.value);
   else renderConveyorQualityError();
   if (capacityResult.status === 'fulfilled') renderCapacity(capacityResult.value);
   else renderCapacityError();
+  return {
+    success: hourlyResult.status === 'fulfilled',
+    databaseNow: hourlyResult.status === 'fulfilled' ? hourlyResult.value.databaseNow : null
+  };
 }
 
 async function load() {
   if (loading) return;
+  const requestVersion = ++dashboardRequestVersion;
+  const requestedDepot = selectedDepotKey;
   loading = true;
   $('refresh-button').disabled = true;
   $('error-banner').hidden = true;
   try {
     const timestamp = Date.now();
     const conveyorPromise = loadConveyorData(timestamp);
+    if (requestedDepot !== 'st-hubert') {
+      const result = await conveyorPromise;
+      if (requestVersion !== dashboardRequestVersion || requestedDepot !== selectedDepotKey) return;
+      if (!result?.success) throw new Error('Données convoyeur indisponibles');
+      setConnection('ok', 'Données en direct');
+      $('last-refresh').textContent = `Actualisé à ${formatTime(result.databaseNow)}`;
+      countdown = REFRESH_SECONDS;
+      return;
+    }
     const [routesResponse, unprocessedResponse] = await Promise.all([
       fetch(`/api/live-routes?t=${timestamp}`, { cache: 'no-store' }),
       fetch(`/api/unprocessed-parcels?t=${timestamp}`, { cache: 'no-store' })
     ]);
+    if (requestVersion !== dashboardRequestVersion || requestedDepot !== selectedDepotKey) return;
     if (!routesResponse.ok || !unprocessedResponse.ok) throw new Error(`Réponse ${routesResponse.status}/${unprocessedResponse.status}`);
     const [data, unprocessed] = await Promise.all([routesResponse.json(), unprocessedResponse.json()]);
     render(data);
@@ -522,16 +599,20 @@ async function load() {
     countdown = REFRESH_SECONDS;
     await conveyorPromise;
   } catch (error) {
+    if (requestVersion !== dashboardRequestVersion || requestedDepot !== selectedDepotKey) return;
     setConnection('error', 'Connexion interrompue');
     $('error-banner').textContent = `Impossible d’actualiser les données. Nouvelle tentative automatique dans ${countdown} secondes.`;
     $('error-banner').hidden = false;
   } finally {
-    loading = false;
-    $('refresh-button').disabled = false;
+    if (requestVersion === dashboardRequestVersion) {
+      loading = false;
+      $('refresh-button').disabled = false;
+    }
   }
 }
 
 $('refresh-button').addEventListener('click', () => { countdown = REFRESH_SECONDS; load(); });
+$('depot-select').addEventListener('change', (event) => applyDepotSelection(event.target.value));
 $('routes-tab-button').addEventListener('click', () => activateTab('routes-tab'));
 $('conveyor-tab-button').addEventListener('click', () => activateTab('conveyor-tab'));
 $('previous-conveyor-date').addEventListener('click', () => moveConveyorDate(-1));
@@ -550,7 +631,7 @@ setInterval(() => {
   $('countdown').textContent = countdown;
 }, 1000);
 
-syncConveyorDateControls();
+applyDepotSelection(selectedDepotKey, false);
 load();
 
 function activateTab(tabId) {
