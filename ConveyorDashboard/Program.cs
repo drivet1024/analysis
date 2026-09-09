@@ -520,15 +520,20 @@ sealed record ConveyorQualityResponse(
     DateOnly Date,
     long TotalConveyed,
     long Chute98,
+    long Chute16,
     long NoRead,
     long SameChuteRecirculated,
+    long UnderTwoPounds,
+    long HighConveyorParcels,
     IReadOnlyList<RecirculationChute> TopRecirculationChutes,
     DateTimeOffset GeneratedAt)
 {
     private double Rate(long value) => TotalConveyed == 0 ? 0 : 100d * value / TotalConveyed;
     public double Chute98Percent => Rate(Chute98);
+    public double Chute16Percent => Rate(Chute16);
     public double NoReadPercent => Rate(NoRead);
     public double SameChuteRecirculatedPercent => Rate(SameChuteRecirculated);
+    public double UnderTwoPoundsPercent => HighConveyorParcels == 0 ? 0 : 100d * UnderTwoPounds / HighConveyorParcels;
 }
 sealed record HighCapacityDailyPeak(
     DateOnly ShiftDate,
@@ -1807,7 +1812,7 @@ sealed class ConveyorDataService(DashboardConfig config)
                 SELECT parcel_id,line_id,chute,camera_data
                 FROM parcel_scan_history
                 WHERE depot_id=1
-                  AND line_id IN (0,1,3)
+                  AND line_id IN (0,1)
                   AND date_insert>=@shiftStart
                   AND date_insert<@shiftEnd
             ),
@@ -1824,8 +1829,29 @@ sealed class ConveyorDataService(DashboardConfig config)
             quality_summary AS (
                 SELECT COUNT(*) total_conveyed,
                        COALESCE(SUM(chute=98),0) chute_98,
+                       COALESCE(SUM(chute=16 AND NOT ((parcel_id IS NULL OR parcel_id=0) AND COALESCE(camera_data,'') LIKE '?%')),0) chute_16,
                        COALESCE(SUM((parcel_id IS NULL OR parcel_id=0) AND camera_data LIKE '?%'),0) no_read
                 FROM scope
+            ),
+            parcel_weights AS (
+                SELECT ph.PARCEL_ID parcel_id,ph.WEIGHT weight
+                FROM parcel_history PARTITION (p2026) ph
+                WHERE ph.DATE_LIV>=@shiftStart
+                  AND ph.DATE_LIV<@shiftEnd
+                  AND ph.DEPOT_ID=1
+                  AND ph.EXCEPTION=903
+                  AND ph.SOURCE_TYPE=200
+                  AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                  AND ph.PARCEL_ID IS NOT NULL
+                  AND ph.PARCEL_ID<>0
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.DATE_INSERT>=@shiftStart-INTERVAL 1 HOUR
+                  AND ph.DATE_INSERT<@shiftEnd
+            ),
+            weight_summary AS (
+                SELECT COUNT(DISTINCT parcel_id) high_conveyor_parcels,
+                       COUNT(DISTINCT CASE WHEN weight<2 AND weight IS NOT NULL THEN parcel_id END) under_two_pounds
+                FROM parcel_weights
             ),
             top_chutes AS (
                 SELECT chute,COUNT(*) recirculated_parcels
@@ -1834,10 +1860,12 @@ sealed class ConveyorDataService(DashboardConfig config)
                 ORDER BY recirculated_parcels DESC,chute
                 LIMIT 5
             )
-            SELECT qs.total_conveyed,qs.chute_98,qs.no_read,
+            SELECT qs.total_conveyed,qs.chute_98,qs.chute_16,qs.no_read,
                    (SELECT COUNT(DISTINCT parcel_id) FROM same_chute_repeat) same_chute_recirculated,
+                   ws.under_two_pounds,ws.high_conveyor_parcels,
                    tc.chute,tc.recirculated_parcels
             FROM quality_summary qs
+            CROSS JOIN weight_summary ws
             LEFT JOIN top_chutes tc ON 1=1
             ORDER BY tc.recirculated_parcels DESC,tc.chute
             """;
@@ -1848,14 +1876,17 @@ sealed class ConveyorDataService(DashboardConfig config)
         command.Parameters.AddWithValue("@shiftStart", shiftStart);
         command.Parameters.AddWithValue("@shiftEnd", shiftStart.AddHours(12));
         await using var reader = await command.ExecuteReaderAsync();
-        long totalConveyed = 0, chute98 = 0, noRead = 0, sameChuteRecirculated = 0;
+        long totalConveyed = 0, chute98 = 0, chute16 = 0, noRead = 0, sameChuteRecirculated = 0, underTwoPounds = 0, highConveyorParcels = 0;
         var topChutes = new List<RecirculationChute>(5);
         while (await reader.ReadAsync())
         {
             totalConveyed = Int64OrZero(reader, "total_conveyed");
             chute98 = Int64OrZero(reader, "chute_98");
+            chute16 = Int64OrZero(reader, "chute_16");
             noRead = Int64OrZero(reader, "no_read");
             sameChuteRecirculated = Int64OrZero(reader, "same_chute_recirculated");
+            underTwoPounds = Int64OrZero(reader, "under_two_pounds");
+            highConveyorParcels = Int64OrZero(reader, "high_conveyor_parcels");
             if (!IsNull(reader, "chute"))
                 topChutes.Add(new RecirculationChute(reader.GetInt32("chute"), Int64OrZero(reader, "recirculated_parcels")));
         }
@@ -1863,8 +1894,11 @@ sealed class ConveyorDataService(DashboardConfig config)
             date,
             totalConveyed,
             chute98,
+            chute16,
             noRead,
             sameChuteRecirculated,
+            underTwoPounds,
+            highConveyorParcels,
             topChutes,
             DateTimeOffset.Now);
     }

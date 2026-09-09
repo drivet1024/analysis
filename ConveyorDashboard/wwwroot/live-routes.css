@@ -69,15 +69,17 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .conveyor-pill-manual { border-color: rgba(255, 189, 89, .42); }
 .conveyor-quality-section { margin-top: 20px; }
 .conveyor-quality-heading { align-items: end; margin-bottom: 10px; }
-.conveyor-quality-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.conveyor-quality-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 .conveyor-quality-card { --quality-color: var(--blue); position: relative; overflow: hidden; min-height: 108px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); box-shadow: var(--shadow); }
 .conveyor-quality-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--quality-color); }
 .conveyor-quality-card > span { color: var(--muted); font-size: .7rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 .conveyor-quality-card > strong { display: block; margin: 8px 0 5px; color: var(--quality-color); font-size: clamp(1.75rem, 3vw, 2.45rem); line-height: .9; }
 .conveyor-quality-card > small { color: var(--muted); font-size: .76rem; }
 .quality-chute98 { --quality-color: #ff6f9f; }
+.quality-chute16 { --quality-color: #55c2ff; }
 .quality-noread { --quality-color: var(--amber); }
 .quality-recirculated { --quality-color: var(--violet); }
+.quality-under2 { --quality-color: #62d9d0; }
 .quality-recirculated { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto 1fr; column-gap: 14px; }
 .quality-recirculated > span, .quality-recirculated > strong, .quality-recirculated > small { grid-column: 1; }
 .quality-top-chutes { grid-column: 2; grid-row: 1 / 4; min-width: 104px; padding-left: 12px; border-left: 1px solid rgba(167, 139, 250, .28); }
@@ -85,7 +87,6 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .quality-top-chutes ol { display: grid; gap: 2px; margin: 5px 0 0; padding: 0; list-style: none; }
 .quality-top-chutes li { display: flex; justify-content: space-between; gap: 10px; color: var(--text); font-size: .65rem; font-weight: 750; white-space: nowrap; }
 .quality-top-chutes li b { color: var(--quality-color); }
-.quality-capacity-potential { --quality-color: var(--green); }
 .conveyor-charts-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
 .hourly-chart-card { --chart-color: var(--blue); min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); box-shadow: var(--shadow); }
 .hourly-chart-floor { --chart-color: var(--green); }
@@ -101,7 +102,7 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .hour-column small { align-self: end; color: var(--muted); font-size: .62rem; white-space: nowrap; }
 .capacity-section { margin-top: 20px; }
 .capacity-heading { align-items: end; }
-.capacity-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.capacity-kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
 .capacity-kpi-grid article { padding: 11px 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel); }
 .capacity-kpi-grid span, .gap-summary-card > span { color: var(--muted); font-size: .7rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
 .capacity-kpi-grid strong { display: block; margin: 5px 0 3px; font-size: clamp(1.45rem, 2.3vw, 2.2rem); line-height: 1; letter-spacing: -.04em; }

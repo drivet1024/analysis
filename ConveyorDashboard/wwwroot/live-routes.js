@@ -1,4 +1,4 @@
-const REFRESH_SECONDS = 30;
+const REFRESH_SECONDS = 10;
 const $ = (id) => document.getElementById(id);
 const number = new Intl.NumberFormat('fr-CA');
 const time = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -315,6 +315,7 @@ function renderHourlyError() {
 function renderConveyorQuality(data) {
   const metrics = [
     ['chute98', data.chute98, data.chute98Percent],
+    ['chute16', data.chute16, data.chute16Percent],
     ['noread', data.noRead, data.noReadPercent],
     ['recirculated', data.sameChuteRecirculated, data.sameChuteRecirculatedPercent]
   ];
@@ -322,6 +323,8 @@ function renderConveyorQuality(data) {
     $(`quality-${metric}-rate`).textContent = `${Number(rate || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %`;
     $(`quality-${metric}-total`).textContent = `${number.format(total)} passages`;
   });
+  $('quality-under2-rate').textContent = `${Number(data.underTwoPoundsPercent || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %`;
+  $('quality-under2-total').textContent = `${number.format(data.underTwoPounds || 0)} colis sur ${number.format(data.highConveyorParcels || 0)}`;
   const topChutes = $('quality-recirculated-top');
   topChutes.replaceChildren();
   if (!(data.topRecirculationChutes || []).length) {
@@ -339,14 +342,16 @@ function renderConveyorQuality(data) {
       topChutes.append(row);
     });
   }
-  $('conveyor-quality-context').textContent = `${number.format(data.totalConveyed)} passages · lignes automatiques haut et bas`;
+  $('conveyor-quality-context').textContent = `${number.format(data.totalConveyed)} passages · convoyeur du haut`;
 }
 
 function renderConveyorQualityError() {
-  ['chute98', 'noread', 'recirculated'].forEach((metric) => {
+  ['chute98', 'chute16', 'noread', 'recirculated'].forEach((metric) => {
     $(`quality-${metric}-rate`).textContent = '— %';
     $(`quality-${metric}-total`).textContent = 'Données indisponibles';
   });
+  $('quality-under2-rate').textContent = '— %';
+  $('quality-under2-total').textContent = 'Données indisponibles';
   $('quality-recirculated-top').innerHTML = '<li>—</li>';
   $('conveyor-quality-context').textContent = 'Les indicateurs de qualité n’ont pas pu être chargés.';
 }
@@ -382,7 +387,7 @@ function renderCapacity(data) {
   $('capacity-average-utilization').textContent = beforeShift ? '—' : `${number.format(averageHourly)}/h`;
   $('capacity-current-context').textContent = beforeShift
     ? 'Le quart commence à 16 h'
-    : `${Number(currentBucket?.utilizationPercent || 0).toLocaleString('fr-CA', { maximumFractionDigits: 1 })} % de la capacité · mise à jour aux 30 s`;
+    : `${Number(currentBucket?.utilizationPercent || 0).toLocaleString('fr-CA', { maximumFractionDigits: 1 })} % de la capacité · mise à jour aux 10 s`;
   $('capacity-benchmark-context').textContent = `${number.format(data.benchmarkShifts || 0)} quarts complétés · 75e percentile`;
   $('capacity-average-context').textContent = beforeShift
     ? 'Le quart commence à 16 h'

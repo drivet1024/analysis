@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des routes 500xx traitées à Saint-Hubert.">
   <title>Nationex - Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260904-9">
+  <link rel="stylesheet" href="/live-routes.css?v=20260904-12">
 </head>
 <body>
   <main class="dashboard-shell">
@@ -31,7 +31,7 @@
 
     <section class="freshness-strip" aria-label="Fraîcheur des données">
       <div><span>Dernier colis vu</span><strong id="latest-scan">—</strong></div>
-      <div><span>Prochaine mise à jour</span><strong><span id="countdown">30</span> s</strong></div>
+      <div><span>Prochaine mise à jour</span><strong><span id="countdown">10</span> s</strong></div>
       <div><span>Fenêtre analysée</span><strong>Depuis 16:00 aujourd’hui</strong></div>
       <div><span>Source</span><strong>Serveur 101 · lecture seule</strong></div>
     </section>
@@ -114,14 +114,15 @@
       </div>
       <section class="conveyor-quality-section" aria-labelledby="conveyor-quality-title">
         <div class="section-heading conveyor-quality-heading">
-          <div><p class="section-kicker">Qualité du tri automatique</p><h2 id="conveyor-quality-title">Incidents du quart</h2></div>
-          <p id="conveyor-quality-context">Pourcentage des passages sur les convoyeurs haut et bas.</p>
+          <div><p class="section-kicker">Qualité du tri automatique</p><h2 id="conveyor-quality-title">Incidents du quart · convoyeur du haut</h2></div>
+          <p id="conveyor-quality-context">Pourcentage des passages sur le convoyeur du haut.</p>
         </div>
         <div class="conveyor-quality-grid" aria-live="polite">
           <article class="conveyor-quality-card quality-chute98"><span>Chute 98</span><strong id="quality-chute98-rate">— %</strong><small id="quality-chute98-total">— passages</small></article>
+          <article class="conveyor-quality-card quality-chute16"><span>Chute 16 hors non-lus</span><strong id="quality-chute16-rate">— %</strong><small id="quality-chute16-total">— passages</small></article>
           <article class="conveyor-quality-card quality-noread"><span>Non-lus caméra</span><strong id="quality-noread-rate">— %</strong><small id="quality-noread-total">— passages</small></article>
           <article class="conveyor-quality-card quality-recirculated"><span>Recirculation</span><strong id="quality-recirculated-rate">— %</strong><small id="quality-recirculated-total">— passages</small><div class="quality-top-chutes"><span>Top 5 chutes</span><ol id="quality-recirculated-top"><li>—</li></ol></div></article>
-          <article class="conveyor-quality-card quality-capacity-potential"><span>Potentiel à capacité</span><strong id="quality-capacity-potential">—</strong><small id="quality-capacity-potential-context">Référence théorique</small></article>
+          <article class="conveyor-quality-card quality-under2"><span>Colis sous 2 lb</span><strong id="quality-under2-rate">— %</strong><small id="quality-under2-total">— colis du convoyeur du haut</small></article>
         </div>
       </section>
       <section class="capacity-section" aria-labelledby="capacity-title">
@@ -131,6 +132,7 @@
         </div>
         <div class="capacity-kpi-grid" aria-live="polite">
           <article><span>Capacité pratique</span><strong id="capacity-benchmark">—</strong><small id="capacity-benchmark-context">75e percentile des pointes</small></article>
+          <article><span>Potentiel à capacité</span><strong id="quality-capacity-potential">—</strong><small id="quality-capacity-potential-context">Référence théorique</small></article>
           <article><span>Maximum observé</span><strong id="capacity-maximum">—</strong><small>Meilleure fenêtre continue de 60 minutes</small></article>
           <article><span>Débit en temps réel</span><strong id="capacity-current-peak">—</strong><small id="capacity-current-context">Bloc de 15 minutes en cours, annualisé</small></article>
           <article><span>Moyenne de la soirée</span><strong id="capacity-average-utilization">—</strong><small id="capacity-average-context">Depuis le premier colis</small></article>
@@ -188,6 +190,6 @@
     <p id="dialog-source" class="dialog-source">Horaire officiel du jour sur le serveur 101, vérifié avec les colis observés en haut, au sol et aux postes manuels depuis 16:00.</p>
   </dialog>
 
-  <script src="/live-routes.js?v=20260904-10" defer></script>
+  <script src="/live-routes.js?v=20260904-16" defer></script>
 </body>
 </html>
