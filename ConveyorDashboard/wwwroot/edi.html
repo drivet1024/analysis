@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
+  <title>Nationex - EDI</title>
+  <link rel="stylesheet" href="/edi.css?v=20260908-1">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="identity">
+        <span class="mark" aria-hidden="true">N</span>
+        <div><p>Nationex · Opérations</p><h1>Tableau de bord EDI</h1></div>
+      </div>
+      <div class="live-box">
+        <i id="live-dot" aria-hidden="true"></i>
+        <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+        <button id="refresh-button" type="button">Actualiser</button>
+      </div>
+    </header>
+
+    <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+      <a class="dashboard-tab" href="/">Routes et convoyeurs</a>
+      <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
+      <a class="dashboard-tab active" href="/edi.html" aria-current="page">EDI</a>
+    </nav>
+
+    <section class="context-strip" aria-label="Contexte des données">
+      <div><span>Semaine courante</span><strong id="week-range">—</strong></div>
+      <div><span>Dernière lecture</span><strong id="database-time">—</strong></div>
+      <div><span>Prochaine mise à jour</span><strong><span id="countdown">60</span> s</strong></div>
+      <div><span>Conversion</span><strong>60 colis par palette</strong></div>
+    </section>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+    <section class="kpi-grid" aria-label="Résumé EDI">
+      <article class="kpi-card accent-blue"><span>Colis aujourd’hui</span><strong id="parcels-today">—</strong><small>Expéditions par région jusqu’à maintenant</small></article>
+      <article class="kpi-card accent-green"><span>Palettes aujourd’hui</span><strong id="pallets-today">—</strong><small>Arrondi supérieur · 60 colis par palette</small></article>
+      <article class="kpi-card accent-violet"><span>Colis cette semaine</span><strong id="weekly-parcels">—</strong><small>Du samedi au vendredi</small></article>
+      <article class="kpi-card accent-amber"><span>Budget hebdomadaire</span><strong id="weekly-budget">—</strong><small id="weekly-progress">—</small></article>
+    </section>
+
+    <section class="data-section" aria-labelledby="regions-title">
+      <div class="section-heading">
+        <div><p>Volumes EDI</p><h2 id="regions-title">Colis et palettes par région</h2></div>
+        <span>Aujourd’hui, hier et même période la semaine dernière</span>
+      </div>
+      <div class="table-wrap">
+        <table class="regions-table">
+          <thead>
+            <tr>
+              <th rowspan="2">Région</th>
+              <th rowspan="2">Dépôts</th>
+              <th colspan="2">Aujourd’hui</th>
+              <th colspan="2">Hier</th>
+              <th colspan="2">Semaine dernière</th>
+            </tr>
+            <tr>
+              <th>Colis</th><th>Palettes</th>
+              <th>Colis</th><th>Palettes</th>
+              <th>Colis</th><th>Palettes</th>
+            </tr>
+          </thead>
+          <tbody id="regions-body"><tr><td colspan="8" class="empty-cell">Chargement des régions…</td></tr></tbody>
+          <tfoot id="regions-foot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section class="data-section" aria-labelledby="week-title">
+      <div class="section-heading">
+        <div><p>Semaine courante</p><h2 id="week-title">Colis par jour et budget</h2></div>
+        <span>Répartition du budget du samedi au vendredi</span>
+      </div>
+      <div class="week-layout">
+        <div class="table-wrap">
+          <table class="week-table">
+            <thead><tr><th>Jour</th><th>Date</th><th>Colis</th><th>Budget</th><th>Écart</th><th>Atteinte</th></tr></thead>
+            <tbody id="week-body"><tr><td colspan="6" class="empty-cell">Chargement de la semaine…</td></tr></tbody>
+            <tfoot id="week-foot"></tfoot>
+          </table>
+        </div>
+        <article class="week-chart-card">
+          <div><h3>Colis et budget quotidien</h3><p>Les barres pleines représentent les colis reçus; le repère indique le budget du jour.</p></div>
+          <div id="week-chart" class="week-chart" role="img" aria-label="Comparaison des colis et du budget pour chaque jour de la semaine"></div>
+        </article>
+      </div>
+    </section>
+
+    <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. La semaine débute le samedi.</p>
+  </main>
+  <script src="/edi.js?v=20260908-1" defer></script>
+</body>
+</html>

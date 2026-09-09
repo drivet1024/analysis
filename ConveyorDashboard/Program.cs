@@ -101,6 +101,12 @@ app.MapGet("/api/unprocessed-parcels", async (ConveyorDataService data) =>
     catch (Exception ex) { return Results.Problem($"La liste des colis non traités n'a pas pu être calculée : {ex.Message}"); }
 });
 
+app.MapGet("/api/edi", async (ConveyorDataService data) =>
+{
+    try { return Results.Ok(await data.GetEdiDashboardAsync()); }
+    catch (Exception ex) { return Results.Problem($"Le tableau de bord EDI n'a pas pu être calculé : {ex.Message}"); }
+});
+
 app.MapGet("/api/conveyor-hourly", async (string? date, string? depot, ConveyorDataService data) =>
 {
     try
@@ -532,6 +538,29 @@ sealed record UnprocessedParcelsResponse(
     IReadOnlyList<UnprocessedClientRow> Rows,
     IReadOnlyList<string> Notes,
     DateTimeOffset GeneratedAt);
+sealed record EdiRegionRow(
+    string Region,
+    string Depots,
+    long ParcelsToday,
+    long PalletsToday,
+    long ParcelsYesterday,
+    long PalletsYesterday,
+    long ParcelsLastWeek,
+    long PalletsLastWeek);
+sealed record EdiDailyRow(
+    int SortOrder,
+    DateOnly Date,
+    string DayName,
+    long Parcels,
+    long Budget);
+sealed record EdiDashboardResponse(
+    DateTime DatabaseNow,
+    DateOnly WeekStart,
+    DateOnly WeekEnd,
+    long WeeklyBudget,
+    IReadOnlyList<EdiRegionRow> Regions,
+    IReadOnlyList<EdiDailyRow> Days,
+    DateTimeOffset GeneratedAt);
 sealed record ConveyorHourlyRow(string Source, int Hour, long Parcels);
 sealed record ConveyorHourlyResponse(
     DateOnly Date,
@@ -793,6 +822,216 @@ sealed class ConveyorDataService(DashboardConfig config)
         await connection.OpenAsync();
         await using var command = new MySqlCommand("SELECT 1", connection);
         return Convert.ToInt32(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture) == 1;
+    }
+
+    public async Task<EdiDashboardResponse> GetEdiDashboardAsync()
+    {
+        const string regionsSql = """
+            WITH rm AS (
+              SELECT
+                d2.DEPOTNUMBER,
+                d2.DEPOTNAME,
+                CASE
+                  WHEN d2.DEPOTNUMBER IN (2,5,8,11,18,22,24,25) THEN 'QC'
+                  WHEN d2.DEPOTNUMBER IN (4,20)                   THEN 'Hull/Ottawa'
+                  WHEN d2.DEPOTNUMBER IN (12,14,15,16,17,23,29) THEN 'Toronto'
+                  WHEN d2.DEPOTNUMBER IN (9)                     THEN 'Trois-Rivières'
+                  WHEN d2.DEPOTNUMBER IN (13)                    THEN 'Blainville'
+                  WHEN d2.DEPOTNUMBER IN (27,28)                 THEN 'Guilmore/Coli'
+                  WHEN d2.DEPOTNUMBER IN (6,7)                   THEN 'Lau/Val d''or'
+                  WHEN d2.DEPOTNUMBER IN (10)                    THEN 'Drummond'
+                  WHEN d2.DEPOTNUMBER IN (3)                     THEN 'Sherb'
+                END AS region
+              FROM depot d2
+              WHERE d2.DEPOTNUMBER IN (
+                2,5,6,8,11,18,22,24,25,
+                4,20,
+                12,14,15,16,17,23,29,
+                9,
+                13,
+                27,28
+              )
+            ),
+            dep AS (
+              SELECT
+                region,
+                GROUP_CONCAT(DISTINCT DEPOTNAME ORDER BY DEPOTNAME SEPARATOR ', ') AS depots
+              FROM rm
+              GROUP BY region
+            )
+            SELECT
+              rm.region,
+              dep.depots,
+              SUM(CASE
+                    WHEN s.INSERT_DATE >= CURDATE() AND s.INSERT_DATE < NOW()
+                    THEN s.PARCEL_NB ELSE 0
+                  END) AS parcels_today,
+              CEILING(SUM(CASE
+                            WHEN s.INSERT_DATE >= CURDATE() AND s.INSERT_DATE < NOW()
+                            THEN s.PARCEL_NB ELSE 0
+                          END) / 60.0) AS pallets_today,
+              SUM(CASE
+                    WHEN s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                     AND s.INSERT_DATE < CURDATE()
+                    THEN s.PARCEL_NB ELSE 0
+                  END) AS parcels_yesterday,
+              CEILING(SUM(CASE
+                            WHEN s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                             AND s.INSERT_DATE < CURDATE()
+                            THEN s.PARCEL_NB ELSE 0
+                          END) / 60.0) AS pallets_yesterday,
+              SUM(CASE
+                    WHEN s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                     AND s.INSERT_DATE < DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    THEN s.PARCEL_NB ELSE 0
+                  END) AS parcels_last_week,
+              CEILING(SUM(CASE
+                            WHEN s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                             AND s.INSERT_DATE < DATE_SUB(NOW(), INTERVAL 7 DAY)
+                            THEN s.PARCEL_NB ELSE 0
+                          END) / 60.0) AS pallets_last_week
+            FROM shipment s
+            JOIN location l ON s.DEST_POSTAL_CODE = l.LOC_POSTAL_CODE
+            JOIN depot d ON l.DEPOTNUMBER = d.DEPOTNUMBER
+            JOIN rm ON rm.DEPOTNUMBER = d.DEPOTNUMBER
+            JOIN dep ON dep.region = rm.region
+            WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+              AND rm.region IS NOT NULL
+              AND s.INSERT_DATE >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+              AND s.INSERT_DATE < NOW()
+            GROUP BY rm.region, dep.depots
+            ORDER BY rm.region
+            """;
+
+        const string weeklySql = """
+            WITH RECURSIVE
+            params AS (
+              SELECT DATE_SUB(CURDATE(), INTERVAL MOD(WEEKDAY(CURDATE()) + 2, 7) DAY) AS week_start
+            ),
+            days AS (
+              SELECT
+                0 AS sort_order,
+                CAST('samedi' AS CHAR(10)) AS jour_nom,
+                CAST(2.79 AS DECIMAL(9,4)) AS pct
+              UNION ALL
+              SELECT
+                sort_order + 1,
+                CAST(CASE sort_order + 1
+                    WHEN 1 THEN 'dimanche'
+                    WHEN 2 THEN 'lundi'
+                    WHEN 3 THEN 'mardi'
+                    WHEN 4 THEN 'mercredi'
+                    WHEN 5 THEN 'jeudi'
+                    WHEN 6 THEN 'vendredi'
+                  END AS CHAR(10)),
+                CAST(CASE sort_order + 1
+                    WHEN 1 THEN 3.73
+                    WHEN 2 THEN 21.17
+                    WHEN 3 THEN 24.43
+                    WHEN 4 THEN 17.39
+                    WHEN 5 THEN 16.47
+                    WHEN 6 THEN 14.02
+                  END AS DECIMAL(9,4))
+              FROM days
+              WHERE sort_order < 6
+            ),
+            actual AS (
+              SELECT
+                DATEDIFF(p.INSERT_DATE, x.week_start) AS sort_order,
+                COUNT(*) AS nb_colis
+              FROM parcel p
+              CROSS JOIN params x
+              WHERE p.INSERT_DATE >= x.week_start
+                AND p.INSERT_DATE < DATE_ADD(x.week_start, INTERVAL 7 DAY)
+                AND p.PARCEL_STATUS NOT IN (500,501)
+              GROUP BY DATEDIFF(p.INSERT_DATE, x.week_start)
+            ),
+            weekly_budget AS (
+              SELECT COALESCE(SUM(b.BUDGET_PARCELS_COUNT), 0) AS weekly_total
+              FROM budget_customer_weekly b
+              CROSS JOIN params x
+              WHERE b.BUDGET_DATE >= DATE_ADD(x.week_start, INTERVAL 6 DAY)
+                AND b.BUDGET_DATE < DATE_ADD(x.week_start, INTERVAL 7 DAY)
+            ),
+            calc AS (
+              SELECT
+                d.sort_order,
+                DATE_ADD(x.week_start, INTERVAL d.sort_order DAY) AS jour_date,
+                d.jour_nom,
+                COALESCE(a.nb_colis, 0) AS nb_colis,
+                wb.weekly_total,
+                FLOOR(wb.weekly_total * d.pct / 100.0) AS base_budget,
+                wb.weekly_total * d.pct / 100.0
+                  - FLOOR(wb.weekly_total * d.pct / 100.0) AS frac_val
+              FROM days d
+              CROSS JOIN params x
+              CROSS JOIN weekly_budget wb
+              LEFT JOIN actual a ON a.sort_order = d.sort_order
+            ),
+            ranked AS (
+              SELECT
+                c.*,
+                ROW_NUMBER() OVER (ORDER BY frac_val DESC, sort_order) AS rn,
+                weekly_total - SUM(base_budget) OVER () AS remainder
+              FROM calc c
+            )
+            SELECT
+              NOW() AS database_now,
+              sort_order,
+              jour_date,
+              jour_nom,
+              nb_colis,
+              weekly_total,
+              CAST(base_budget + CASE WHEN rn <= remainder THEN 1 ELSE 0 END AS UNSIGNED) AS budget
+            FROM ranked
+            ORDER BY sort_order
+            """;
+
+        await using var connection = await OpenAsync();
+        var regions = new List<EdiRegionRow>();
+        await using (var command = new MySqlCommand(regionsSql, connection) { CommandTimeout = 180 })
+        await using (var reader = await command.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+                regions.Add(new EdiRegionRow(
+                    reader.GetString("region"),
+                    reader.GetString("depots"),
+                    Int64OrZero(reader, "parcels_today"),
+                    Int64OrZero(reader, "pallets_today"),
+                    Int64OrZero(reader, "parcels_yesterday"),
+                    Int64OrZero(reader, "pallets_yesterday"),
+                    Int64OrZero(reader, "parcels_last_week"),
+                    Int64OrZero(reader, "pallets_last_week")));
+        }
+
+        var days = new List<EdiDailyRow>(7);
+        var databaseNow = DateTime.Now;
+        long weeklyBudget = 0;
+        await using (var command = new MySqlCommand(weeklySql, connection) { CommandTimeout = 180 })
+        await using (var reader = await command.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                databaseNow = reader.GetDateTime("database_now");
+                weeklyBudget = Int64OrZero(reader, "weekly_total");
+                days.Add(new EdiDailyRow(
+                    reader.GetInt32("sort_order"),
+                    DateOnly.FromDateTime(reader.GetDateTime("jour_date")),
+                    reader.GetString("jour_nom"),
+                    Int64OrZero(reader, "nb_colis"),
+                    Int64OrZero(reader, "budget")));
+            }
+        }
+
+        var weekStart = days.Count == 0 ? DateOnly.FromDateTime(databaseNow) : days[0].Date;
+        return new EdiDashboardResponse(
+            databaseNow,
+            weekStart,
+            weekStart.AddDays(6),
+            weeklyBudget,
+            regions,
+            days,
+            DateTimeOffset.Now);
     }
 
     public async Task<LiveRoutesResponse> GetLiveRoutesAsync()
