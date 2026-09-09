@@ -82,7 +82,7 @@ function escapeHtml(value) {
 }
 
 function setConnection(state, label) {
-  $('live-dot').className = state;
+  $('live-dot').className = `live-dot ${state}`;
   $('live-label').textContent = label;
 }
 
@@ -141,6 +141,14 @@ function normalizedClientName(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr-CA');
 }
 
+function clientSortValue(client) {
+  if (clientSortKey === 'trendPercent') {
+    if (client.trendDirection === 'new') return Number.POSITIVE_INFINITY;
+    return Number(client.trendPercent || 0);
+  }
+  return client[clientSortKey];
+}
+
 function sortedFilteredClients() {
   const filter = normalizedClientName($('client-filter').value.trim());
   const filtered = filter
@@ -148,8 +156,8 @@ function sortedFilteredClients() {
     : [...clientRows];
 
   return filtered.sort((left, right) => {
-    const leftValue = left[clientSortKey];
-    const rightValue = right[clientSortKey];
+    const leftValue = clientSortValue(left);
+    const rightValue = clientSortValue(right);
     const leftMissing = leftValue === null || leftValue === undefined;
     const rightMissing = rightValue === null || rightValue === undefined;
     if (leftMissing !== rightMissing) return leftMissing ? 1 : -1;

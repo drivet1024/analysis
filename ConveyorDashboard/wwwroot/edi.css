@@ -20,11 +20,12 @@ button { font: inherit; }
 .shell { width: min(1580px, calc(100% - 28px)); margin: 0 auto; padding: 16px 0 32px; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .topbar-actions { display: flex; align-items: end; justify-content: flex-end; gap: 10px; margin-left: auto; }
-.identity { display: flex; align-items: center; gap: 14px; }
-.mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: linear-gradient(145deg, #ff572f, #ff8c42); color: #fff; font-size: 1.35rem; font-weight: 950; box-shadow: 0 10px 24px rgba(255, 87, 47, .22); }
-.identity p, .section-heading p { margin: 0 0 5px; color: var(--green); font-size: .68rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.brand-lockup { display: flex; align-items: center; gap: 16px; }
+.brand-content { min-width: 0; }
+.brand-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: linear-gradient(145deg, #ff572f, #ff8c42); color: #fff; font-size: 1.35rem; font-weight: 950; box-shadow: 0 10px 24px rgba(255, 87, 47, .22); }
+.section-heading p { margin: 0 0 5px; color: var(--green); font-size: .68rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
 h1, h2, h3 { margin: 0; letter-spacing: -.035em; }
-h1 { font-size: clamp(1.55rem, 3vw, 2.45rem); }
+h1 { font-size: clamp(1.65rem, 3vw, 2.75rem); line-height: 1; letter-spacing: -.045em; }
 h2 { font-size: clamp(1.25rem, 2vw, 1.75rem); }
 h3 { font-size: 1rem; }
 .analysis-date-context { display: grid; flex: 0 0 auto; gap: 5px; margin-left: auto; }
@@ -36,13 +37,13 @@ h3 { font-size: 1rem; }
 .date-navigation button:disabled { opacity: .35; cursor: not-allowed; }
 .date-navigation input { padding: 0 10px; color-scheme: dark; font-size: .8rem; }
 .date-navigation button:focus-visible, .date-navigation input:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-.live-box { display: flex; align-items: center; gap: 10px; padding: 7px 8px 7px 12px; border: 1px solid var(--line); border-radius: 13px; background: rgba(14, 26, 36, .86); box-shadow: var(--shadow); }
-.live-box > div { display: grid; min-width: 132px; }
-.live-box strong { font-size: .84rem; }
-.live-box small { margin-top: 2px; color: var(--muted); font-size: .7rem; }
-#live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 5px rgba(255, 189, 89, .1); }
-#live-dot.ok { background: var(--green); box-shadow: 0 0 0 5px rgba(56, 220, 154, .1), 0 0 16px rgba(56, 220, 154, .6); }
-#live-dot.error { background: var(--red); }
+.live-panel { display: flex; align-items: center; gap: 10px; padding: 7px 8px 7px 12px; border: 1px solid var(--line); border-radius: 13px; background: rgba(14, 26, 36, .85); box-shadow: var(--shadow); }
+.live-panel > div { display: grid; min-width: 132px; }
+.live-panel strong { font-size: .84rem; }
+.live-panel small { margin-top: 2px; color: var(--muted); font-size: .7rem; }
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 5px rgba(255, 189, 89, .1); }
+.live-dot.ok { background: var(--green); box-shadow: 0 0 0 5px rgba(56, 220, 154, .1), 0 0 16px rgba(56, 220, 154, .6); }
+.live-dot.error { background: var(--red); }
 #refresh-button { border: 0; border-radius: 9px; padding: 8px 11px; background: var(--text); color: var(--bg); cursor: pointer; font-size: .8rem; font-weight: 850; }
 #refresh-button:disabled { opacity: .55; cursor: wait; }
 .dashboard-navigation { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-top: 13px; }
@@ -144,7 +145,7 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
   .topbar, .section-heading { align-items: stretch; flex-direction: column; }
   .topbar-actions { align-items: stretch; flex-direction: column; width: 100%; margin-left: 0; }
   .date-navigation { grid-template-columns: 38px minmax(0, 1fr) 38px; }
-  .live-box { width: 100%; }.live-box > div { flex: 1; }
+  .live-panel { width: 100%; }.live-panel > div { flex: 1; }
   .dashboard-tabs { width: 100%; overflow-x: auto; }
   .dashboard-tab { flex: 0 0 auto; }
   .dashboard-navigation { align-items: stretch; flex-direction: column; }
