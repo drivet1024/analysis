@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des convoyeurs Nationex par dépôt.">
   <title>Nationex - Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260908-3">
+  <link rel="stylesheet" href="/live-routes.css?v=20260908-4">
 </head>
 <body>
   <main class="dashboard-shell">
@@ -14,21 +14,23 @@
         <span class="brand-mark" aria-hidden="true">N</span>
         <div class="brand-content">
           <h1>Nationex - <span id="depot-heading">Saint-Hubert</span></h1>
-          <label class="depot-selector" for="depot-select">
-            <span>Dépôt affiché</span>
-            <select id="depot-select">
-              <option value="st-hubert">Saint-Hubert</option>
-              <option value="quebec">Québec</option>
-              <option value="toronto">Toronto</option>
-              <option value="gilmore">Gilmore</option>
-            </select>
-          </label>
         </div>
       </div>
-      <div class="live-panel">
-        <span id="connection-dot" class="live-dot waiting" aria-hidden="true"></span>
-        <div><strong id="connection-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
-        <button id="refresh-button" type="button">Actualiser</button>
+      <div class="topbar-actions">
+        <label class="depot-selector" for="depot-select">
+          <span>Dépôt affiché</span>
+          <select id="depot-select">
+            <option value="st-hubert">Saint-Hubert</option>
+            <option value="quebec">Québec</option>
+            <option value="toronto">Toronto</option>
+            <option value="gilmore">Gilmore</option>
+          </select>
+        </label>
+        <div class="live-panel">
+          <span id="connection-dot" class="live-dot waiting" aria-hidden="true"></span>
+          <div><strong id="connection-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+          <button id="refresh-button" type="button">Actualiser</button>
+        </div>
       </div>
     </header>
 

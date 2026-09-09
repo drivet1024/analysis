@@ -19,7 +19,7 @@ body { margin: 0; min-width: 320px; background: radial-gradient(circle at 80% -1
 button { font: inherit; }
 .shell { width: min(1580px, calc(100% - 28px)); margin: 0 auto; padding: 16px 0 32px; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-.topbar-actions { display: flex; align-items: end; gap: 12px; }
+.topbar-actions { display: flex; align-items: end; justify-content: flex-end; gap: 10px; margin-left: auto; }
 .identity { display: flex; align-items: center; gap: 14px; }
 .mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: linear-gradient(145deg, #ff572f, #ff8c42); color: #fff; font-size: 1.35rem; font-weight: 950; box-shadow: 0 10px 24px rgba(255, 87, 47, .22); }
 .identity p, .section-heading p { margin: 0 0 5px; color: var(--green); font-size: .68rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
@@ -121,7 +121,7 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
 @media (max-width: 700px) {
   .shell { width: min(100% - 22px, 1580px); padding-top: 11px; }
   .topbar, .section-heading { align-items: stretch; flex-direction: column; }
-  .topbar-actions { align-items: stretch; flex-direction: column; }
+  .topbar-actions { align-items: stretch; flex-direction: column; width: 100%; margin-left: 0; }
   .date-navigation { grid-template-columns: 38px minmax(0, 1fr) 38px; }
   .live-box { width: 100%; }.live-box > div { flex: 1; }
   .dashboard-tabs { width: 100%; overflow-x: auto; }

@@ -416,6 +416,7 @@ function openCode25Details() {
 async function load() {
   if (loading) return;
   loading = true;
+  $('refresh-button').disabled = true;
   $('error-banner').hidden = true;
   try {
     const response = await fetch(`/api/quebec-depot-scans?depotId=${encodeURIComponent(selectedSourceDepotId)}&${timeWindowQuery()}&t=${Date.now()}`, { cache: 'no-store' });
@@ -433,9 +434,11 @@ async function load() {
     $('error-banner').hidden = false;
   } finally {
     loading = false;
+    $('refresh-button').disabled = false;
   }
 }
 
+$('refresh-button').addEventListener('click', () => { countdown = REFRESH_SECONDS; load(); });
 $('save-window').addEventListener('click', saveTimeWindow);
 $('previous-date').addEventListener('click', () => moveAnalysisDate(-1));
 $('next-date').addEventListener('click', () => moveAnalysisDate(1));
