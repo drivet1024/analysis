@@ -10,19 +10,19 @@ jobs:
     runs-on: [self-hosted, linux, x64]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Docker Compose deploy
+      - name: Docker information
         run: |
-          docker compose \
-            --project-name analysis \
-            up -d \
-            --build \
-            --remove-orphans
+          docker --version
+          docker compose version
 
-      - name: Show containers
+      - name: Deploy
         run: |
-          docker compose \
-            --project-name analysis \
-            ps
+          docker compose pull
+          docker compose up -d --remove-orphans
+
+      - name: Status
+        run: |
+          docker compose ps
