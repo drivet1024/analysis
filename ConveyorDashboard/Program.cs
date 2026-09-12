@@ -38,7 +38,10 @@ app.Use(async (context, next) =>
     }
     await next();
 });
-app.UseDefaultFiles();
+var defaultFiles = new DefaultFilesOptions();
+defaultFiles.DefaultFileNames.Clear();
+defaultFiles.DefaultFileNames.Add("live-routes.html");
+app.UseDefaultFiles(defaultFiles);
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate",
@@ -98,25 +101,51 @@ app.MapGet("/api/unprocessed-parcels", async (ConveyorDataService data) =>
     catch (Exception ex) { return Results.Problem($"La liste des colis non traités n'a pas pu être calculée : {ex.Message}"); }
 });
 
-app.MapGet("/api/conveyor-hourly", async (string? date, ConveyorDataService data) =>
+app.MapGet("/api/edi", async (string? date, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetConveyorHourlyAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    try
+    {
+        var currentEdiDate = CurrentOperationalDate(DateTime.Now);
+        var analysisDate = ResolveAnalysisDate(date, currentEdiDate);
+        if (analysisDate > currentEdiDate)
+            throw new ArgumentException("La date analysée ne peut pas être dans le futur.");
+        return Results.Ok(await data.GetEdiDashboardAsync(analysisDate));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Le tableau de bord EDI n'a pas pu être calculé : {ex.Message}"); }
+});
+
+app.MapGet("/api/conveyor-hourly", async (string? date, string? depot, ConveyorDataService data) =>
+{
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetConveyorHourlyAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot));
+    }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Les volumes horaires du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
 });
 
-app.MapGet("/api/conveyor-quality", async (string? date, ConveyorDataService data) =>
+app.MapGet("/api/conveyor-quality", async (string? date, string? depot, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetConveyorQualityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetConveyorQualityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot));
+    }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Les indicateurs de qualité du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
 });
 
-app.MapGet("/api/high-conveyor-capacity", async (string? date, ConveyorDataService data) =>
+app.MapGet("/api/high-conveyor-capacity", async (string? date, string? depot, ConveyorDataService data) =>
 {
-    try { return Results.Ok(await data.GetHighConveyorCapacityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now)))); }
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetHighConveyorCapacityAsync(ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot));
+    }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
-    catch (Exception ex) { return Results.Problem($"L'analyse de capacité du convoyeur du haut n'a pas pu être calculée : {ex.Message}"); }
+    catch (Exception ex) { return Results.Problem($"L'analyse de capacité du convoyeur n'a pas pu être calculée : {ex.Message}"); }
 });
 
 app.MapGet("/api/scan-depots", async (ConveyorDataService data) =>
@@ -253,7 +282,7 @@ app.MapPost("/api/ai-analysis", async (AiAnalysisRequest request, ConveyorDataSe
     catch (Exception ex) { return Results.Problem($"L'analyse OpenAI n'a pas pu être produite : {ex.Message}"); }
 });
 
-app.MapFallbackToFile("index.html");
+app.MapFallbackToFile("live-routes.html");
 app.Run();
 
 static DateOnly QueryDate(IQueryCollection query, string name, DateOnly fallback)
@@ -271,8 +300,8 @@ static DateOnly ResolveAnalysisDate(string? value, DateOnly fallback)
     throw new ArgumentException("La date doit être au format AAAA-MM-JJ.");
 }
 
-static DateOnly CurrentOperationalDate(DateTime now) =>
-    DateOnly.FromDateTime(now.Hour < 4 ? now.AddDays(-1) : now);
+static DateOnly CurrentOperationalDate(DateTime now, DepotDefinition? depot = null) =>
+    DateOnly.FromDateTime(now.Hour < (depot?.EndHour ?? 4) ? now.AddDays(-1) : now);
 
 static TimeWindowBounds ResolveTimeWindow(string? dateValue, string? startValue, string? endValue, DateTime now)
 {
@@ -337,9 +366,22 @@ sealed record DashboardConfig(string MySqlHost, uint MySqlPort, string MySqlData
 }
 
 sealed record ConveyorDefinition(string Key, string Name, string Site, int DepotId, int StartHour, int EndHour, string SourcePredicate, bool SupportsMeasurements);
+sealed record DepotDefinition(string Key, string Name, int DepotId, int StartHour, int EndHour, bool HasFloorConveyor, bool SupportsMeasurements)
+{
+    public DateTime ShiftStart(DateOnly date) => date.ToDateTime(new TimeOnly(StartHour, 0));
+    public DateTime ShiftEnd(DateOnly date) => date.AddDays(1).ToDateTime(new TimeOnly(EndHour, 0));
+}
 
 static class ConveyorCatalog
 {
+    public static readonly IReadOnlyList<DepotDefinition> Depots =
+    [
+        new("st-hubert", "Saint-Hubert", 1, 16, 4, true, true),
+        new("quebec", "Québec", 2, 13, 7, false, true),
+        new("toronto", "Toronto", 12, 15, 9, false, true),
+        new("gilmore", "Gilmore", 28, 15, 9, false, false),
+    ];
+
     public static readonly IReadOnlyList<ConveyorDefinition> All =
     [
         new("sth-top", "St-Hubert — haut", "St-Hubert", 1, 15, 3, "(ph.SOURCE_ID IS NULL OR ph.SOURCE_ID = 1)", true),
@@ -355,6 +397,13 @@ static class ConveyorCatalog
         if (key.Equals("st-hubert", StringComparison.OrdinalIgnoreCase)) return All.Where(x => x.DepotId == 1).ToArray();
         var item = All.FirstOrDefault(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
         return item is null ? throw new ArgumentException("Convoyeur inconnu.") : [item];
+    }
+
+    public static DepotDefinition ResolveDepot(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return Depots[0];
+        return Depots.FirstOrDefault(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
+            ?? throw new ArgumentException("Dépôt inconnu.");
     }
 }
 
@@ -496,6 +545,44 @@ sealed record UnprocessedParcelsResponse(
     long UnprocessedParcels,
     IReadOnlyList<UnprocessedClientRow> Rows,
     IReadOnlyList<string> Notes,
+    DateTimeOffset GeneratedAt);
+sealed record EdiRegionRow(
+    string Region,
+    string Depots,
+    long ParcelsToday,
+    long PalletsToday,
+    long ParcelsYesterday,
+    long PalletsYesterday,
+    long ParcelsLastWeek,
+    long PalletsLastWeek);
+sealed record EdiDailyRow(
+    int SortOrder,
+    DateOnly Date,
+    string DayName,
+    long Parcels,
+    long Budget);
+sealed record EdiClientTrendRow(
+    long CustomerId,
+    string CustomerName,
+    long CurrentParcels,
+    long Week1Parcels,
+    long Week2Parcels,
+    long Week3Parcels,
+    long Week4Parcels,
+    double HistoricalAverage,
+    double? TrendPercent,
+    string TrendDirection);
+sealed record EdiDashboardResponse(
+    DateTime DatabaseNow,
+    DateOnly ExecutionDate,
+    long ParcelsTodaySnapshot,
+    long ParcelsLastWeekSameTime,
+    DateOnly WeekStart,
+    DateOnly WeekEnd,
+    long WeeklyBudget,
+    IReadOnlyList<EdiRegionRow> Regions,
+    IReadOnlyList<EdiDailyRow> Days,
+    IReadOnlyList<EdiClientTrendRow> Clients,
     DateTimeOffset GeneratedAt);
 sealed record ConveyorHourlyRow(string Source, int Hour, long Parcels);
 sealed record ConveyorHourlyResponse(
@@ -680,7 +767,7 @@ sealed record ParcelHistoryResponse(
 sealed class ConveyorDataService(DashboardConfig config)
 {
     private readonly SemaphoreSlim capacityBenchmarkLock = new(1, 1);
-    private CapacityBenchmarkSnapshot? capacityBenchmarkCache;
+    private readonly Dictionary<string, CapacityBenchmarkSnapshot> capacityBenchmarkCache = new(StringComparer.OrdinalIgnoreCase);
     private const string RollupCtes = """
         repeated_chute AS (
             SELECT conveyor_key, parcel_id
@@ -758,6 +845,361 @@ sealed class ConveyorDataService(DashboardConfig config)
         await connection.OpenAsync();
         await using var command = new MySqlCommand("SELECT 1", connection);
         return Convert.ToInt32(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture) == 1;
+    }
+
+    public async Task<EdiDashboardResponse> GetEdiDashboardAsync(DateOnly analysisDate)
+    {
+        const string parcelSnapshotSql = """
+            SELECT
+              DATE(@analysisDate) AS execution_date,
+              (SELECT COUNT(*)
+               FROM parcel
+               WHERE parcel_status NOT IN (500,501)
+                 AND INSERT_DATE >= @analysisDate
+                 AND INSERT_DATE < @analysisEnd) AS parcels_today,
+              (SELECT COUNT(*)
+               FROM parcel
+               WHERE parcel_status NOT IN (500,501)
+                 AND INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+                 AND INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)) AS parcels_last_week_same_time
+            """;
+
+        const string regionsSql = """
+            WITH rm AS (
+              SELECT
+                d2.DEPOTNUMBER,
+                d2.DEPOTNAME,
+                CASE
+                  WHEN d2.DEPOTNUMBER IN (2,5,8,11,18,22,24,25) THEN 'QC'
+                  WHEN d2.DEPOTNUMBER IN (4,20)                   THEN 'Hull/Ottawa'
+                  WHEN d2.DEPOTNUMBER IN (12,14,15,16,17,23,29) THEN 'Toronto'
+                  WHEN d2.DEPOTNUMBER IN (9)                     THEN 'Trois-Rivières'
+                  WHEN d2.DEPOTNUMBER IN (13)                    THEN 'Blainville'
+                  WHEN d2.DEPOTNUMBER IN (27,28)                 THEN 'Guilmore/Coli'
+                  WHEN d2.DEPOTNUMBER IN (6,7)                   THEN 'Lau/Val d''or'
+                  WHEN d2.DEPOTNUMBER IN (10)                    THEN 'Drummond'
+                  WHEN d2.DEPOTNUMBER IN (3)                     THEN 'Sherb'
+                END AS region
+              FROM depot d2
+              WHERE d2.DEPOTNUMBER IN (
+                2,5,6,8,11,18,22,24,25,
+                4,20,
+                12,14,15,16,17,23,29,
+                9,
+                13,
+                27,28
+              )
+            ),
+            dep AS (
+              SELECT
+                region,
+                GROUP_CONCAT(DISTINCT DEPOTNAME ORDER BY DEPOTNAME SEPARATOR ', ') AS depots
+              FROM rm
+              GROUP BY region
+            )
+            SELECT
+              rm.region,
+              dep.depots,
+              SUM(CASE
+                    WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
+                    THEN s.PARCEL_NB ELSE 0
+                  END) AS parcels_today,
+              CEILING(SUM(CASE
+                            WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
+                            THEN s.PARCEL_NB ELSE 0
+                          END) / 60.0) AS pallets_today,
+              SUM(CASE
+                    WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY)
+                     AND s.INSERT_DATE < @analysisDate
+                    THEN s.PARCEL_NB ELSE 0
+                  END) AS parcels_yesterday,
+              CEILING(SUM(CASE
+                            WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY)
+                             AND s.INSERT_DATE < @analysisDate
+                            THEN s.PARCEL_NB ELSE 0
+                          END) / 60.0) AS pallets_yesterday,
+              SUM(CASE
+                    WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+                     AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
+                    THEN s.PARCEL_NB ELSE 0
+                  END) AS parcels_last_week,
+              CEILING(SUM(CASE
+                            WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+                             AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
+                            THEN s.PARCEL_NB ELSE 0
+                          END) / 60.0) AS pallets_last_week
+            FROM shipment s
+            JOIN location l ON s.DEST_POSTAL_CODE = l.LOC_POSTAL_CODE
+            JOIN depot d ON l.DEPOTNUMBER = d.DEPOTNUMBER
+            JOIN rm ON rm.DEPOTNUMBER = d.DEPOTNUMBER
+            JOIN dep ON dep.region = rm.region
+            WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+              AND rm.region IS NOT NULL
+              AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+              AND s.INSERT_DATE < @analysisEnd
+            GROUP BY rm.region, dep.depots
+            ORDER BY rm.region
+            """;
+
+        const string weeklySql = """
+            WITH RECURSIVE
+            params AS (
+              SELECT DATE_SUB(DATE(@analysisDate), INTERVAL MOD(WEEKDAY(@analysisDate) + 2, 7) DAY) AS week_start
+            ),
+            days AS (
+              SELECT
+                0 AS sort_order,
+                CAST('samedi' AS CHAR(10)) AS jour_nom,
+                CAST(2.79 AS DECIMAL(9,4)) AS pct
+              UNION ALL
+              SELECT
+                sort_order + 1,
+                CAST(CASE sort_order + 1
+                    WHEN 1 THEN 'dimanche'
+                    WHEN 2 THEN 'lundi'
+                    WHEN 3 THEN 'mardi'
+                    WHEN 4 THEN 'mercredi'
+                    WHEN 5 THEN 'jeudi'
+                    WHEN 6 THEN 'vendredi'
+                  END AS CHAR(10)),
+                CAST(CASE sort_order + 1
+                    WHEN 1 THEN 3.73
+                    WHEN 2 THEN 21.17
+                    WHEN 3 THEN 24.43
+                    WHEN 4 THEN 17.39
+                    WHEN 5 THEN 16.47
+                    WHEN 6 THEN 14.02
+                  END AS DECIMAL(9,4))
+              FROM days
+              WHERE sort_order < 6
+            ),
+            actual AS (
+              SELECT
+                DATEDIFF(DATE_SUB(p.INSERT_DATE, INTERVAL 4 HOUR), x.week_start) AS sort_order,
+                COUNT(*) AS nb_colis
+              FROM parcel p
+              CROSS JOIN params x
+              WHERE p.INSERT_DATE >= DATE_ADD(x.week_start, INTERVAL 4 HOUR)
+                AND p.INSERT_DATE < DATE_ADD(DATE_ADD(x.week_start, INTERVAL 7 DAY), INTERVAL 4 HOUR)
+                AND p.INSERT_DATE < @weekDataEnd
+                AND p.PARCEL_STATUS NOT IN (500,501)
+              GROUP BY DATEDIFF(DATE_SUB(p.INSERT_DATE, INTERVAL 4 HOUR), x.week_start)
+            ),
+            weekly_budget AS (
+              SELECT COALESCE(SUM(b.BUDGET_PARCELS_COUNT), 0) AS weekly_total
+              FROM budget_customer_weekly b
+              CROSS JOIN params x
+              WHERE b.BUDGET_DATE >= DATE_ADD(x.week_start, INTERVAL 6 DAY)
+                AND b.BUDGET_DATE < DATE_ADD(x.week_start, INTERVAL 7 DAY)
+            ),
+            calc AS (
+              SELECT
+                d.sort_order,
+                DATE_ADD(x.week_start, INTERVAL d.sort_order DAY) AS jour_date,
+                d.jour_nom,
+                COALESCE(a.nb_colis, 0) AS nb_colis,
+                wb.weekly_total,
+                FLOOR(wb.weekly_total * d.pct / 100.0) AS base_budget,
+                wb.weekly_total * d.pct / 100.0
+                  - FLOOR(wb.weekly_total * d.pct / 100.0) AS frac_val
+              FROM days d
+              CROSS JOIN params x
+              CROSS JOIN weekly_budget wb
+              LEFT JOIN actual a ON a.sort_order = d.sort_order
+            ),
+            ranked AS (
+              SELECT
+                c.*,
+                ROW_NUMBER() OVER (ORDER BY frac_val DESC, sort_order) AS rn,
+                weekly_total - SUM(base_budget) OVER () AS remainder
+              FROM calc c
+            )
+            SELECT
+              NOW() AS database_now,
+              sort_order,
+              jour_date,
+              jour_nom,
+              nb_colis,
+              weekly_total,
+              CAST(base_budget + CASE WHEN rn <= remainder THEN 1 ELSE 0 END AS UNSIGNED) AS budget
+            FROM ranked
+            ORDER BY sort_order
+            """;
+
+        const string clientsSql = """
+            WITH volumes AS (
+              SELECT
+                s.CUSTOMER_ID AS customer_id,
+                0 AS week_index,
+                SUM(s.PARCEL_NB) AS parcels
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL
+                AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= @analysisDate
+                AND s.INSERT_DATE < @analysisEnd
+              GROUP BY s.CUSTOMER_ID
+              UNION ALL
+              SELECT s.CUSTOMER_ID, 1, SUM(s.PARCEL_NB)
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+                AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
+              GROUP BY s.CUSTOMER_ID
+              UNION ALL
+              SELECT s.CUSTOMER_ID, 2, SUM(s.PARCEL_NB)
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 14 DAY)
+                AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 14 DAY)
+              GROUP BY s.CUSTOMER_ID
+              UNION ALL
+              SELECT s.CUSTOMER_ID, 3, SUM(s.PARCEL_NB)
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 21 DAY)
+                AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 21 DAY)
+              GROUP BY s.CUSTOMER_ID
+              UNION ALL
+              SELECT s.CUSTOMER_ID, 4, SUM(s.PARCEL_NB)
+              FROM shipment s
+              WHERE s.SHIPMENT_STATUS NOT IN (500,501)
+                AND s.CUSTOMER_ID IS NOT NULL AND s.CUSTOMER_ID > 0
+                AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 28 DAY)
+                AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 28 DAY)
+              GROUP BY s.CUSTOMER_ID
+            )
+            SELECT
+              v.customer_id,
+              COALESCE(NULLIF(TRIM(c.NAME), ''), CONCAT('Client ', v.customer_id)) AS customer_name,
+              SUM(CASE WHEN v.week_index = 0 THEN v.parcels ELSE 0 END) AS current_parcels,
+              SUM(CASE WHEN v.week_index = 1 THEN v.parcels ELSE 0 END) AS week_1_parcels,
+              SUM(CASE WHEN v.week_index = 2 THEN v.parcels ELSE 0 END) AS week_2_parcels,
+              SUM(CASE WHEN v.week_index = 3 THEN v.parcels ELSE 0 END) AS week_3_parcels,
+              SUM(CASE WHEN v.week_index = 4 THEN v.parcels ELSE 0 END) AS week_4_parcels
+            FROM volumes v
+            LEFT JOIN customer c ON c.CUSTOMER_ID = v.customer_id
+            GROUP BY v.customer_id, c.NAME
+            ORDER BY current_parcels DESC, customer_name
+            LIMIT 50
+            """;
+
+        var analysisStart = analysisDate.ToDateTime(new TimeOnly(4, 0));
+        var now = DateTime.Now;
+        var currentEdiDate = DateOnly.FromDateTime(now.Hour < 4 ? now.AddDays(-1) : now);
+        var analysisEnd = analysisDate == currentEdiDate ? now : analysisStart.AddDays(1);
+        var daysSinceSaturday = ((int)analysisDate.DayOfWeek + 1) % 7;
+        var selectedWeekStart = analysisDate.AddDays(-daysSinceSaturday).ToDateTime(new TimeOnly(4, 0));
+        var selectedWeekEnd = selectedWeekStart.AddDays(7);
+        var weekDataEnd = now < selectedWeekEnd ? now : selectedWeekEnd;
+
+        await using var connection = await OpenAsync();
+        var executionDate = analysisDate;
+        long parcelsTodaySnapshot = 0, parcelsLastWeekSameTime = 0;
+        await using (var command = new MySqlCommand(parcelSnapshotSql, connection) { CommandTimeout = 180 })
+        {
+            command.Parameters.AddWithValue("@analysisDate", analysisStart);
+            command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
+            await using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                executionDate = DateOnly.FromDateTime(reader.GetDateTime("execution_date"));
+                parcelsTodaySnapshot = Int64OrZero(reader, "parcels_today");
+                parcelsLastWeekSameTime = Int64OrZero(reader, "parcels_last_week_same_time");
+            }
+        }
+
+        var regions = new List<EdiRegionRow>();
+        await using (var command = new MySqlCommand(regionsSql, connection) { CommandTimeout = 180 })
+        {
+            command.Parameters.AddWithValue("@analysisDate", analysisStart);
+            command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                regions.Add(new EdiRegionRow(
+                    reader.GetString("region"),
+                    reader.GetString("depots"),
+                    Int64OrZero(reader, "parcels_today"),
+                    Int64OrZero(reader, "pallets_today"),
+                    Int64OrZero(reader, "parcels_yesterday"),
+                    Int64OrZero(reader, "pallets_yesterday"),
+                    Int64OrZero(reader, "parcels_last_week"),
+                    Int64OrZero(reader, "pallets_last_week")));
+        }
+
+        var clients = new List<EdiClientTrendRow>();
+        await using (var command = new MySqlCommand(clientsSql, connection) { CommandTimeout = 180 })
+        {
+            command.Parameters.AddWithValue("@analysisDate", analysisStart);
+            command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var currentParcels = Int64OrZero(reader, "current_parcels");
+                var week1Parcels = Int64OrZero(reader, "week_1_parcels");
+                var week2Parcels = Int64OrZero(reader, "week_2_parcels");
+                var week3Parcels = Int64OrZero(reader, "week_3_parcels");
+                var week4Parcels = Int64OrZero(reader, "week_4_parcels");
+                var historicalAverage = (week1Parcels + week2Parcels + week3Parcels + week4Parcels) / 4.0;
+                double? trendPercent = historicalAverage > 0
+                    ? Math.Round((currentParcels - historicalAverage) * 100.0 / historicalAverage, 1)
+                    : null;
+                var trendDirection = historicalAverage == 0
+                    ? currentParcels > 0 ? "new" : "stable"
+                    : currentParcels > historicalAverage ? "up"
+                    : currentParcels < historicalAverage ? "down"
+                    : "stable";
+                clients.Add(new EdiClientTrendRow(
+                    reader.GetInt64("customer_id"),
+                    reader.GetString("customer_name").Trim(),
+                    currentParcels,
+                    week1Parcels,
+                    week2Parcels,
+                    week3Parcels,
+                    week4Parcels,
+                    historicalAverage,
+                    trendPercent,
+                    trendDirection));
+            }
+        }
+
+        var days = new List<EdiDailyRow>(7);
+        var databaseNow = DateTime.Now;
+        long weeklyBudget = 0;
+        await using (var command = new MySqlCommand(weeklySql, connection) { CommandTimeout = 180 })
+        {
+            command.Parameters.AddWithValue("@analysisDate", analysisStart);
+            command.Parameters.AddWithValue("@weekDataEnd", weekDataEnd);
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                databaseNow = reader.GetDateTime("database_now");
+                weeklyBudget = Int64OrZero(reader, "weekly_total");
+                days.Add(new EdiDailyRow(
+                    reader.GetInt32("sort_order"),
+                    DateOnly.FromDateTime(reader.GetDateTime("jour_date")),
+                    reader.GetString("jour_nom"),
+                    Int64OrZero(reader, "nb_colis"),
+                    Int64OrZero(reader, "budget")));
+            }
+        }
+
+        var weekStart = days.Count == 0 ? DateOnly.FromDateTime(databaseNow) : days[0].Date;
+        return new EdiDashboardResponse(
+            databaseNow,
+            executionDate,
+            parcelsTodaySnapshot,
+            parcelsLastWeekSameTime,
+            weekStart,
+            weekStart.AddDays(6),
+            weeklyBudget,
+            regions,
+            days,
+            clients,
+            DateTimeOffset.Now);
     }
 
     public async Task<LiveRoutesResponse> GetLiveRoutesAsync()
@@ -1686,7 +2128,7 @@ sealed class ConveyorDataService(DashboardConfig config)
         return new ParcelHistoryResponse(parcelId, databaseNow, destinationAddress, destinationCity, events, DateTimeOffset.Now);
     }
 
-    public async Task<ConveyorHourlyResponse> GetConveyorHourlyAsync(DateOnly date)
+    public async Task<ConveyorHourlyResponse> GetConveyorHourlyAsync(DateOnly date, DepotDefinition depot)
     {
         const string sql = """
             WITH RECURSIVE
@@ -1694,13 +2136,15 @@ sealed class ConveyorDataService(DashboardConfig config)
                 SELECT @shiftStart shift_start
             ),
             shift_bounds AS (
-                SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end
+                SELECT shift_start,@shiftEnd shift_end
                 FROM shift_anchor
             ),
             hour_slots AS (
-                SELECT 0 slot_index,16 hour_value
+                SELECT 0 slot_index,HOUR(@shiftStart) hour_value,@shiftStart bucket_start
                 UNION ALL
-                SELECT slot_index+1,MOD(hour_value+1,24) FROM hour_slots WHERE slot_index<11
+                SELECT slot_index+1,MOD(hour_value+1,24),bucket_start+INTERVAL 1 HOUR
+                FROM hour_slots
+                WHERE bucket_start+INTERVAL 1 HOUR<@shiftEnd
             ),
             sources AS (
                 SELECT 'high' source_key
@@ -1710,19 +2154,19 @@ sealed class ConveyorDataService(DashboardConfig config)
             classified_scans AS (
                 SELECT ph.PARCEL_ID parcel_id,
                        CASE
-                           WHEN ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1) THEN 'high'
-                           WHEN ph.SOURCE_TYPE=200 AND ph.SOURCE_ID=3 THEN 'floor'
+                           WHEN ph.SOURCE_TYPE=200 AND @hasFloor=1 AND ph.SOURCE_ID=3 THEN 'floor'
+                           WHEN ph.SOURCE_TYPE=200 THEN 'high'
                            WHEN ph.SOURCE_TYPE=201 THEN 'manual'
                        END source_key,
                        ph.DATE_LIV scan_time
                 FROM parcel_history ph
                 CROSS JOIN shift_bounds sb
                 WHERE ph.EXCEPTION=903
-                  AND ph.DEPOT_ID=1
+                  AND ph.DEPOT_ID=@depotId
                   AND COALESCE(ph.VOID,0)=0
                   AND ph.PARCEL_ID IS NOT NULL
                   AND ph.PARCEL_ID<>0
-                  AND ((ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR ph.SOURCE_TYPE=201)
+                  AND ((ph.SOURCE_TYPE=200 AND ((@hasFloor=1 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR (@hasFloor=0 AND ph.SOURCE_ID IS NULL))) OR ph.SOURCE_TYPE=201)
                   AND ph.DATE_INSERT>=sb.shift_start-INTERVAL 1 HOUR
                   AND ph.DATE_INSERT<sb.shift_end
                   AND ph.DATE_LIV>=sb.shift_start
@@ -1756,7 +2200,10 @@ sealed class ConveyorDataService(DashboardConfig config)
 
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
-        command.Parameters.AddWithValue("@shiftStart", date.ToDateTime(new TimeOnly(16, 0)));
+        command.Parameters.AddWithValue("@shiftStart", depot.ShiftStart(date));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
         await using var reader = await command.ExecuteReaderAsync();
         var rows = new List<ConveyorHourlyRow>();
         var databaseNow = DateTime.Now;
@@ -1800,19 +2247,19 @@ sealed class ConveyorDataService(DashboardConfig config)
             rows,
             [
                 "Chaque colis unique est compté dans l'heure de son premier passage sur la source concernée.",
-                "Le quart opérationnel commence à 16 h et se termine à 3 h 59 le lendemain; après minuit, les données restent rattachées au quart de la veille."
+                $"Le quart opérationnel de {depot.Name} commence à {depot.StartHour} h et se termine à {depot.EndHour - 1} h 59 le lendemain; après minuit, les données restent rattachées au quart de la veille."
             ],
             DateTimeOffset.Now);
     }
 
-    public async Task<ConveyorQualityResponse> GetConveyorQualityAsync(DateOnly date)
+    public async Task<ConveyorQualityResponse> GetConveyorQualityAsync(DateOnly date, DepotDefinition depot)
     {
         const string sql = """
             WITH scope AS (
                 SELECT parcel_id,line_id,chute,camera_data
                 FROM parcel_scan_history
-                WHERE depot_id=1
-                  AND line_id IN (0,1)
+                WHERE depot_id=@depotId
+                  AND (@hasFloor=0 OR line_id IN (0,1))
                   AND date_insert>=@shiftStart
                   AND date_insert<@shiftEnd
             ),
@@ -1838,10 +2285,10 @@ sealed class ConveyorDataService(DashboardConfig config)
                 FROM parcel_history PARTITION (p2026) ph
                 WHERE ph.DATE_LIV>=@shiftStart
                   AND ph.DATE_LIV<@shiftEnd
-                  AND ph.DEPOT_ID=1
+                  AND ph.DEPOT_ID=@depotId
                   AND ph.EXCEPTION=903
                   AND ph.SOURCE_TYPE=200
-                  AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                  AND (ph.SOURCE_ID IS NULL OR (@hasFloor=1 AND ph.SOURCE_ID=1))
                   AND ph.PARCEL_ID IS NOT NULL
                   AND ph.PARCEL_ID<>0
                   AND COALESCE(ph.VOID,0)=0
@@ -1870,11 +2317,13 @@ sealed class ConveyorDataService(DashboardConfig config)
             ORDER BY tc.recirculated_parcels DESC,tc.chute
             """;
 
-        var shiftStart = date.ToDateTime(new TimeOnly(16, 0));
+        var shiftStart = depot.ShiftStart(date);
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
         command.Parameters.AddWithValue("@shiftStart", shiftStart);
-        command.Parameters.AddWithValue("@shiftEnd", shiftStart.AddHours(12));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
         await using var reader = await command.ExecuteReaderAsync();
         long totalConveyed = 0, chute98 = 0, chute16 = 0, noRead = 0, sameChuteRecirculated = 0, underTwoPounds = 0, highConveyorParcels = 0;
         var topChutes = new List<RecirculationChute>(5);
@@ -1903,25 +2352,25 @@ sealed class ConveyorDataService(DashboardConfig config)
             DateTimeOffset.Now);
     }
 
-    public async Task<HighConveyorCapacityResponse> GetHighConveyorCapacityAsync(DateOnly date)
+    public async Task<HighConveyorCapacityResponse> GetHighConveyorCapacityAsync(DateOnly date, DepotDefinition depot)
     {
-        var benchmark = await GetHighCapacityBenchmarkAsync();
+        var benchmark = await GetHighCapacityBenchmarkAsync(depot);
         const string sql = """
             WITH
             shift_anchor AS (
                 SELECT @shiftStart shift_start
             ),
             shift_bounds AS (
-                SELECT shift_start,shift_start+INTERVAL 12 HOUR shift_end FROM shift_anchor
+                SELECT shift_start,@shiftEnd shift_end FROM shift_anchor
             ),
             scans AS (
                 SELECT ph.PARCEL_ID parcel_id,ph.DATE_LIV scan_time,ph.CHUTE_NO chute_no
                 FROM parcel_history PARTITION (p2026) ph
                 CROSS JOIN shift_bounds sb
                 WHERE ph.EXCEPTION=903
-                  AND ph.DEPOT_ID=1
+                  AND ph.DEPOT_ID=@depotId
                   AND ph.SOURCE_TYPE=200
-                  AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                  AND (ph.SOURCE_ID IS NULL OR (@hasFloor=1 AND ph.SOURCE_ID=1))
                   AND COALESCE(ph.VOID,0)=0
                   AND ph.PARCEL_ID IS NOT NULL
                   AND ph.PARCEL_ID<>0
@@ -1994,7 +2443,10 @@ sealed class ConveyorDataService(DashboardConfig config)
 
         await using var connection = await OpenAsync();
         await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 120 };
-        command.Parameters.AddWithValue("@shiftStart", date.ToDateTime(new TimeOnly(16, 0)));
+        command.Parameters.AddWithValue("@shiftStart", depot.ShiftStart(date));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
         await using var reader = await command.ExecuteReaderAsync();
         var uniqueMinuteCounts = new Dictionary<DateTime, long>();
         var totalMinuteCounts = new Dictionary<DateTime, long>();
@@ -2019,7 +2471,7 @@ sealed class ConveyorDataService(DashboardConfig config)
         }
 
         var analysisEnd = databaseNow < shiftStart ? shiftStart : databaseNow > shiftEnd ? shiftEnd : databaseNow;
-        var buckets = new List<HighCapacityBucket>(48);
+        var buckets = new List<HighCapacityBucket>((int)(shiftEnd - shiftStart).TotalMinutes / 15);
         for (var bucketStart = shiftStart; bucketStart < shiftEnd; bucketStart = bucketStart.AddMinutes(15))
         {
             var bucketEnd = bucketStart.AddMinutes(15);
@@ -2078,30 +2530,27 @@ sealed class ConveyorDataService(DashboardConfig config)
             DateTimeOffset.Now);
     }
 
-    private async Task<CapacityBenchmarkSnapshot> GetHighCapacityBenchmarkAsync()
+    private async Task<CapacityBenchmarkSnapshot> GetHighCapacityBenchmarkAsync(DepotDefinition depot)
     {
-        if (capacityBenchmarkCache is { } cached && DateTimeOffset.Now - cached.LoadedAt < TimeSpan.FromHours(1)) return cached;
+        if (capacityBenchmarkCache.TryGetValue(depot.Key, out var cached) && DateTimeOffset.Now - cached.LoadedAt < TimeSpan.FromHours(1)) return cached;
         await capacityBenchmarkLock.WaitAsync();
         try
         {
-            if (capacityBenchmarkCache is { } refreshed && DateTimeOffset.Now - refreshed.LoadedAt < TimeSpan.FromHours(1)) return refreshed;
+            if (capacityBenchmarkCache.TryGetValue(depot.Key, out var refreshed) && DateTimeOffset.Now - refreshed.LoadedAt < TimeSpan.FromHours(1)) return refreshed;
             const string sql = """
                 WITH
                 shift_anchor AS (
-                    SELECT CASE
-                        WHEN CURTIME()<'04:00:00' THEN CURDATE()-INTERVAL 1 DAY+INTERVAL 16 HOUR
-                        ELSE CURDATE()+INTERVAL 16 HOUR
-                    END current_shift_start
+                    SELECT @currentShiftStart current_shift_start
                 ),
                 first_by_shift AS (
-                    SELECT DATE(ph.DATE_LIV-INTERVAL 4 HOUR) shift_date,
+                    SELECT DATE(ph.DATE_LIV-INTERVAL @shiftEndHour HOUR) shift_date,
                            ph.PARCEL_ID parcel_id,MIN(ph.DATE_LIV) first_scan
                     FROM parcel_history PARTITION (p2026) ph
                     CROSS JOIN shift_anchor sa
                     WHERE ph.EXCEPTION=903
-                      AND ph.DEPOT_ID=1
+                      AND ph.DEPOT_ID=@depotId
                       AND ph.SOURCE_TYPE=200
-                      AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID=1)
+                      AND (ph.SOURCE_ID IS NULL OR (@hasFloor=1 AND ph.SOURCE_ID=1))
                       AND COALESCE(ph.VOID,0)=0
                       AND ph.PARCEL_ID IS NOT NULL
                       AND ph.PARCEL_ID<>0
@@ -2109,8 +2558,8 @@ sealed class ConveyorDataService(DashboardConfig config)
                       AND ph.DATE_INSERT<sa.current_shift_start
                       AND ph.DATE_LIV>=sa.current_shift_start-INTERVAL 14 DAY
                       AND ph.DATE_LIV<sa.current_shift_start
-                      AND (HOUR(ph.DATE_LIV)>=16 OR HOUR(ph.DATE_LIV)<4)
-                    GROUP BY DATE(ph.DATE_LIV-INTERVAL 4 HOUR),ph.PARCEL_ID
+                      AND (HOUR(ph.DATE_LIV)>=@shiftStartHour OR HOUR(ph.DATE_LIV)<@shiftEndHour)
+                    GROUP BY DATE(ph.DATE_LIV-INTERVAL @shiftEndHour HOUR),ph.PARCEL_ID
                 ),
                 minute_counts AS (
                     SELECT shift_date,CAST(DATE_FORMAT(first_scan,'%Y-%m-%d %H:%i:00') AS DATETIME) minute_start,COUNT(*) parcels
@@ -2124,7 +2573,7 @@ sealed class ConveyorDataService(DashboardConfig config)
                       ON m2.shift_date=m1.shift_date
                      AND m2.minute_start>=m1.minute_start
                      AND m2.minute_start<m1.minute_start+INTERVAL 60 MINUTE
-                    WHERE m1.minute_start<=TIMESTAMP(m1.shift_date)+INTERVAL 27 HOUR
+                    WHERE m1.minute_start<=TIMESTAMP(m1.shift_date)+INTERVAL @lastWindowStartHour HOUR
                     GROUP BY m1.shift_date,m1.minute_start
                 ),
                 ranked_hours AS (
@@ -2145,6 +2594,14 @@ sealed class ConveyorDataService(DashboardConfig config)
                 """;
             await using var connection = await OpenAsync();
             await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 180 };
+            var now = DateTime.Now;
+            var currentShiftDate = DateOnly.FromDateTime(now.Hour < depot.EndHour ? now.AddDays(-1) : now);
+            command.Parameters.AddWithValue("@currentShiftStart", depot.ShiftStart(currentShiftDate));
+            command.Parameters.AddWithValue("@depotId", depot.DepotId);
+            command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
+            command.Parameters.AddWithValue("@shiftStartHour", depot.StartHour);
+            command.Parameters.AddWithValue("@shiftEndHour", depot.EndHour);
+            command.Parameters.AddWithValue("@lastWindowStartHour", 24 + depot.EndHour - 1);
             await using var reader = await command.ExecuteReaderAsync();
             var peaks = new List<HighCapacityDailyPeak>();
             while (await reader.ReadAsync())
@@ -2154,8 +2611,9 @@ sealed class ConveyorDataService(DashboardConfig config)
                     Int64OrZero(reader, "total_parcels")));
             var sortedPeaks = peaks.Select(x => x.PeakPerHour).Order().ToArray();
             var practicalCapacity = sortedPeaks.Length == 0 ? 0 : sortedPeaks[Math.Max(0, (int)Math.Ceiling(sortedPeaks.Length * 0.75) - 1)];
-            capacityBenchmarkCache = new CapacityBenchmarkSnapshot(DateTimeOffset.Now, practicalCapacity, sortedPeaks.DefaultIfEmpty(0).Max(), peaks);
-            return capacityBenchmarkCache;
+            var snapshot = new CapacityBenchmarkSnapshot(DateTimeOffset.Now, practicalCapacity, sortedPeaks.DefaultIfEmpty(0).Max(), peaks);
+            capacityBenchmarkCache[depot.Key] = snapshot;
+            return snapshot;
         }
         finally
         {

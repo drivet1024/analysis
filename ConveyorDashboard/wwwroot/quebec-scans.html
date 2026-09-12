@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Scans en direct des dépôts Nationex.">
   <title>Scans des dépôts Nationex</title>
-  <link rel="stylesheet" href="/quebec-scans.css?v=20260903-21">
+  <link rel="stylesheet" href="/quebec-scans.css?v=20260908-27">
 </head>
 <body>
   <main class="shell">
     <header class="topbar">
-      <div class="identity">
-        <span class="mark" aria-hidden="true">N</span>
-        <div><p>Nationex · <span id="header-depot-name">QUEBEC</span></p><h1>Analyse code 25</h1></div>
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <div class="brand-content"><h1>Nationex - <span id="header-depot-name">QUEBEC</span></h1></div>
       </div>
       <div class="topbar-actions">
-        <label class="depot-picker"><span>Dépôt analysé</span><select id="depot-select" aria-label="Sélectionner le dépôt à analyser"><option value="2">QUEBEC</option></select></label>
+        <label class="depot-selector" for="depot-select"><select id="depot-select" aria-label="Sélectionner le dépôt à afficher"><option value="2">QUEBEC</option></select></label>
         <details id="settings-menu" class="settings-menu">
           <summary aria-label="Modifier la plage horaire" title="Paramètres de la plage horaire">⚙</summary>
           <div class="settings-popover">
@@ -27,12 +27,23 @@
             </div>
           </div>
         </details>
-        <div class="live-box">
-          <i id="live-dot" aria-hidden="true"></i>
+        <div class="live-panel">
+          <span id="live-dot" class="live-dot waiting" aria-hidden="true"></span>
           <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+          <button id="refresh-button" type="button">Actualiser</button>
         </div>
       </div>
     </header>
+
+    <div class="dashboard-navigation">
+      <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+        <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
+        <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
+        <a class="dashboard-tab active" href="/quebec-scans.html" aria-current="page">Analyse code 25</a>
+        <a class="dashboard-tab" href="/edi.html">EDI</a>
+      </nav>
+      <div class="navigation-date-context"><span>Date analysée</span><div class="date-navigation"><button id="previous-date" type="button" aria-label="Jour précédent">‹</button><input id="analysis-date" type="date" aria-label="Date analysée"><button id="next-date" type="button" aria-label="Jour suivant">›</button></div></div>
+    </div>
 
     <section id="st-hubert-rerouted" class="rerouted-banner interactive" role="button" tabindex="0" aria-label="Voir les colis avec un code 25 attribué à St-Hubert" hidden>
       <div><span>Code 25 attribués · St-Hubert</span><strong id="st-hubert-rerouted-total">—</strong></div>
@@ -40,7 +51,6 @@
     </section>
 
     <section class="context-row" aria-label="Contexte de la lecture">
-      <div class="date-context"><span>Date analysée</span><div class="date-navigation"><button id="previous-date" type="button" aria-label="Jour précédent">‹</button><input id="analysis-date" type="date" aria-label="Date analysée"><button id="next-date" type="button" aria-label="Jour suivant">›</button></div></div>
       <div><span>Fenêtre</span><strong id="window-label">00:00 à 23:59</strong></div>
       <div><span>Dernier scan</span><strong id="latest-scan">—</strong></div>
     </section>
@@ -127,6 +137,6 @@
     <p class="dialog-note">Chaque colis est affiché une fois. Cliquez sur un colis pour consulter tout son historique.</p>
   </dialog>
 
-  <script src="/quebec-scans.js?v=20260903-21" defer></script>
+  <script src="/quebec-scans.js?v=20260908-24" defer></script>
 </body>
 </html>
