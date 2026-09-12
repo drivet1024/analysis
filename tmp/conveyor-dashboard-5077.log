@@ -1,0 +1,1562 @@
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:5077
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\codex\analysis\ConveyorDashboard
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?depotId=99 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Http.Result.BadRequestObjectResult[1]
+      Setting HTTP status code 400.
+info: Microsoft.AspNetCore.Http.Result.BadRequestObjectResult[3]
+      Writing value of type 'String' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?depotId=99 - 400 - application/json;+charset=utf-8 105.9590ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?depotId=2 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'ConveyorHourlyResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?depotId=2 - 200 - application/json;+charset=utf-8 161.8348ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?depotId=12 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'ConveyorHourlyResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?depotId=12 - 200 - application/json;+charset=utf-8 29.8261ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903000227 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903000227 - 200 - application/json;+charset=utf-8 83.1994ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903030228 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903030228 - 200 - application/json;+charset=utf-8 64.7873ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?depotId=1 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'ConveyorHourlyResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?depotId=1 - 200 - application/json;+charset=utf-8 34.5889ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-quality?depotId=2 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/conveyor-quality'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'ConveyorQualityResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/conveyor-quality'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-quality?depotId=2 - 200 - application/json;+charset=utf-8 18.4003ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-quality?depotId=12 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/conveyor-quality'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'ConveyorQualityResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/conveyor-quality'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-quality?depotId=12 - 200 - application/json;+charset=utf-8 10.8731ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/live-routes.html - - -
+info: Microsoft.AspNetCore.StaticFiles.StaticFileMiddleware[2]
+      Sending file. Request path: '/live-routes.html'. Physical path: 'C:\codex\analysis\ConveyorDashboard\wwwroot\live-routes.html'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/live-routes.html - 200 17021 text/html 9.4144ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903060227 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903060227 - 200 - application/json;+charset=utf-8 72.1716ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903090234 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903090234 - 200 - application/json;+charset=utf-8 63.0058ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903120231 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903120231 - 200 - application/json;+charset=utf-8 62.2979ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903150229 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903150229 - 200 - application/json;+charset=utf-8 58.2461ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903180241 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903180241 - 200 - application/json;+charset=utf-8 58.5471ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903210230 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903210230 - 200 - application/json;+charset=utf-8 61.1310ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903240232 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903240232 - 200 - application/json;+charset=utf-8 61.9051ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903270239 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903270239 - 200 - application/json;+charset=utf-8 63.7841ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903300239 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903300239 - 200 - application/json;+charset=utf-8 58.7713ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903330231 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903330231 - 200 - application/json;+charset=utf-8 59.0338ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903360232 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903360232 - 200 - application/json;+charset=utf-8 64.1294ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903390233 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903390233 - 200 - application/json;+charset=utf-8 60.1332ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903420245 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903420245 - 200 - application/json;+charset=utf-8 61.3013ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903450235 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903450235 - 200 - application/json;+charset=utf-8 59.6921ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=11%3A00&endTime=03%3A59&t=1788903455213 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=11%3A00&endTime=03%3A59&t=1788903455213 - 200 - application/json;+charset=utf-8 68.4789ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903480236 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903480236 - 200 - application/json;+charset=utf-8 61.7538ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903510245 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903510245 - 200 - application/json;+charset=utf-8 63.5272ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903540247 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903540247 - 200 - application/json;+charset=utf-8 61.7732ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903570236 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903570236 - 200 - application/json;+charset=utf-8 60.6898ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903600242 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903600242 - 200 - application/json;+charset=utf-8 61.0739ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903630244 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903630244 - 200 - application/json;+charset=utf-8 65.9572ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903660236 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903660236 - 200 - application/json;+charset=utf-8 65.4449ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903690243 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903690243 - 200 - application/json;+charset=utf-8 64.0854ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903720249 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903720249 - 200 - application/json;+charset=utf-8 64.9967ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903750246 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903750246 - 200 - application/json;+charset=utf-8 76.6357ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903780245 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903780245 - 200 - application/json;+charset=utf-8 67.3040ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903810240 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903810240 - 200 - application/json;+charset=utf-8 61.9347ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903840251 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903840251 - 200 - application/json;+charset=utf-8 62.4033ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903870245 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903870245 - 200 - application/json;+charset=utf-8 75.6941ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?date=2026-09-08&t=1788903875222 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-quality?date=2026-09-08&t=1788903875222 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/conveyor-quality'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/high-conveyor-capacity?date=2026-09-08&t=1788903875222 - - -
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/live-routes?t=1788903875222 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/live-routes'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/high-conveyor-capacity'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/unprocessed-parcels?t=1788903875222 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/unprocessed-parcels'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'ConveyorHourlyResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/conveyor-hourly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-hourly?date=2026-09-08&t=1788903875222 - 200 - application/json;+charset=utf-8 70.6144ms
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'ConveyorQualityResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/conveyor-quality'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/conveyor-quality?date=2026-09-08&t=1788903875222 - 200 - application/json;+charset=utf-8 65.5436ms
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'LiveRoutesResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/live-routes'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/live-routes?t=1788903875222 - 200 - application/json;+charset=utf-8 1390.7763ms
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'UnprocessedParcelsResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/unprocessed-parcels'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/unprocessed-parcels?t=1788903875222 - 200 - application/json;+charset=utf-8 1613.2371ms
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'HighConveyorCapacityResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/high-conveyor-capacity'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/high-conveyor-capacity?date=2026-09-08&t=1788903875222 - 200 - application/json;+charset=utf-8 3386.0173ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903900254 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903900254 - 200 - application/json;+charset=utf-8 65.2234ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903930243 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903930243 - 200 - application/json;+charset=utf-8 66.3979ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903960242 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903960242 - 200 - application/json;+charset=utf-8 64.4747ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903990252 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788903990252 - 200 - application/json;+charset=utf-8 63.1483ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904020244 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904020244 - 200 - application/json;+charset=utf-8 69.7991ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904050242 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904050242 - 200 - application/json;+charset=utf-8 68.9880ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904080247 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904080247 - 200 - application/json;+charset=utf-8 65.9439ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904110259 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904110259 - 200 - application/json;+charset=utf-8 65.4878ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904140244 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904140244 - 200 - application/json;+charset=utf-8 66.5928ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904170243 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904170243 - 200 - application/json;+charset=utf-8 70.7641ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904200251 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904200251 - 200 - application/json;+charset=utf-8 79.0822ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904230258 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904230258 - 200 - application/json;+charset=utf-8 64.7617ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904260245 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904260245 - 200 - application/json;+charset=utf-8 69.0605ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904290250 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904290250 - 200 - application/json;+charset=utf-8 73.7770ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904320250 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904320250 - 200 - application/json;+charset=utf-8 68.3615ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904350258 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904350258 - 200 - application/json;+charset=utf-8 65.8876ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904380254 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904380254 - 200 - application/json;+charset=utf-8 70.2339ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904410260 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904410260 - 200 - application/json;+charset=utf-8 71.0014ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904440259 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904440259 - 200 - application/json;+charset=utf-8 72.8501ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904470257 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904470257 - 200 - application/json;+charset=utf-8 69.1750ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904500253 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904500253 - 200 - application/json;+charset=utf-8 71.3700ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904530256 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904530256 - 200 - application/json;+charset=utf-8 72.2039ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904560259 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904560259 - 200 - application/json;+charset=utf-8 80.9289ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904590262 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904590262 - 200 - application/json;+charset=utf-8 69.1037ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904620252 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904620252 - 200 - application/json;+charset=utf-8 110.5912ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904650265 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904650265 - 200 - application/json;+charset=utf-8 71.9693ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904680257 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904680257 - 200 - application/json;+charset=utf-8 70.4840ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904710256 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904710256 - 200 - application/json;+charset=utf-8 69.3845ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904740261 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904740261 - 200 - application/json;+charset=utf-8 73.3331ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904770266 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904770266 - 200 - application/json;+charset=utf-8 73.5296ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&startTime=00%3A00&endTime=23%3A59&t=1788904775240 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&startTime=00%3A00&endTime=23%3A59&t=1788904775240 - 200 - application/json;+charset=utf-8 106.6813ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904800265 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904800265 - 200 - application/json;+charset=utf-8 71.7682ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904830258 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904830258 - 200 - application/json;+charset=utf-8 70.4062ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904860258 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904860258 - 200 - application/json;+charset=utf-8 72.7154ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904890262 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904890262 - 200 - application/json;+charset=utf-8 70.8345ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904920267 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904920267 - 200 - application/json;+charset=utf-8 71.1695ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904950264 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904950264 - 200 - application/json;+charset=utf-8 76.0090ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904980272 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788904980272 - 200 - application/json;+charset=utf-8 70.6760ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905010261 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905010261 - 200 - application/json;+charset=utf-8 70.6598ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905040262 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905040262 - 200 - application/json;+charset=utf-8 74.9249ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905070268 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905070268 - 200 - application/json;+charset=utf-8 70.2101ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905100267 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905100267 - 200 - application/json;+charset=utf-8 70.0766ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905130272 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905130272 - 200 - application/json;+charset=utf-8 72.4970ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905160267 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905160267 - 200 - application/json;+charset=utf-8 79.3371ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905190276 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905190276 - 200 - application/json;+charset=utf-8 76.0292ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905220261 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905220261 - 200 - application/json;+charset=utf-8 71.3504ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905250275 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905250275 - 200 - application/json;+charset=utf-8 72.3165ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=11%3A00&endTime=03%3A59&t=1788905255253 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=11%3A00&endTime=03%3A59&t=1788905255253 - 200 - application/json;+charset=utf-8 85.5953ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905280276 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905280276 - 200 - application/json;+charset=utf-8 74.9414ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905310264 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905310264 - 200 - application/json;+charset=utf-8 72.9677ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905340274 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905340274 - 200 - application/json;+charset=utf-8 174.8104ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905370268 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905370268 - 200 - application/json;+charset=utf-8 85.8231ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905400271 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905400271 - 200 - application/json;+charset=utf-8 77.4565ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905430269 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+      Setting HTTP status code 200.
+info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+      Writing value of type 'QuebecDepotScansResponse' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788905430269 - 200 - application/json;+charset=utf-8 78.1999ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913626878 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913626878 - 500 - application/problem+json 4530.7302ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913656868 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913656868 - 500 - application/problem+json 8008.0738ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913687393 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913687393 - 500 - application/problem+json 8006.1629ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913717393 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913717393 - 500 - application/problem+json 8020.5617ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913747390 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913747390 - 500 - application/problem+json 8009.0565ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913777473 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913777473 - 500 - application/problem+json 8007.3087ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913807464 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913807464 - 500 - application/problem+json 8014.9739ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913837474 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913837474 - 500 - application/problem+json 8002.6886ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913867477 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913867477 - 500 - application/problem+json 8011.6395ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913897470 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913897470 - 500 - application/problem+json 8001.9920ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913927469 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913927469 - 500 - application/problem+json 8007.3756ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913957480 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913957480 - 500 - application/problem+json 8003.7760ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913987471 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788913987471 - 500 - application/problem+json 8004.8158ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914017476 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914017476 - 500 - application/problem+json 8005.4767ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914164473 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914164473 - 500 - application/problem+json 8007.3996ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914194485 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914194485 - 500 - application/problem+json 8007.1022ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914224493 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914224493 - 500 - application/problem+json 8018.5869ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914254496 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914254496 - 500 - application/problem+json 8002.5332ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914284499 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914284499 - 500 - application/problem+json 8014.1666ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914314499 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914314499 - 500 - application/problem+json 8007.7285ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914344498 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914344498 - 500 - application/problem+json 8001.7400ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914374492 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788914374492 - 500 - application/problem+json 211216.1878ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918149241 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918149241 - 500 - application/problem+json 8012.0384ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=3&date=2026-09-08&startTime=00%3A00&endTime=23%3A59&t=1788918168990 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=3&date=2026-09-08&startTime=00%3A00&endTime=23%3A59&t=1788918168990 - 500 - application/problem+json 8008.3245ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918202249 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918202249 - 500 - application/problem+json 8014.3031ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918232246 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918232246 - 500 - application/problem+json 8005.6345ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918262237 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918262237 - 500 - application/problem+json 8017.5722ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918292967 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918292967 - 500 - application/problem+json 8003.5149ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918322970 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918322970 - 500 - application/problem+json 8014.2447ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918352962 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918352962 - 500 - application/problem+json 8025.8715ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918382969 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918382969 - 500 - application/problem+json 8005.3250ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918412970 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918412970 - 500 - application/problem+json 8004.8770ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918442969 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[1]
+      Setting HTTP status code 500.
+info: Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult[3]
+      Writing value of type 'ProblemDetails' as Json.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'HTTP: GET /api/quebec-depot-scans'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://127.0.0.1:5077/api/quebec-depot-scans?depotId=1&date=2026-09-08&startTime=15%3A00&endTime=12%3A00&t=1788918442969 - 500 - application/problem+json 8008.7605ms
