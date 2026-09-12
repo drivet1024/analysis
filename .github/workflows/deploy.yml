@@ -12,10 +12,18 @@ concurrency:
 jobs:
   deploy:
     runs-on: [self-hosted, linux, x64]
+    # Keep the existing forecast archives outside the checkout cleanup boundary.
+    env:
+      APP_DATA_PATH: ${{ github.workspace }}/ConveyorDashboard/App_Data
+    defaults:
+      run:
+        working-directory: dashboard-source
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          path: dashboard-source
 
       - name: Docker versions
         run: |

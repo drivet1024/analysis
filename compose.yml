@@ -21,4 +21,4 @@ services:
       EDI_FORECAST_PATH: /app/App_Data/edi-forecasts
 
     volumes:
-      - ./ConveyorDashboard/App_Data:/app/App_Data
+      - ${APP_DATA_PATH:-./ConveyorDashboard/App_Data}:/app/App_Data
