@@ -17,3 +17,8 @@ services:
     environment:
       ASPNETCORE_URLS: http://+:8080
       ASPNETCORE_ENVIRONMENT: Production
+      TZ: America/Toronto
+      EDI_FORECAST_PATH: /app/App_Data/edi-forecasts
+
+    volumes:
+      - ./ConveyorDashboard/App_Data:/app/App_Data

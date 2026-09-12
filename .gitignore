@@ -7,3 +7,11 @@ ConveyorDashboard/bin/
 ConveyorDashboard/obj/
 __pycache__/
 *.pyc
+tests/**/bin/
+tests/**/obj/
+tmp/edi-forecast-build/
+tmp/edi-forecast-live.json
+ConveyorDashboard/App_Data/
+tmp/edi-forecast-v2-build/
+tmp/edi-forecast-v2-live.json
+tmp/edi-seasonality-*

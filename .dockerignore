@@ -8,3 +8,5 @@
 tmp
 publish
 publish.zip
+# Forecast archives are mounted as persistent data, never baked into the image.
+**/App_Data/

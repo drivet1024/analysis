@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const read = path => JSON.parse(fs.readFileSync(path, 'utf8').replace(/^\uFEFF/, ''));
+const [audit] = read(process.argv[2]);
+const rows = read(process.argv[3]);
+const monday = process.argv[4];
+const total = rows.filter(row => row.day.slice(0, 10) === monday).reduce((sum, row) => sum + row.parcels, 0);
+assert.equal(total, audit.monday_unique_parcels, 'Destination joins must retain the independently counted unique parcels');
+assert(audit.raw_scans >= total);
+assert(audit.friday_unique + audit.sunday_unique >= total);
+assert(rows.every(row => ![0, 6].includes(new Date(row.day).getUTCDay())), 'Source rows belong to weekday delivery dates');
+assert(rows.every(row => row.postal_parcels + row.route_parcels === row.parcels));
+console.log(`${monday}: ${total} unique parcels; ${audit.raw_scans - total} extra scans removed, including ${audit.friday_unique + audit.sunday_unique - total} parcels seen Friday and Sunday.`);

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
+  <title>Nationex - EDI PRÉVISION</title>
+  <link rel="stylesheet" href="/edi.css?v=20260912-19">
+</head>
+<body data-edi-page="forecasts">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <div class="brand-content"><h1>Nationex - EDI PRÉVISION</h1></div>
+      </div>
+      <div class="topbar-actions">
+        <div class="live-panel">
+          <span id="live-dot" class="live-dot waiting" aria-hidden="true"></span>
+          <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+          <button id="refresh-button" type="button">Actualiser</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-navigation">
+      <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+        <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
+        <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
+        <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
+        <a class="dashboard-tab" href="/edi.html" data-edi-navigation>EDI</a>
+        <a class="dashboard-tab" href="/edi-clients.html" data-edi-navigation>EDI CLIENT</a>
+        <a class="dashboard-tab active" href="/edi-previsions.html" data-edi-navigation aria-current="page">EDI PRÉVISION</a>
+        <a class="dashboard-tab" href="/livraison-previsions.html" data-edi-navigation>LIVRAISON PRÉVISION</a>
+      </nav>
+      <div class="analysis-date-context">
+        <span>Date analysée</span>
+        <span class="date-navigation">
+          <button id="previous-date" type="button" aria-label="Afficher la journée précédente">‹</button>
+          <input id="analysis-date" type="date" aria-label="Date analysée">
+          <button id="next-date" type="button" aria-label="Afficher la journée suivante">›</button>
+        </span>
+      </div>
+    </div>
+
+    <section class="context-strip" aria-label="Contexte des données">
+      <div><span>Semaine analysée</span><strong id="week-range">—</strong></div>
+      <div><span>Dernière lecture</span><strong id="database-time">—</strong></div>
+      <div><span>Prochain calcul quotidien</span><strong id="forecast-next-refresh">Chaque matin à 6 h</strong></div>
+      <div><span>Périmètre EDI</span><strong>Tous les clients et dépôts</strong></div>
+    </section>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+    <section class="data-section" aria-labelledby="forecast-title">
+      <div class="section-heading">
+        <div><p>Estimation à partir du passé</p><h2 id="forecast-title">Prévision des 7 prochains jours</h2></div>
+        <div><span id="forecast-context">Chargement des archives…</span><label>Version <select id="forecast-archive-select"></select></label></div>
+      </div>
+      <p class="method-note" id="forecast-schedule" aria-live="polite"></p>
+      <p class="method-note" id="forecast-summary"></p><p class="method-note" id="forecast-comparison-summary">Écart = réel − prévu. Le réel est disponible après la fin de la journée (4 h), pour les versions sauvegardées avant son début.</p>
+      <p class="method-note" id="forecast-holidays"></p>
+      <div id="forecast-seasonality" class="forecast-seasonality" hidden>
+        <h3>Saisonnalité et Cyber Monday</h3>
+        <p id="forecast-cyber"></p>
+        <p id="forecast-growth"></p>
+        <p id="forecast-model-comparison"></p>
+        <details><summary>Voir les journées utilisées pour ajuster le niveau d’activité</summary>
+          <div class="table-wrap forecast-comparison-wrap"><table><thead><tr><th>Jour récent</th><th>Colis</th><th>Jour comparable N−1</th><th>Colis N−1</th></tr></thead><tbody id="forecast-growth-pairs"></tbody></table></div>
+        </details>
+      </div>
+      <div class="forecast-chart-actions"><button id="forecast-chart-open" type="button" disabled>Afficher le graphique</button></div>
+      <div class="table-wrap forecast-wrap">
+        <table class="forecast-table">
+          <thead><tr><th>Jour</th><th>Date</th><th>Colis prévus</th><th>Réel</th><th>Écart</th><th>Min.–max. récent</th><th>Explication du chiffre</th></tr></thead>
+          <tbody id="forecast-body"><tr><td colspan="7" class="empty-cell">Chargement des prévisions sauvegardées…</td></tr></tbody>
+          <tfoot id="forecast-foot"></tfoot>
+        </table>
+      </div>
+      <details class="forecast-method">
+        <summary>Comment la prévision est-elle calculée ?</summary>
+        <p>Chaque matin à 6 h, heure de Montréal, une nouvelle version est enregistrée pour les sept jours suivants, de demain à J+7. Elle reste figée jusqu’au prochain renouvellement, même si la page est actualisée. Les versions précédentes sont conservées sur disque. Le serveur doit rester démarré; après une interruption, il enregistre une version de rattrapage avec l’heure réelle de création, sans inventer les versions manquées.</p>
+        <p>Pour chaque jour, on compare le même jour de semaine sur les 8 semaines précédant la date de référence. Les jours fériés du Québec sont exclus, ainsi que le Vendredi saint et le lundi de Pâques par prudence, et les fermetures supplémentaires configurées. Les observations restantes reçoivent un poids de 1 à N, de la plus ancienne à la plus récente. Tendance récente = somme des volumes × leurs poids, divisée par la somme des poids, puis arrondie au colis. Un jour férié futur est signalé sans estimation ordinaire.</p>
+        <p>Le modèle saisonnier consulte 455 jours. Pour une journée ordinaire, la prévision combine à parts égales la tendance récente et la moyenne d’au moins deux jours comparables de l’an dernier : 52 semaines auparavant, avec le même jour de semaine une semaine avant et après. La référence annuelle est multipliée par le rapport des volumes récents aux volumes N−1 sur les mêmes jours appariés des 8 dernières semaines (minimum 21 paires). Le partage 50/50 est une règle fixe, pas un poids optimisé sur le test affiché.</p>
+        <p>Du lundi précédant le Cyber Monday jusqu’au deuxième dimanche suivant, on utilise exclusivement le même décalage par rapport au Cyber Monday de l’an dernier, ajusté par ce facteur d’activité. Le Cyber Monday est le lundi suivant le quatrième jeudi de novembre : le 30 novembre en 2026 correspond ainsi au 1er décembre 2025. Cette période commerciale est exclue des références ordinaires et du facteur d’activité, mais conservée pour prévoir son propre pic. Une référence manquante rend la prévision événementielle indisponible. Une seule édition passée ne garantit pas l’amplitude du prochain pic.</p>
+        <p>Source : total des lignes de la table parcel, selon INSERT_DATE, hors statuts 500 et 501, comme le total quotidien EDI. Tous les clients et dépôts sont inclus. Journée opérationnelle : de 4 h à 4 h, selon l’horloge de l’application. La date de référence de la prévision est exclue de l’apprentissage, même lorsqu’elle est passée. La prévision couvre les 7 jours suivant cette date.</p>
+        <p>Au moins 4 observations du même jour de semaine sont nécessaires. Une journée sans aucune ligne source est considérée comme inconnue, pas comme un zéro. Les journées partiellement chargées ne sont pas détectables avec ces seuls agrégats. Le min.–max. décrit les volumes historiques utilisés : ce n’est pas un intervalle de confiance et le volume futur peut en sortir.</p>
+        <p id="forecast-validation"></p>
+        <p>Calendrier de base : <a href="https://www.cnesst.gouv.qc.ca/fr/conditions-travail/conges/jours-feries/liste-jours-feries" target="_blank" rel="noopener noreferrer">jours fériés du Québec (CNESST)</a>. Les fermetures particulières à l’entreprise doivent être ajoutées au calendrier. Les promotions et changements de clients ne sont pas ajustés explicitement. Les corrections tardives peuvent modifier le réel; elles ne modifient jamais les prévisions sauvegardées. Le test rétrospectif ci-dessus est distinct de la comparaison des véritables archives du tableau.</p>
+      </details>
+    </section>
+
+
+  </main>
+  <dialog id="forecast-chart-dialog" aria-labelledby="forecast-chart-title">
+    <header class="forecast-chart-header"><div><h2 id="forecast-chart-title">Prévisions et réel</h2><p id="forecast-chart-version"></p></div><button id="forecast-chart-close" type="button" aria-label="Fermer le graphique">Fermer ✕</button></header>
+    <div class="forecast-chart-legend" aria-label="Légende">
+      <span><i class="chart-key chart-low"></i>Minimum historique</span><span><i class="chart-key chart-high"></i>Maximum historique</span><span><i class="chart-key chart-predicted"></i>Prévu</span><span><i class="chart-key chart-actual"></i>Réel</span>
+    </div>
+    <div id="forecast-chart-plot"></div>
+    <p id="forecast-chart-readout" aria-live="polite"></p><p id="forecast-chart-note"></p>
+  </dialog>
+  <script src="/edi-forecast-chart.js?v=20260912-2" defer></script>
+  <script src="/edi.js?v=20260912-19" defer></script>
+</body>
+</html>

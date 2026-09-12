@@ -1,4 +1,10 @@
 const REFRESH_SECONDS = 60;
+const CLIENT_PAGE = document.body.dataset.ediPage === 'clients';
+const FORECAST_PAGE = document.body.dataset.ediPage === 'forecasts';
+const DELIVERY_PAGE = document.body.dataset.ediPage === 'deliveries';
+let sectorData = null;
+let deliveryRefreshTimer = null;
+let forecastRefreshTimer = null;
 const EDI_DAY_START_HOUR = 4;
 const $ = (id) => document.getElementById(id);
 const number = new Intl.NumberFormat('fr-CA');
@@ -10,6 +16,7 @@ const columnDate = new Intl.DateTimeFormat('fr-CA', { day: '2-digit', month: 'sh
 let countdown = REFRESH_SECONDS;
 let requestVersion = 0;
 let clientRows = [];
+let regionRows = [];
 let clientSortKey = 'currentParcels';
 let clientSortDirection = 'desc';
 
@@ -24,7 +31,7 @@ function isoLocalDate(date = new Date()) {
 
 function currentEdiDate() {
   const date = new Date();
-  if (date.getHours() < EDI_DAY_START_HOUR) date.setDate(date.getDate() - 1);
+  if (!DELIVERY_PAGE && date.getHours() < EDI_DAY_START_HOUR) date.setDate(date.getDate() - 1);
   return isoLocalDate(date);
 }
 
@@ -41,12 +48,18 @@ function initialAnalysisDate() {
 }
 
 let selectedAnalysisDate = initialAnalysisDate();
+let deliveryFollowToday = selectedAnalysisDate === currentEdiDate();
 
 function syncDateSelector() {
   const today = currentEdiDate();
   $('analysis-date').max = today;
   $('analysis-date').value = selectedAnalysisDate;
   $('next-date').disabled = selectedAnalysisDate >= today;
+  document.querySelectorAll('[data-edi-navigation]').forEach((link) => {
+    const url = new URL(link.href, window.location.origin);
+    url.searchParams.set('date', selectedAnalysisDate);
+    link.href = url.toString();
+  });
 }
 
 function selectAnalysisDate(value) {
@@ -57,7 +70,8 @@ function selectAnalysisDate(value) {
   url.searchParams.set('date', selectedAnalysisDate);
   window.history.replaceState({}, '', url);
   countdown = REFRESH_SECONDS;
-  $('countdown').textContent = countdown;
+  if (!DELIVERY_PAGE && !FORECAST_PAGE) $('countdown').textContent = countdown;
+  deliveryFollowToday = selectedAnalysisDate === currentEdiDate();
   load();
 }
 
@@ -98,18 +112,32 @@ function totalsForRegions(regions) {
 }
 
 function renderRegions(regions) {
+  regionRows = regions;
+  const cubicConversion = $('pallet-unit').value === 'cm' ? 2.54 ** 3 : 1;
+  const height = Number($('pallet-height').value || 78);
+  const fill = Number($('pallet-fill').value || 0.7);
+  const usableVolume = 40 * 48 * height * fill;
+  const estimate = (region) => region.parcelsToday === 0 ? 0
+    : region.estimatedParcelVolume == null || region.missingProfileParcels > 0 ? null
+    : Math.ceil(Number(region.estimatedParcelVolume) / cubicConversion / usableVolume);
+  $('pallet-assumptions').textContent = `Palette 40 × 48 × 84 po, base incluse · ${height} po utiles (réserve estimée de ${84 - height} po pour la base) · ${Math.round(fill * 100)} % de remplissage (${Math.round((1 - fill) * 100)} % de vide) · capacité utilisée : ${number.format(usableVolume)} po³. Dimensions des colis en pouces : confirmé.`;
   const body = $('regions-body');
   body.replaceChildren();
   if (!regions.length) {
-    body.innerHTML = '<tr><td colspan="8" class="empty-cell">Aucun volume EDI trouvé pour la période.</td></tr>';
+    body.innerHTML = '<tr><td colspan="9" class="empty-cell">Aucun volume EDI trouvé pour la période.</td></tr>';
   } else {
     regions.forEach((region) => {
       const row = document.createElement('tr');
+      const pallets = estimate(region);
+      const coverage = region.parcelsToday > 0 ? 100 * Number(region.clientProfileParcels || 0) / region.parcelsToday : 0;
+      const explanation = region.parcelsToday === 0 ? 'Aucun colis'
+        : `${decimal.format(coverage)} % profil client${region.fallbackProfileParcels ? ` · ${number.format(region.fallbackProfileParcels)} colis : moyenne générale` : ''}${region.missingProfileParcels ? ` · ${number.format(region.missingProfileParcels)} sans profil` : ''}`;
       row.innerHTML = `
         <td class="region-name">${escapeHtml(region.region)}</td>
         <td class="depots-cell">${escapeHtml(region.depots)}</td>
         <td><strong>${number.format(region.parcelsToday)}</strong></td>
         <td>${number.format(region.palletsToday)}</td>
+        <td class="pallet-estimate" title="${escapeHtml(explanation)}"><strong>${pallets == null ? '—' : number.format(pallets)}</strong><small>${escapeHtml(explanation)}</small></td>
         <td><strong>${number.format(region.parcelsYesterday)}</strong></td>
         <td>${number.format(region.palletsYesterday)}</td>
         <td><strong>${number.format(region.parcelsLastWeek)}</strong></td>
@@ -119,9 +147,12 @@ function renderRegions(regions) {
   }
 
   const totals = totalsForRegions(regions);
+  const estimates = regions.map(estimate);
+  const palletTotal = estimates.every(value => value != null) ? estimates.reduce((sum, value) => sum + value, 0) : null;
   $('regions-foot').innerHTML = `
     <tr><td colspan="2">Total</td>
       <td>${number.format(totals.parcelsToday)}</td><td>${number.format(totals.palletsToday)}</td>
+      <td class="pallet-estimate">${palletTotal == null ? 'Incomplet' : number.format(palletTotal)}</td>
       <td>${number.format(totals.parcelsYesterday)}</td><td>${number.format(totals.palletsYesterday)}</td>
       <td>${number.format(totals.parcelsLastWeek)}</td><td>${number.format(totals.palletsLastWeek)}</td></tr>`;
   $('parcels-today').textContent = number.format(totals.parcelsToday);
@@ -261,6 +292,145 @@ function renderWeek(days, weeklyBudget, analysisDate) {
   });
 }
 
+function renderForecast(forecast, archive) {
+  globalThis.updateEdiForecastChart?.(forecast, archive);
+  const body = $('forecast-body');
+  body.replaceChildren();
+  $('forecast-foot').replaceChildren();
+  if (!forecast) {
+    $('forecast-context').textContent = 'Prévision indisponible';
+    $('forecast-summary').textContent = 'Aucune prévision sauvegardée pour cette date. Le calcul quotidien est effectué en arrière-plan à 6 h.';
+    $('forecast-schedule').textContent = '';
+    $('forecast-holidays').textContent = '';
+    $('forecast-seasonality').hidden = true;
+    $('forecast-validation').textContent = '';
+    return;
+  }
+  $('forecast-context').textContent = `${formatDate(forecast.days[0].date)} au ${formatDate(forecast.days[6].date)} · référence du ${formatDate(forecast.asOfDate)}`;
+  const saved = archive?.snapshot;
+  $('forecast-schedule').textContent = saved
+    ? `Prévision sauvegardée le ${new Date(saved.savedAt).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })} (Montréal) · référence ${formatDate(forecast.asOfDate)} · prochain renouvellement à ${new Date(archive.nextRefresh).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })}.`
+    : 'Reconstitution non archivée : aucune prévision sauvegardée ne correspond à cette date.';
+  if (archive?.refreshPending) $('forecast-schedule').textContent += ' Renouvellement en attente : la dernière version disponible reste affichée.';
+  $('forecast-summary').textContent = `Historique consulté : ${formatDate(forecast.historyStart)} au ${formatDate(forecast.historyEnd)} · ${number.format(forecast.observedDays)} jours observés sur ${number.format(forecast.observedDays + forecast.missingDays)}${forecast.missingDays ? ` · ${number.format(forecast.missingDays)} jours sans données, exclus du calcul` : ''}. Estimations, non garanties.`;
+  const seasonal = forecast.seasonality;
+  $('forecast-seasonality').hidden = !seasonal;
+  if (seasonal) {
+    $('forecast-cyber').textContent = `Prochain Cyber Monday : ${formatDate(seasonal.cyberMonday)} · ${formatDate(seasonal.previousCyberMonday)} : ${seasonal.previousCyberParcels == null ? 'volume historique indisponible' : `${number.format(seasonal.previousCyberParcels)} colis`}.`;
+    const pairs = seasonal.growthPairs || [];
+    const currentTotal = pairs.reduce((sum, pair) => sum + pair.parcels, 0);
+    const previousTotal = pairs.reduce((sum, pair) => sum + pair.previousParcels, 0);
+    $('forecast-growth').textContent = pairs.length >= 21 && previousTotal > 0
+      ? `Évolution de l’activité : ${decimal.format(100 * (currentTotal / previousTotal - 1))} % sur ${pairs.length} jours appariés des 8 dernières semaines, hors fériés et période Cyber Monday. Facteur annuel = ${number.format(currentTotal)} ÷ ${number.format(previousTotal)} = ${(currentTotal / previousTotal).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}.`
+      : 'Historique apparié insuffisant pour ajuster les volumes de l’an dernier. Les jours ordinaires utilisent seulement la tendance récente; les jours de la période Cyber Monday restent sans estimation.';
+    $('forecast-growth-pairs').innerHTML = pairs.map(pair => `<tr><td>${formatDate(pair.date)}</td><td>${number.format(pair.parcels)}</td><td>${formatDate(pair.previousDate)}</td><td>${number.format(pair.previousParcels)}</td></tr>`).join('');
+    $('forecast-model-comparison').textContent = seasonal.comparedDays && seasonal.baselineWape != null && seasonal.seasonalComparedWape != null
+      ? `Sur les mêmes ${seasonal.comparedDays} journées rétrospectives : erreur absolue cumulée / réel cumulé de ${decimal.format(seasonal.seasonalComparedWape)} % avec la saisonnalité, contre ${decimal.format(seasonal.baselineWape)} % avec le modèle récent seul. Ce test récent ne garantit pas la précision du prochain Cyber Monday.`
+      : 'Comparaison des modèles indisponible : historique insuffisant.';
+  }
+  const excluded = forecast.excludedHolidays || [];
+  $('forecast-holidays').textContent = excluded.length
+    ? `Jours fériés exclus : ${excluded.map(day => `${formatDate(day.date)} (${number.format(day.parcels)} colis)`).join(' · ')}.`
+    : saved?.modelVersion === 'weekday-weighted-v1-with-holidays' ? 'Archive initiale : les jours fériés étaient encore inclus.' : 'Aucun jour férié observé dans cet historique.';
+  const comparisons = (archive?.comparisons || []).filter(row => row.snapshotId === saved?.id);
+  const byDate = new Map(comparisons.map(row => [row.date, row]));
+  forecast.days.forEach((day) => {
+    const comparison = byDate.get(day.date);
+    const samples = day.samples || [];
+    const weightSum = samples.reduce((sum, sample) => sum + sample.weight, 0);
+    const row = document.createElement('tr');
+    const annual = day.annual;
+    const annualUsed = annual?.adjustedParcels != null && day.parcels != null;
+    const explanation = day.holiday ? `${escapeHtml(day.holiday)} : prévision suspendue, faute d’historique de jours fériés comparables.` : annual?.event && day.parcels == null
+      ? `${escapeHtml(annual.event)} : référence annuelle insuffisante, aucune estimation ordinaire substituée.` : day.parcels == null
+      ? `Historique insuffisant : ${samples.length} observation(s), minimum 4.`
+      : annualUsed ? annual.event ? `${escapeHtml(annual.event)} : volume du ${formatDate(annual.referenceDate)}, ajusté à l’évolution de l’activité.`
+        : '50 % de tendance récente + 50 % de référence annuelle ajustée.'
+      : `Moyenne pondérée des ${samples.length} derniers ${escapeHtml(day.dayName)}s disponibles. Poids de 1 à ${samples.length}, somme des poids : ${weightSum}.${annual ? ' Référence annuelle insuffisante.' : ''}`;
+    const recentEstimate = annual ? day.recentEstimate : day.parcels;
+    const annualDetails = annual ? `<br>${escapeHtml(annual.note)}${annual.references.length ? `<br>Références annuelles : ${annual.references.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis`).join(' · ')}` : ''}${annualUsed ? `<br>Référence annuelle ajustée : ${number.format(annual.adjustedParcels)} colis (facteur ${Number(annual.growthFactor).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}, ${annual.growthPairs} paires).<br>${annual.event ? '100 % de la référence événementielle ajustée' : `50 % × ${number.format(recentEstimate)} + 50 % × ${number.format(annual.adjustedParcels)}`} ≈ <strong>${number.format(day.parcels)} colis</strong>.` : ''}` : '';
+    row.innerHTML = `<td class="day-name">${escapeHtml(day.dayName)}</td><td>${formatDate(day.date)}</td>
+      <td><strong>${day.parcels == null ? 'Indisponible' : number.format(day.parcels)}</strong></td>
+      <td>${comparison?.actual == null ? 'En attente / non évaluable' : number.format(comparison.actual)}</td>
+      <td>${comparison?.difference == null ? '—' : `${comparison.difference > 0 ? '+' : ''}${number.format(comparison.difference)}`}</td>
+      <td>${day.historicalLow == null ? '—' : `${number.format(day.historicalLow)} – ${number.format(day.historicalHigh)}`}</td>
+      <td>${explanation}<details><summary>Voir les volumes et le calcul</summary>${samples.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis × ${sample.weight}`).join('<br>')}${recentEstimate == null ? '' : `<br>Tendance récente : somme pondérée ÷ ${weightSum} ≈ ${number.format(recentEstimate)} colis.`}${annualDetails}</details></td>`;
+    body.append(row);
+  });
+  const allActuals = forecast.days.length > 0 && forecast.days.every(day => byDate.get(day.date)?.actual != null);
+  const allDifferences = forecast.days.length > 0 && forecast.days.every(day => byDate.get(day.date)?.difference != null);
+  const actualTotal = allActuals ? forecast.days.reduce((sum, day) => sum + byDate.get(day.date).actual, 0) : null;
+  const differenceTotal = allDifferences ? forecast.days.reduce((sum, day) => sum + byDate.get(day.date).difference, 0) : null;
+  $('forecast-foot').innerHTML = `<tr><td colspan="2">Total sur 7 jours</td><td>${forecast.total == null ? 'Incomplet' : number.format(forecast.total)}</td><td>${actualTotal == null ? 'Incomplet' : number.format(actualTotal)}</td><td>${differenceTotal == null ? '—' : (differenceTotal > 0 ? '+' : '') + number.format(differenceTotal)}</td><td colspan="2">Les totaux réels et les écarts attendent les sept journées évaluables.</td></tr>`;
+  $('forecast-validation').textContent = forecast.backtestDays
+    ? `Test rétrospectif : quatre horizons de 7 jours, sans utiliser les volumes postérieurs à chaque date de calcul, sur ${forecast.backtestDays} jours évaluables sur 28${forecast.excludedHolidays ? ' (jours fériés exclus)' : ''}. Erreur absolue moyenne : ${number.format(forecast.backtestMae)} colis par jour. ${forecast.backtestWape == null ? 'Erreur relative non calculable (volume réel nul).' : `Erreur absolue cumulée / volume réel cumulé : ${decimal.format(forecast.backtestWape)} %.`} Ces erreurs passées ne garantissent pas la précision future.`
+    : 'Test rétrospectif indisponible : historique insuffisant pour évaluer les prévisions passées.';
+}
+
+function renderForecastVersions(archive) {
+  const selector = $('forecast-archive-select');
+  const entries = (archive?.comparisons || []).map(row => [row.snapshotId, row]);
+  if (archive?.snapshot) entries.push([archive.snapshot.id, { snapshotId: archive.snapshot.id, savedAt: archive.snapshot.savedAt }]);
+  const versions = [...new Map(entries).values()]
+    .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
+  selector.innerHTML = versions.map(row => `<option value="${escapeHtml(row.snapshotId)}">${escapeHtml(row.snapshotId)} · ${new Date(row.savedAt).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })}</option>`).join('');
+  selector.value = archive?.snapshot?.id || '';
+  selector.onchange = () => load(selector.value);
+}
+
+function sectorActualLine(row, date) {
+  const actual = row.actuals?.find(day => day.date === date);
+  if (!actual) return '';
+  if (actual.parcels == null) return '<small class="sector-actual">Réel : ' + (actual.status === 'future' ? 'à venir' : 'indisponible') + '</small>';
+  const forecast = row.forecast.days.find(day => day.date === date)?.parcels;
+  const difference = forecast == null ? '' : ' · écart ' + (actual.parcels - forecast > 0 ? '+' : '') + number.format(actual.parcels - forecast);
+  return '<small class="sector-actual">Réel : ' + number.format(actual.parcels) + difference + '</small>';
+}
+
+function renderSectors(data) {
+  sectorData = data;
+  globalThis.updateSectorForecastCharts?.(data);
+  data = { ...data, sectors: data.sectors.map(row => ({ ...row, forecast: {
+    ...row.forecast,
+    days: row.forecast.days.filter(day => ![0, 6].includes(new Date(`${day.date}T12:00:00`).getDay()))
+  } })) };
+  const filter = normalizedClientName($('sector-filter').value.trim());
+  const sectors = data.sectors.filter(row => ($('sector-show-empty').checked || row.historicalParcels > 0 || row.actuals?.some(day => day.parcels > 0))
+    && normalizedClientName(`${row.sectorId} ${row.name}`).includes(filter));
+  const dates = data.sectors[0]?.forecast.days || [];
+  $('sector-head').innerHTML = `<tr><th>Secteur</th>${dates.map(day => `<th>${escapeHtml(day.dayName)}<br>${formatDate(day.date)}</th>`).join('')}<th>Total période</th><th>Explication</th></tr>`;
+  $('sector-body').innerHTML = sectors.map(row => `<tr><td><button type="button" class="sector-chart-trigger" data-sector-chart="${row.sectorId}" aria-label="Afficher le graphique du secteur ${row.sectorId}" aria-haspopup="dialog">${row.sectorId}</button><small>Contact : ${escapeHtml(row.sectorContact || 'Non renseigné')}</small><small>${row.activeRoutes == null ? 'Routes actives : indisponible' : `${number.format(row.activeRoutes)} routes actives`}</small><small>${number.format(row.postalCodes)} codes postaux</small></td>
+    ${row.forecast.days.map(day => `<td title="${escapeHtml(day.holiday || day.annual?.event || '')}"><strong>${day.parcels == null ? '—' : number.format(day.parcels)}</strong>${sectorActualLine(row, day.date)}</td>`).join('')}
+    <td><strong>${row.forecast.total == null ? 'Incomplet' : number.format(row.forecast.total)}</strong>${row.actuals ? '<small class="sector-actual">Réel cumulé : ' + (row.actuals.some(d => d.parcels != null) ? number.format(row.actuals.reduce((sum, d) => sum + (d.parcels ?? 0), 0)) : '—') + ' (' + row.actuals.filter(d => d.parcels != null).length + '/5 jours)</small>' : ''}</td>
+    <td><details><summary>Voir le calcul</summary><p>${number.format(row.historicalParcels)} colis historiques · ${number.format(row.routeFallbackParcels)} par repli route · ${number.format(row.conflictingRouteParcels)} conflits postal/route.</p><p>Erreur rétrospective : ${row.forecast.backtestWape == null ? 'non calculable' : `${decimal.format(row.forecast.backtestWape)} %`} sur ${row.forecast.backtestDays} jours évaluables (erreur absolue cumulée / réel cumulé).</p>
+    ${data.weekly && !data.weekly.forecastAvailable ? '<p>Aucune prévision sauvegardée avant cette semaine. Le réel est disponible sans comparaison chiffrée.</p>' : row.forecast.days.map(day => `<p><b>${escapeHtml(day.dayName)} ${formatDate(day.date)}</b> : ${day.holiday ? escapeHtml(day.holiday) : day.parcels == null ? 'Historique insuffisant' : `${number.format(day.parcels)} colis`}.<br>Récent : ${day.recentEstimate == null ? '—' : number.format(day.recentEstimate)} (${day.samples.length} journées). Annuel ajusté : ${day.annual?.adjustedParcels == null ? 'indisponible' : number.format(day.annual.adjustedParcels)}${day.annual?.event ? ` · ${escapeHtml(day.annual.event)}` : ''}.<br>${day.holiday ? 'Règle de calendrier : aucun calcul ordinaire.' : day.annual?.adjustedParcels == null ? 'Tendance récente seule, sauf événement sans référence.' : day.annual.event ? '100 % de la référence événementielle ajustée.' : '50 % récent + 50 % annuel ajusté.'}<br>Références récentes : ${day.samples.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} × poids ${sample.weight}`).join(' ; ')}.<br>Références annuelles : ${(day.annual?.references || []).map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)}`).join(' ; ') || 'aucune'}${day.annual?.growthFactor == null ? '' : ` · facteur ${Number(day.annual.growthFactor).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}`}.</p>`).join('')}</details></td></tr>`).join('')
+    || `<tr><td colspan="${dates.length + 3}" class="empty-cell">Aucun secteur ne correspond au filtre.</td></tr>`;
+  const totals = dates.map((_, index) => sectors.every(row => row.forecast.days[index].parcels != null)
+    ? sectors.reduce((sum, row) => sum + row.forecast.days[index].parcels, 0) : null);
+  $('sector-foot').innerHTML = `<tr><td>Total des secteurs affichés</td>${totals.map((total, index) => `<td><strong>${total == null ? 'Incomplet' : number.format(total)}</strong>${data.weekly ? '<small class="sector-actual">Réel : ' + (sectors.length && sectors.every(row => row.actuals?.find(d => d.date === dates[index].date)?.parcels != null) ? number.format(sectors.reduce((sum, row) => sum + row.actuals.find(d => d.date === dates[index].date).parcels, 0)) : '—') + '</small>' : ''}</td>`).join('')}<td>${totals.every(total => total != null) ? number.format(totals.reduce((sum, value) => sum + value, 0)) : 'Incomplet'}</td><td>${sectors.length} secteurs</td></tr>`;
+  $('sector-status').textContent = data.weekly
+    ? (data.weekly.forecastAvailable ? 'Prévision de la semaine figée le samedi ' + formatDate(data.asOfDate) + ', sauvegardée le ' + new Date(data.savedAt).toLocaleString('fr-CA', { timeZone: 'America/Toronto' }) : 'Aucune prévision sauvegardée le samedi ' + formatDate(data.asOfDate) + ' pour cette semaine : prévisions indisponibles, réel affiché sans reconstitution.')
+      + ' · Réel mis à jour le ' + new Date(data.weekly.actualsUpdatedAt).toLocaleString('fr-CA', { timeZone: 'America/Toronto' }) + ' · ' + sectors.length + ' secteurs affichés.'
+    : 'Prévisions sauvegardées · ' + sectors.length + ' secteurs affichés.';
+  const assigned = data.sectors.reduce((sum, row) => sum + row.historicalParcels, 0);
+  $('sector-quality').textContent = `Réconciliation des colis uniques triés à Saint-Hubert (par jour de livraison prévu) : ${number.format(data.networkParcels)} colis = ${number.format(assigned)} dans les secteurs Saint-Hubert + ${number.format(data.outsideDepotParcels)} hors périmètre + ${number.format(data.unmappedParcels)} non rattachés + ${number.format(data.ambiguousPostalParcels)} avec destination ambiguë. Les catégories sont exclusives.`;
+}
+
+function renderNowcast(nowcast) {
+  $('snapshot-final-label').textContent = nowcast?.status === 'completed' ? 'Total final observé' : 'Finale estimée aujourd’hui';
+  $('snapshot-final-value').textContent = nowcast?.estimatedFinal == null ? '—' : number.format(nowcast.estimatedFinal);
+  $('snapshot-final-context').textContent = nowcast?.status === 'estimated'
+    ? `≈ ${number.format(nowcast.remaining)} colis à venir · à ${hourMinute.format(new Date(nowcast.asOf))}`
+    : nowcast?.status === 'completed' ? 'Journée terminée · 4 h à 4 h' : 'Estimation en attente';
+  $('nowcast-explanation').textContent = nowcast
+    ? `${nowcast.explanation}${nowcast.status === 'estimated' ? ` Calcul : ${number.format(nowcast.created)} ÷ ${decimal.format(nowcast.historicalProgressPercent)} % ≈ ${number.format(nowcast.estimatedFinal)} colis. Journées comparables : ${nowcast.samples.length}.` : ''}`
+    : 'Estimation indisponible pour le moment.';
+  $('nowcast-samples').innerHTML = nowcast?.samples?.length ? nowcast.samples.map(sample => `<tr>
+    <td>${formatDate(sample.date)}</td><td>${number.format(sample.parcelsAtSameTime)}</td><td>${number.format(sample.finalParcels)}</td>
+    <td>${decimal.format(100 * sample.parcelsAtSameTime / sample.finalParcels)} %</td><td>${sample.weight}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty-cell">Aucune journée comparable utilisée.</td></tr>';
+}
+
 function render(data) {
   const regions = data.regions || [];
   const days = data.days || [];
@@ -269,6 +439,32 @@ function render(data) {
   syncDateSelector();
   const isToday = selectedAnalysisDate === currentEdiDate();
   const selectedDateLabel = formatDate(selectedAnalysisDate);
+
+  if (FORECAST_PAGE) {
+    renderForecast(data.forecast, data.forecastArchive);
+    renderForecastVersions(data.forecastArchive);
+    $('week-range').textContent = `${formatDate(data.weekStart)} au ${formatDate(data.weekEnd)}`;
+    $('database-time').textContent = formatTime(data.databaseNow);
+    $('last-refresh').textContent = `Actualisé à ${formatTime(data.databaseNow)}`;
+    $('forecast-next-refresh').textContent = new Date(data.forecastArchive.nextRefresh).toLocaleString('fr-CA', {
+      timeZone: 'America/Toronto', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    clearTimeout(forecastRefreshTimer);
+    const pending = data.actualsPending || data.forecastArchive.refreshPending;
+    forecastRefreshTimer = setTimeout(() => {
+      if (deliveryFollowToday) { selectedAnalysisDate = currentEdiDate(); syncDateSelector(); }
+      load();
+    }, pending ? 60000 : Math.max(1000, new Date(data.forecastArchive.nextRefresh).getTime() - Date.now()));
+    return;
+  }
+
+  if (CLIENT_PAGE) {
+    renderClients(clients, selectedAnalysisDate, data.databaseNow);
+    $('week-range').textContent = `${formatDate(data.weekStart)} au ${formatDate(data.weekEnd)}`;
+    $('database-time').textContent = formatTime(data.databaseNow);
+    $('last-refresh').textContent = `Actualisé à ${formatTime(data.databaseNow)}`;
+    return;
+  }
 
   $('snapshot-today-label').textContent = isToday ? 'Colis aujourd’hui' : `Colis · ${selectedDateLabel}`;
   $('snapshot-today-context').textContent = isToday ? 'Depuis 4 h jusqu’à maintenant' : 'Journée complète · 4 h à 4 h';
@@ -282,7 +478,7 @@ function render(data) {
   $('regions-current-label').textContent = isToday ? 'Aujourd’hui' : selectedDateLabel;
 
   renderRegions(regions);
-  renderClients(clients, selectedAnalysisDate, data.databaseNow);
+  renderNowcast(data.nowcast);
   renderWeek(days, Number(data.weeklyBudget || 0), selectedAnalysisDate);
   $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);
   $('snapshot-parcels-d7').textContent = number.format(data.parcelsLastWeekSameTime || 0);
@@ -291,24 +487,61 @@ function render(data) {
   $('last-refresh').textContent = `Actualisé à ${formatTime(data.databaseNow)}`;
 }
 
-async function load() {
+async function load(snapshotId) {
   const version = ++requestVersion;
   $('refresh-button').disabled = true;
   $('error-banner').hidden = true;
   setConnection('waiting', 'Actualisation…');
   try {
     const query = new URLSearchParams({ date: selectedAnalysisDate, t: Date.now().toString() });
-    const response = await fetch(`/api/edi?${query}`, { cache: 'no-store' });
+    if (FORECAST_PAGE && snapshotId) query.set('version', snapshotId);
+    const endpoint = DELIVERY_PAGE ? '/api/edi/sectors' : FORECAST_PAGE ? '/api/edi/forecasts' : '/api/edi';
+    const response = await fetch(`${endpoint}?${query}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Réponse ${response.status}`);
     const data = await response.json();
     if (version !== requestVersion) return;
-    render(data);
-    setConnection('ok', 'Données en direct');
+    if (DELIVERY_PAGE) {
+      renderSectors(data);
+      const days = (data.sectors[0]?.forecast.days || []).filter(day => ![0, 6].includes(new Date(`${day.date}T12:00:00`).getDay()));
+      $('week-range').textContent = days.length ? `${formatDate(days[0].date)} au ${formatDate(days[days.length - 1].date)}` : '—';
+      const refreshed = formatTime(data.weekly?.actualsUpdatedAt || new Date().toISOString());
+      if (data.weekly) {
+        $('delivery-next-refresh').textContent = new Date(data.weekly.nextRefresh).toLocaleString('fr-CA', { timeZone: 'America/Toronto', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        clearTimeout(deliveryRefreshTimer);
+        let refreshAt = new Date(data.weekly.nextRefresh).getTime();
+        const refreshDay = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Toronto', weekday: 'short' }).format(new Date(refreshAt));
+        const saturdayMidnight = refreshAt - 6 * 60 * 60 * 1000;
+        if (deliveryFollowToday && refreshDay === 'Sat' && saturdayMidnight > Date.now()) refreshAt = saturdayMidnight;
+        deliveryRefreshTimer = setTimeout(() => {
+          if (deliveryFollowToday) { selectedAnalysisDate = currentEdiDate(); syncDateSelector(); }
+          load();
+        }, Math.max(1000, refreshAt - Date.now()));
+      }
+      $('database-time').textContent = refreshed;
+      $('last-refresh').textContent = `Actualisé à ${refreshed}`;
+    } else {
+      render(data);
+    }
+    setConnection('ok', DELIVERY_PAGE || FORECAST_PAGE ? 'Relevé quotidien' : 'Données en direct');
     countdown = REFRESH_SECONDS;
   } catch (error) {
     if (version !== requestVersion) return;
     setConnection('error', 'Connexion interrompue');
-    $('error-banner').textContent = 'Impossible de charger les données EDI. Une nouvelle tentative sera faite automatiquement.';
+    if (FORECAST_PAGE) {
+      clearTimeout(forecastRefreshTimer);
+      forecastRefreshTimer = setTimeout(() => load(), 60000);
+    }
+    if (DELIVERY_PAGE) {
+      sectorData = null;
+      globalThis.updateSectorForecastCharts?.(null);
+      $('sector-body').replaceChildren();
+      $('sector-foot').replaceChildren();
+      $('sector-quality').textContent = '';
+      $('sector-status').textContent = 'Prévisions de livraison indisponibles. Une nouvelle tentative sera faite automatiquement.';
+      clearTimeout(deliveryRefreshTimer);
+      deliveryRefreshTimer = setTimeout(() => load(), 15 * 60 * 1000);
+    }
+    $('error-banner').textContent = `Impossible de charger les ${DELIVERY_PAGE ? 'prévisions de livraison' : 'données EDI'}. Une nouvelle tentative sera faite automatiquement.`;
     $('error-banner').hidden = false;
   } finally {
     if (version === requestVersion) $('refresh-button').disabled = false;
@@ -319,7 +552,18 @@ $('refresh-button').addEventListener('click', () => { countdown = REFRESH_SECOND
 $('previous-date').addEventListener('click', () => moveAnalysisDate(-1));
 $('next-date').addEventListener('click', () => moveAnalysisDate(1));
 $('analysis-date').addEventListener('change', (event) => selectAnalysisDate(event.target.value));
-$('client-filter').addEventListener('input', renderClientRows);
+$('client-filter')?.addEventListener('input', renderClientRows);
+$('sector-filter')?.addEventListener('input', () => { if (sectorData) renderSectors(sectorData); });
+$('sector-show-empty')?.addEventListener('change', () => { if (sectorData) renderSectors(sectorData); });
+['pallet-unit', 'pallet-height', 'pallet-fill'].forEach(id => {
+  const control = $(id);
+  if (!control) return;
+  try { const saved = localStorage.getItem(id); if (saved && [...control.options].some(option => option.value === saved)) control.value = saved; } catch { /* Storage can be disabled. */ }
+  control.addEventListener('change', () => {
+    try { localStorage.setItem(id, control.value); } catch { /* Keep the current selection in memory. */ }
+    renderRegions(regionRows);
+  });
+});
 document.querySelectorAll('[data-client-sort]').forEach((button) => {
   button.addEventListener('click', () => {
     const key = button.dataset.clientSort;
@@ -332,7 +576,7 @@ document.querySelectorAll('[data-client-sort]').forEach((button) => {
     renderClientRows();
   });
 });
-setInterval(() => {
+if (!DELIVERY_PAGE && !FORECAST_PAGE) setInterval(() => {
   countdown -= 1;
   if (countdown <= 0) {
     countdown = REFRESH_SECONDS;

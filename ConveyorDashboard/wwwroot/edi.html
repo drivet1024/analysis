@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI</title>
-  <link rel="stylesheet" href="/edi.css?v=20260908-10">
+  <link rel="stylesheet" href="/edi.css?v=20260912-12">
 </head>
 <body>
   <main class="shell">
@@ -28,7 +28,10 @@
         <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
         <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
         <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
-        <a class="dashboard-tab active" href="/edi.html" aria-current="page">EDI</a>
+        <a class="dashboard-tab active" href="/edi.html" data-edi-navigation aria-current="page">EDI</a>
+        <a class="dashboard-tab" href="/edi-clients.html" data-edi-navigation>EDI CLIENT</a>
+        <a class="dashboard-tab" href="/edi-previsions.html" data-edi-navigation>EDI PRÉVISION</a>
+        <a class="dashboard-tab" href="/livraison-previsions.html" data-edi-navigation>LIVRAISON PRÉVISION</a>
       </nav>
       <div class="analysis-date-context">
         <span>Date analysée</span>
@@ -58,7 +61,17 @@
         <div><span>Colis D−7</span><small id="snapshot-d7-context">Même période et même heure</small></div>
         <strong id="snapshot-parcels-d7">—</strong>
       </article>
+      <article class="snapshot-pill snapshot-final" aria-live="polite">
+        <div><span id="snapshot-final-label">Finale estimée aujourd’hui</span><small id="snapshot-final-context">Selon les colis déjà créés</small></div>
+        <strong id="snapshot-final-value">—</strong>
+      </article>
     </section>
+    <details class="nowcast-details">
+      <summary>Comment est estimée la finale de journée ?</summary>
+      <p id="nowcast-explanation">Chargement des journées comparables…</p>
+      <p>Journée de 4 h à 4 h. On compare le même jour de semaine sur les 8 dernières semaines, hors fériés et période Cyber Monday. Les poids vont de 1 à N, du plus ancien au plus récent. Proportion reçue = somme pondérée des colis créés à la même heure ÷ somme pondérée des volumes finaux. Cette estimation se renouvelle avec la page toutes les 60 secondes; elle est distincte des prévisions quotidiennes archivées à 6 h.</p>
+      <div class="table-wrap"><table><thead><tr><th>Journée similaire</th><th>À la même heure</th><th>Total final</th><th>Proportion reçue</th><th>Poids</th></tr></thead><tbody id="nowcast-samples"></tbody></table></div>
+    </details>
 
     <section class="kpi-grid" aria-label="Résumé EDI">
       <article class="kpi-card accent-blue"><span id="linehaul-parcels-label">Colis linehaul aujourd’hui</span><strong id="parcels-today">—</strong><small id="linehaul-parcels-context">Expéditions par région jusqu’à maintenant</small></article>
@@ -67,71 +80,49 @@
       <article class="kpi-card accent-amber"><span>Budget hebdomadaire</span><strong id="weekly-budget">—</strong><small id="weekly-progress">—</small></article>
     </section>
 
+
+
+
+
     <section class="data-section" aria-labelledby="regions-title">
       <div class="section-heading">
         <div><p>Volumes EDI</p><h2 id="regions-title">Colis et palettes par région</h2></div>
         <span id="regions-period-label">Aujourd’hui, hier et même période la semaine dernière</span>
       </div>
+      <div class="pallet-controls">
+        <label>Unité des dimensions enregistrées <select id="pallet-unit" disabled><option value="in">Pouces · confirmé</option></select></label>
+        <label>Hauteur utile de colis <select id="pallet-height"><option value="76">76 po · réserve de 8 po de base</option><option value="78" selected>78 po · réserve de 6 po de base</option><option value="80">80 po · réserve de 4 po de base</option></select></label>
+        <label>Remplissage <select id="pallet-fill"><option value="0.6">60 % · empilage difficile</option><option value="0.65">65 %</option><option value="0.7" selected>70 % · 30 % de vide</option><option value="0.75">75 %</option><option value="0.8">80 % · empilage soigné</option></select></label>
+      </div>
+      <p class="method-note" id="pallet-assumptions"></p>
       <div class="table-wrap">
         <table class="regions-table">
           <thead>
             <tr>
               <th rowspan="2">Région</th>
               <th rowspan="2">Dépôts</th>
-              <th id="regions-current-label" colspan="2">Aujourd’hui</th>
+              <th id="regions-current-label" colspan="3">Aujourd’hui</th>
               <th colspan="2">Hier</th>
               <th colspan="2">Semaine dernière</th>
             </tr>
             <tr>
-              <th>Colis</th><th>Palettes</th>
+              <th>Colis</th><th>Palettes / 60 colis</th><th>Palettes estimées · volume</th>
               <th>Colis</th><th>Palettes</th>
               <th>Colis</th><th>Palettes</th>
             </tr>
           </thead>
-          <tbody id="regions-body"><tr><td colspan="8" class="empty-cell">Chargement des régions…</td></tr></tbody>
+          <tbody id="regions-body"><tr><td colspan="9" class="empty-cell">Chargement des régions…</td></tr></tbody>
           <tfoot id="regions-foot"></tfoot>
         </table>
       </div>
+      <details class="forecast-method"><summary>Calcul des palettes et limites de l’estimation</summary>
+        <p>Pour chaque client, moyenne des volumes individuels L × l × h des colis créés dans les 28 journées complètes précédant la date analysée, hors statuts 500 et 501. Seules les trois dimensions strictement positives sont utilisées. Il faut au moins 20 colis dimensionnés; sinon, la moyenne générale des colis dimensionnés de la période sert de remplacement. Le pourcentage affiché indique la part des colis du jour couverte par un profil client.</p>
+        <p>Volume régional estimé = somme des colis du jour de chaque client × son volume moyen. Palettes = volume régional ÷ (40 × 48 × hauteur utile × taux de remplissage), arrondi à l’entier supérieur par région. Le total additionne ces arrondis sans mélanger les régions. Les dimensions des colis sont confirmées en pouces.</p>
+        <p>Palette confirmée : 40 × 48 × 84 po, base incluse dans la hauteur. Réglage initial : hauteur utile de 78 po (réserve estimée de 6 po pour la base) et 70 % de remplissage. La réserve et le remplissage restent des hypothèses modifiables, non des mesures de votre empilage réel. L’estimation volumétrique ne simule pas le placement de chaque colis : colis hors gabarit, fragiles, non empilables, limites de poids et séparation des tournées peuvent exiger davantage de palettes. Les dimensions absentes et les changements de produits limitent aussi la précision.</p>
+      </details>
     </section>
 
-    <section class="data-section" aria-labelledby="clients-title">
-      <div class="section-heading">
-        <div><p>Tendance par client</p><h2 id="clients-title">50 plus gros clients</h2></div>
-        <span id="clients-trend-context">Comparaison avec la moyenne des quatre semaines précédentes à la même heure</span>
-      </div>
-      <div class="table-wrap client-trend-wrap">
-        <table class="client-trend-table">
-          <thead>
-            <tr>
-              <th aria-sort="none">
-                <div class="client-heading-controls">
-                  <button type="button" class="client-sort-button" data-client-sort="customerName">
-                    <span>Client</span><span class="sort-indicator" aria-hidden="true">↕</span>
-                  </button>
-                  <input id="client-filter" class="client-filter" type="search" placeholder="Filtrer par nom" aria-label="Filtrer les clients par nom" autocomplete="off">
-                </div>
-              </th>
-              <th aria-sort="descending">
-                <button type="button" class="client-sort-button" data-client-sort="currentParcels">
-                  <span id="client-date-current">Aujourd’hui</span><span class="sort-indicator" aria-hidden="true">↓</span>
-                </button>
-              </th>
-              <th aria-sort="none">
-                <button type="button" class="client-sort-button" data-client-sort="historicalAverage">
-                  <span>Moyenne 4 sem.</span><span class="sort-indicator" aria-hidden="true">↕</span>
-                </button>
-              </th>
-              <th aria-sort="none">
-                <button type="button" class="client-sort-button" data-client-sort="trendPercent">
-                  <span>Tendance</span><span class="sort-indicator" aria-hidden="true">↕</span>
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="clients-body"><tr><td colspan="4" class="empty-cell">Chargement des clients…</td></tr></tbody>
-        </table>
-      </div>
-    </section>
+
 
     <section class="data-section" aria-labelledby="week-title">
       <div class="section-heading">
@@ -153,8 +144,8 @@
       </div>
     </section>
 
-    <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
+    <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes de référence sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
-  <script src="/edi.js?v=20260908-12" defer></script>
+  <script src="/edi.js?v=20260912-8" defer></script>
 </body>
 </html>

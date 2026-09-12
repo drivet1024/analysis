@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tableau de bord EDI Nationex par client.">
+  <title>Nationex - EDI CLIENT</title>
+  <link rel="stylesheet" href="/edi.css?v=20260912-12">
+</head>
+<body data-edi-page="clients">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <div class="brand-content"><h1>Nationex - EDI CLIENT</h1></div>
+      </div>
+      <div class="topbar-actions">
+        <div class="live-panel">
+          <span id="live-dot" class="live-dot waiting" aria-hidden="true"></span>
+          <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+          <button id="refresh-button" type="button">Actualiser</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-navigation">
+      <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+        <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
+        <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
+        <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
+        <a class="dashboard-tab" href="/edi.html" data-edi-navigation>EDI</a>
+        <a class="dashboard-tab active" href="/edi-clients.html" data-edi-navigation aria-current="page">EDI CLIENT</a>
+        <a class="dashboard-tab" href="/edi-previsions.html" data-edi-navigation>EDI PRÉVISION</a>
+        <a class="dashboard-tab" href="/livraison-previsions.html" data-edi-navigation>LIVRAISON PRÉVISION</a>
+      </nav>
+      <div class="analysis-date-context">
+        <span>Date analysée</span>
+        <span class="date-navigation">
+          <button id="previous-date" type="button" aria-label="Afficher la journée précédente">‹</button>
+          <input id="analysis-date" type="date" aria-label="Date analysée">
+          <button id="next-date" type="button" aria-label="Afficher la journée suivante">›</button>
+        </span>
+      </div>
+    </div>
+
+    <section class="context-strip" aria-label="Contexte des données">
+      <div><span>Semaine analysée</span><strong id="week-range">—</strong></div>
+      <div><span>Dernière lecture</span><strong id="database-time">—</strong></div>
+      <div><span>Prochaine mise à jour</span><strong><span id="countdown">60</span> s</strong></div>
+      <div><span>Source</span><strong>Expéditions clients</strong></div>
+    </section>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+    <section class="data-section" aria-labelledby="clients-title">
+      <div class="section-heading">
+        <div><p>Tendance par client</p><h2 id="clients-title">50 plus gros clients</h2></div>
+        <span id="clients-trend-context">Comparaison avec la moyenne des quatre semaines précédentes à la même heure</span>
+      </div>
+      <div class="table-wrap client-trend-wrap">
+        <table class="client-trend-table">
+          <thead>
+            <tr>
+              <th aria-sort="none">
+                <div class="client-heading-controls">
+                  <button type="button" class="client-sort-button" data-client-sort="customerName">
+                    <span>Client</span><span class="sort-indicator" aria-hidden="true">↕</span>
+                  </button>
+                  <input id="client-filter" class="client-filter" type="search" placeholder="Filtrer par nom" aria-label="Filtrer les clients par nom" autocomplete="off">
+                </div>
+              </th>
+              <th aria-sort="descending">
+                <button type="button" class="client-sort-button" data-client-sort="currentParcels">
+                  <span id="client-date-current">Aujourd’hui</span><span class="sort-indicator" aria-hidden="true">↓</span>
+                </button>
+              </th>
+              <th aria-sort="none">
+                <button type="button" class="client-sort-button" data-client-sort="historicalAverage">
+                  <span>Moyenne 4 sem.</span><span class="sort-indicator" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th aria-sort="none">
+                <button type="button" class="client-sort-button" data-client-sort="trendPercent">
+                  <span>Tendance</span><span class="sort-indicator" aria-hidden="true">↕</span>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="clients-body"><tr><td colspan="4" class="empty-cell">Chargement des clients…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="/edi.js?v=20260912-4" defer></script>
+</body>
+</html>

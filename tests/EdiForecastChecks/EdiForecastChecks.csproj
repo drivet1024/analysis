@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup><Compile Include="../../ConveyorDashboard/EdiForecast.cs" Link="EdiForecast.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../ConveyorDashboard/EdiHolidayCalendar.cs" Link="EdiHolidayCalendar.cs" /></ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../ConveyorDashboard/EdiForecastArchive.cs" Link="EdiForecastArchive.cs" />
+    <Compile Include="../../ConveyorDashboard/EdiSeasonality.cs" Link="EdiSeasonality.cs" />
+    <Compile Include="../../ConveyorDashboard/EdiNowcast.cs" Link="EdiNowcast.cs" />
+    <Compile Include="../../ConveyorDashboard/EdiSectorModel.cs" Link="EdiSectorModel.cs" />
+    <Compile Include="../../ConveyorDashboard/EdiSectorWeeklyService.cs" Link="EdiSectorWeeklyService.cs" />
+  </ItemGroup>
+</Project>

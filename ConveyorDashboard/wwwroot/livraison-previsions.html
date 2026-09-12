@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Prévisions de livraison par secteur pour le dépôt de Saint-Hubert.">
+  <title>Nationex - LIVRAISON PRÉVISION</title>
+  <link rel="stylesheet" href="/edi.css?v=20260912-20">
+</head>
+<body data-edi-page="deliveries">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <div class="brand-content"><h1>Nationex - LIVRAISON PRÉVISION</h1></div>
+      </div>
+      <div class="topbar-actions">
+        <div class="live-panel">
+          <span id="live-dot" class="live-dot waiting" aria-hidden="true"></span>
+          <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+          <button id="refresh-button" type="button">Actualiser</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-navigation">
+      <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+        <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
+        <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
+        <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
+        <a class="dashboard-tab" href="/edi.html" data-edi-navigation>EDI</a>
+        <a class="dashboard-tab" href="/edi-clients.html" data-edi-navigation>EDI CLIENT</a>
+        <a class="dashboard-tab" href="/edi-previsions.html" data-edi-navigation>EDI PRÉVISION</a>
+        <a class="dashboard-tab active" href="/livraison-previsions.html" data-edi-navigation aria-current="page">LIVRAISON PRÉVISION</a>
+      </nav>
+      <div class="analysis-date-context">
+        <span>Date analysée</span>
+        <span class="date-navigation">
+          <button id="previous-date" type="button" aria-label="Afficher la journée précédente">‹</button>
+          <input id="analysis-date" type="date" aria-label="Date analysée">
+          <button id="next-date" type="button" aria-label="Afficher la journée suivante">›</button>
+        </span>
+      </div>
+    </div>
+
+    <section class="context-strip" aria-label="Contexte des données">
+      <div><span>Période de livraison</span><strong id="week-range">—</strong></div>
+      <div><span>Dernière lecture</span><strong id="database-time">—</strong></div>
+      <div><span>Prochaine mise à jour du réel</span><strong id="delivery-next-refresh">Chaque matin à 6 h</strong></div>
+      <div><span>Périmètre secteurs</span><strong>Saint-Hubert · dépôt 1</strong></div>
+    </section>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+    <section class="data-section" aria-labelledby="sector-title"><div class="section-heading"><div><p>Saint-Hubert · dépôt 1</p><h2 id="sector-title">Prévisions de livraison par secteur</h2></div><label>Filtrer <input id="sector-filter" class="client-filter" type="search" placeholder="Secteur ou nom" aria-label="Filtrer les secteurs"></label></div><label class="sector-empty-toggle"><input id="sector-show-empty" type="checkbox"> Afficher aussi les secteurs sans historique</label><p class="method-note" id="sector-status" aria-live="polite">Chargement des prévisions sectorielles…</p><div class="table-wrap sector-table-wrap"><table><thead id="sector-head"></thead><tbody id="sector-body"></tbody><tfoot id="sector-foot"></tfoot></table></div><details class="forecast-method"><summary>Sources, rattachement et méthode</summary><p>Colis uniques triés à Saint-Hubert, convoyeurs haut, sol et tri manuel, entre 15 h et 3 h le lendemain (heure locale, horaire de tri existant). Source : parcel_history, scans de tri 903, SOURCE_TYPE=200/201, dépôt 1, passages annulés exclus. Chaque PARCEL_ID compte une seule fois par jour de livraison, même après plusieurs passages ou un tri vendredi puis dimanche. Les colonnes indiquent les jours de livraison prévus : tri lundi soir → mardi, mardi → mercredi, mercredi → jeudi, jeudi → vendredi; vendredi et dimanche soir → lundi. Zéro livraison samedi et dimanche; les tris du samedi soir sont exclus. Ce volume affecté au jour prévu n’est pas une preuve de livraison effectuée. Le code postal de destination est normalisé puis rattaché à location.SECTOR_ID (ou à la route de location si ce secteur manque). À défaut de correspondance postale, shipment.DEST_ROUTE_ID → route.SECTOR_ID sert de repli. Un code postal ou une expédition associés à plusieurs secteurs sont exclus pour éviter une attribution ambiguë. En cas de conflit postal/route, le secteur postal est retenu.</p><p>Périmètre : secteurs rattachés au dépôt 1 dans sector_info, sauf les secteurs 500, 501, 539, 641 et 643, exclus du tableau et de ses totaux. Le rattachement géographique actuel est appliqué à tout l’historique : les changements de routes ou de codes postaux peuvent donc modifier les reconstitutions. Les exclusions et replis sont indiqués ci-dessous.</p><p>Chaque secteur compare les volumes uniques affectés aux mêmes jours de livraison : 8 semaines récentes et références annuelles. Les fériés, ainsi que les livraisons alimentées par un soir de tri férié, sont exclus des jours ordinaires. Le Cyber Monday est aligné sur le tri : son lundi soir alimente le mardi; le vendredi du Black Friday et le dimanche suivant alimentent le lundi. Les week-ends restent à zéro par règle opérationnelle.</p><p>Après la première activité d’un secteur, l’absence de ses colis vaut zéro seulement sur une journée observée au tri. Un lundi historique est utilisable seulement si des scans existent le vendredi et le dimanche correspondants. Les cohortes du jour courant et futures sont exclues de l’apprentissage : le vendredi seul ne devient jamais un lundi complet. Un historique insuffisant reste indisponible. Le total représente des colis triés et affectés aux secteurs du dépôt 1; il n’est pas comparable directement au total EDI des colis créés.</p><p>Prévision créée et sauvegardée le samedi à 6 h, heure de Montréal, pour le lundi au vendredi suivants. Dès le samedi, la page affiche le lundi au vendredi suivants. Elle reste figée toute la semaine. Le réel correspond aux colis uniques triés affectés au jour de livraison, pas aux confirmations de livraison; il est relevé une fois par jour à 6 h, après la fermeture du tri à 3 h, puis affiché sous la prévision. Écart = réel − prévu. Les jours futurs restent en attente; une source manquante reste indisponible. Une semaine sans prévision sauvegardée le samedi affiche uniquement le réel : aucune prévision rétroactive n’est inventée. Les archives précédentes sont conservées. Le serveur doit fonctionner le samedi; après une interruption qui couvre tout le samedi, aucune prévision anticipée n’est créée pour la semaine manquée.</p><p>Contact et routes : informations actuelles, y compris lors de la consultation d’une ancienne prévision. Le contact provient de sector_info.SECTOR_CONTACT. « Routes actives (28 j) » compte les routes distinctes du secteur ayant au moins une expédition avec colis sur les 28 derniers jours complets, selon shipment.DEST_ROUTE_ID et INSERT_DATE, hors statuts 500 et 501. Il s’agit d’un indicateur d’activité récente, pas du nombre de routes en tournée aujourd’hui. Ces informations sont relues avec la mise à jour quotidienne et ne modifient pas les volumes prévus.</p><p id="sector-quality"></p></details></section>
+  </main>
+  <dialog id="forecast-chart-dialog" aria-labelledby="forecast-chart-title">
+    <header class="forecast-chart-header"><div><h2 id="forecast-chart-title">Prévisions et réel</h2><p id="forecast-chart-version"></p></div><button id="forecast-chart-close" type="button" aria-label="Fermer le graphique">Fermer ✕</button></header>
+    <div class="forecast-chart-legend" aria-label="Légende">
+      <span><i class="chart-key chart-low"></i>Minimum historique</span><span><i class="chart-key chart-high"></i>Maximum historique</span><span><i class="chart-key chart-predicted"></i>Prévu</span><span><i class="chart-key chart-actual"></i>Réel</span>
+    </div>
+    <div id="forecast-chart-plot"></div>
+    <p id="forecast-chart-readout" aria-live="polite"></p><p id="forecast-chart-note"></p>
+  </dialog>
+  <script src="/edi-forecast-chart.js?v=20260912-2" defer></script>
+  <script src="/edi.js?v=20260912-20" defer></script>
+</body>
+</html>
