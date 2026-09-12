@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
@@ -157,7 +158,35 @@ app.MapGet("/api/edi", async (string? date, ConveyorDataService data) =>
         var analysisDate = ResolveAnalysisDate(date, currentEdiDate);
         if (analysisDate > currentEdiDate)
             throw new ArgumentException("La date analysée ne peut pas être dans le futur.");
-        return Results.Ok(await data.GetEdiDashboardAsync(analysisDate));
+        return Results.Ok(await data.GetEdiDashboardAsync(analysisDate, "main"));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Le tableau de bord EDI n'a pas pu être calculé : {ex.Message}"); }
+});
+
+app.MapGet("/api/edi/clients", async (string? date, ConveyorDataService data) =>
+{
+    try
+    {
+        var currentEdiDate = CurrentOperationalDate(DateTime.Now);
+        var analysisDate = ResolveAnalysisDate(date, currentEdiDate);
+        if (analysisDate > currentEdiDate)
+            throw new ArgumentException("La date analysée ne peut pas être dans le futur.");
+        return Results.Ok(await data.GetEdiDashboardAsync(analysisDate, "clients"));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Le tableau de bord EDI n'a pas pu être calculé : {ex.Message}"); }
+});
+
+app.MapGet("/api/edi/transport", async (string? date, ConveyorDataService data) =>
+{
+    try
+    {
+        var currentEdiDate = CurrentOperationalDate(DateTime.Now);
+        var analysisDate = ResolveAnalysisDate(date, currentEdiDate);
+        if (analysisDate > currentEdiDate)
+            throw new ArgumentException("La date analysée ne peut pas être dans le futur.");
+        return Results.Ok(await data.GetEdiDashboardAsync(analysisDate, "transport"));
     }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Le tableau de bord EDI n'a pas pu être calculé : {ex.Message}"); }
@@ -902,7 +931,54 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         return Convert.ToInt32(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture) == 1;
     }
 
-    public async Task<EdiDashboardResponse> GetEdiDashboardAsync(DateOnly analysisDate)
+    private readonly MemoryCache ediCache = new(new MemoryCacheOptions { SizeLimit = 48 });
+    private readonly SemaphoreSlim ediMainLock = new(1, 1);
+    private readonly SemaphoreSlim ediClientLock = new(1, 1);
+    private readonly SemaphoreSlim ediTransportLock = new(1, 1);
+
+    public async Task<EdiDashboardResponse> GetEdiDashboardAsync(DateOnly analysisDate, string scope = "main")
+    {
+        if (scope is not ("main" or "clients" or "transport")) throw new ArgumentException("Page EDI inconnue.");
+        var key = $"edi:{scope}:{analysisDate:yyyy-MM-dd}";
+        if (ediCache.TryGetValue<EdiDashboardResponse>(key, out var ready)) return ready!;
+        var gate = scope == "clients" ? ediClientLock : scope == "transport" ? ediTransportLock : ediMainLock;
+        await gate.WaitAsync();
+        try
+        {
+            if (ediCache.TryGetValue<EdiDashboardResponse>(key, out var hit)) return hit!;
+            var result = await CalculateEdiDashboardAsync(analysisDate, scope);
+            ediCache.Set(key, result, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60), Size = 1 });
+            return result;
+        }
+        finally { gate.Release(); }
+    }
+
+    private async Task<string> GetEdiDimensionProfilesAsync(DateOnly date, MySqlConnection connection)
+    {
+        var key = $"dimensions:{date:yyyy-MM-dd}";
+        if (ediCache.TryGetValue<string>(key, out var hit)) return hit!;
+        await using var command = new MySqlCommand("""
+            SELECT CUSTOMER_ID, COUNT(*) AS history_count,
+                   SUM(CASE WHEN LENGTH>0 AND WIDTH>0 AND HEIGHT>0 THEN 1 ELSE 0 END) AS valid_count,
+                   SUM(CASE WHEN LENGTH>0 AND WIDTH>0 AND HEIGHT>0 THEN LENGTH*WIDTH*HEIGHT ELSE 0 END) AS volume_sum
+            FROM parcel
+            WHERE INSERT_DATE>=@start AND INSERT_DATE<@end AND PARCEL_STATUS NOT IN (500,501)
+            GROUP BY CUSTOMER_ID
+            """, connection) { CommandTimeout = 180 };
+        command.Parameters.AddWithValue("@start", date.AddDays(-28).ToDateTime(new TimeOnly(4, 0)));
+        command.Parameters.AddWithValue("@end", date.ToDateTime(new TimeOnly(4, 0)));
+        var profiles = new List<object>();
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync()) profiles.Add(new {
+            customer_id = reader.IsDBNull(0) ? (long?)null : reader.GetInt64(0),
+            history_count = reader.GetInt64(1), valid_count = reader.GetInt64(2), volume_sum = reader.GetDecimal(3)
+        });
+        var json = JsonSerializer.Serialize(profiles);
+        ediCache.Set(key, json, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24), Size = 1 });
+        return json;
+    }
+
+    private async Task<EdiDashboardResponse> CalculateEdiDashboardAsync(DateOnly analysisDate, string scope)
     {
         const string parcelSnapshotSql = """
             SELECT
@@ -921,14 +997,11 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
 
         const string regionsSql = """
             WITH dimension_profiles AS (
-              SELECT CUSTOMER_ID,
-                     COUNT(*) AS history_count,
-                     SUM(CASE WHEN LENGTH>0 AND WIDTH>0 AND HEIGHT>0 THEN 1 ELSE 0 END) AS valid_count,
-                     SUM(CASE WHEN LENGTH>0 AND WIDTH>0 AND HEIGHT>0 THEN LENGTH*WIDTH*HEIGHT ELSE 0 END) AS volume_sum
-              FROM parcel
-              WHERE INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 28 DAY) AND INSERT_DATE < @analysisDate
-                AND PARCEL_STATUS NOT IN (500,501)
-              GROUP BY CUSTOMER_ID
+              SELECT CUSTOMER_ID, MAX(history_count) AS history_count, MAX(valid_count) AS valid_count, MAX(volume_sum) AS volume_sum
+              FROM JSON_TABLE(@dimensionProfiles, '$[*]' COLUMNS (
+                CUSTOMER_ID BIGINT PATH '$.customer_id', history_count BIGINT PATH '$.history_count',
+                valid_count BIGINT PATH '$.valid_count', volume_sum DECIMAL(65,12) PATH '$.volume_sum'
+              )) AS profiles GROUP BY CUSTOMER_ID
             ), dimension_global AS (
               SELECT SUM(volume_sum)/NULLIF(SUM(valid_count),0) AS mean_volume FROM dimension_profiles
             ), rm AS (
@@ -1014,7 +1087,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             CROSS JOIN dimension_global dg
             WHERE s.SHIPMENT_STATUS NOT IN (500,501)
               AND rm.region IS NOT NULL
-              AND s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
+              AND s.INSERT_DATE >= @regionsStart
               AND s.INSERT_DATE < @analysisEnd
             GROUP BY rm.region, dep.depots
             ORDER BY rm.region
@@ -1058,8 +1131,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 COUNT(*) AS nb_colis
               FROM parcel p
               CROSS JOIN params x
-              WHERE p.INSERT_DATE >= DATE_ADD(x.week_start, INTERVAL 4 HOUR)
-                AND p.INSERT_DATE < DATE_ADD(DATE_ADD(x.week_start, INTERVAL 7 DAY), INTERVAL 4 HOUR)
+              WHERE p.INSERT_DATE >= @weekStart
+                AND p.INSERT_DATE < @weekEnd
                 AND p.INSERT_DATE < @weekDataEnd
                 AND p.PARCEL_STATUS NOT IN (500,501)
               GROUP BY DATEDIFF(DATE_SUB(p.INSERT_DATE, INTERVAL 4 HOUR), x.week_start)
@@ -1178,6 +1251,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         await using var connection = await OpenAsync();
         var executionDate = analysisDate;
         long parcelsTodaySnapshot = 0, parcelsLastWeekSameTime = 0;
+        if (scope == "main")
         await using (var command = new MySqlCommand(parcelSnapshotSql, connection) { CommandTimeout = 180 })
         {
             command.Parameters.AddWithValue("@analysisDate", analysisStart);
@@ -1192,8 +1266,12 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         }
 
         var regions = new List<EdiRegionRow>();
+        var dimensionProfiles = scope == "transport" ? await GetEdiDimensionProfilesAsync(analysisDate, connection) : "[]";
+        if (scope != "clients")
         await using (var command = new MySqlCommand(regionsSql, connection) { CommandTimeout = 180 })
         {
+            command.Parameters.AddWithValue("@dimensionProfiles", dimensionProfiles);
+            command.Parameters.AddWithValue("@regionsStart", scope == "main" ? analysisStart : analysisStart.AddDays(-7));
             command.Parameters.AddWithValue("@analysisDate", analysisStart);
             command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
             await using var reader = await command.ExecuteReaderAsync();
@@ -1214,6 +1292,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         }
 
         var clients = new List<EdiClientTrendRow>();
+        if (scope == "clients")
         await using (var command = new MySqlCommand(clientsSql, connection) { CommandTimeout = 180 })
         {
             command.Parameters.AddWithValue("@analysisDate", analysisStart);
@@ -1252,10 +1331,13 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         var days = new List<EdiDailyRow>(7);
         var databaseNow = DateTime.Now;
         long weeklyBudget = 0;
+        if (scope == "main")
         await using (var command = new MySqlCommand(weeklySql, connection) { CommandTimeout = 180 })
         {
             command.Parameters.AddWithValue("@analysisDate", analysisStart);
             command.Parameters.AddWithValue("@weekDataEnd", weekDataEnd);
+            command.Parameters.AddWithValue("@weekStart", selectedWeekStart);
+            command.Parameters.AddWithValue("@weekEnd", selectedWeekEnd);
             await using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
@@ -1270,11 +1352,11 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             }
         }
 
-        var history = await GetEdiHistoryAsync(analysisDate.AddDays(-84), analysisDate);
+        var history = forecastArchive.ReadActuals()?.Days ?? [];
         var archiveView = forecastArchive.View(analysisDate, history);
         var forecast = archiveView.Snapshot?.Forecast;
         var nowcastHistory = new List<EdiIntradaySample>();
-        if (analysisDate == currentEdiDate && EdiHolidayCalendar.Name(analysisDate) == null
+        if (scope == "main" && analysisDate == currentEdiDate && EdiHolidayCalendar.Name(analysisDate) == null
             && EdiSeasonality.EventOffset(analysisDate) == null)
         {
             var queries = Enumerable.Range(1, 8).Select(i => $"""
@@ -1299,7 +1381,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         }
         var nowcast = EdiNowcast.Build(analysisDate, analysisEnd, parcelsTodaySnapshot, nowcastHistory,
             completed: analysisDate < currentEdiDate);
-        var weekStart = days.Count == 0 ? DateOnly.FromDateTime(databaseNow) : days[0].Date;
+        var weekStart = days.Count == 0 ? DateOnly.FromDateTime(selectedWeekStart) : days[0].Date;
         return new EdiDashboardResponse(
             databaseNow,
             executionDate,

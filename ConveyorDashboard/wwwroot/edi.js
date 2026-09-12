@@ -509,7 +509,7 @@ async function load(snapshotId) {
   try {
     const query = new URLSearchParams({ date: selectedAnalysisDate, t: Date.now().toString() });
     if (FORECAST_PAGE && snapshotId) query.set('version', snapshotId);
-    const endpoint = DELIVERY_PAGE ? '/api/edi/sectors' : FORECAST_PAGE ? '/api/edi/forecasts' : '/api/edi';
+    const endpoint = DELIVERY_PAGE ? '/api/edi/sectors' : FORECAST_PAGE ? '/api/edi/forecasts' : CLIENT_PAGE ? '/api/edi/clients' : TRANSPORT_PAGE ? '/api/edi/transport' : '/api/edi';
     const response = await fetch(`${endpoint}?${query}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Réponse ${response.status}`);
     const data = await response.json();
