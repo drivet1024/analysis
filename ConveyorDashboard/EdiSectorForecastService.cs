@@ -72,7 +72,7 @@ sealed class EdiSectorForecastService(DashboardConfig config, IWebHostEnvironmen
         await gate.WaitAsync(cancellationToken);
         try
         {
-            var path = Path.Combine(directory, $"{date:yyyy-MM-dd}-sorted-v2.json");
+            var path = Path.Combine(directory, $"{date:yyyy-MM-dd}-sorted-v3.json");
             if (File.Exists(path)) return await WithCurrentSectorDetailsAsync(ApplySectorScope(JsonSerializer.Deserialize<EdiSectorForecastResponse>(await File.ReadAllTextAsync(path), Json)!), cancellationToken);
             if (cached?.AsOfDate == date && (!persist || !cached.Reconstructed)) return await WithCurrentSectorDetailsAsync(cached, cancellationToken);
             var result = ApplySectorScope(await CalculateAsync(date, !persist, cancellationToken));
@@ -99,7 +99,7 @@ sealed class EdiSectorForecastService(DashboardConfig config, IWebHostEnvironmen
         var sectors = definitions.Select(d => new EdiSectorPrediction(d.SectorId, d.Name, d.PostalCodes, 0, 0, 0, 0,
             EdiSectorModel.Build(sunday, d.SectorId, [], []))).ToArray();
         return await WithCurrentSectorDetailsAsync(ApplySectorScope(new(sunday, DateTimeOffset.UtcNow, true,
-            "sorted-sector-delivery-v2", 1, "Saint-Hubert", sunday.AddDays(-EdiForecast.HistoryDays), 0, 0, 0, 0, 0, sectors)), cancellationToken);
+            "sorted-sector-delivery-v3", 1, "Saint-Hubert", sunday.AddDays(-EdiForecast.HistoryDays), 0, 0, 0, 0, 0, sectors)), cancellationToken);
     }
 
     private async Task<List<EdiSectorDefinition>> ReadDefinitionsAsync(CancellationToken cancellationToken)
@@ -140,7 +140,7 @@ sealed class EdiSectorForecastService(DashboardConfig config, IWebHostEnvironmen
                          DATE(ph.DATE_LIV - INTERVAL 3 HOUR) AS shift_day
                   FROM parcel_history ph
                   WHERE ph.EXCEPTION=903 AND ph.DEPOT_ID=1
-                    AND ((ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR ph.SOURCE_TYPE=201)
+                    AND ((ph.SOURCE_TYPE=200 AND (ph.SOURCE_ID IS NULL OR ph.SOURCE_ID IN (1,3))) OR ph.SOURCE_TYPE IN (201,202,204,205))
                     AND ph.PARCEL_ID IS NOT NULL AND ph.PARCEL_ID<>0 AND COALESCE(ph.VOID,0)=0
                     AND ph.DATE_INSERT>=@insertStart AND ph.DATE_INSERT<@insertEnd
                     AND ph.DATE_LIV>=@scanStart AND ph.DATE_LIV<@scanEnd
@@ -224,7 +224,7 @@ sealed class EdiSectorForecastService(DashboardConfig config, IWebHostEnvironmen
         }).ToArray();
         if (predictions.Sum(s => s.HistoricalParcels) + outside + unmapped + ambiguous != total)
             throw new InvalidDataException("Les volumes sectoriels ne se réconcilient pas avec la source.");
-        return new(date, DateTimeOffset.UtcNow, reconstructed, "sorted-sector-delivery-v2", 1, "Saint-Hubert",
+        return new(date, DateTimeOffset.UtcNow, reconstructed, "sorted-sector-delivery-v3", 1, "Saint-Hubert",
             date.AddDays(-EdiForecast.HistoryDays), observedDates.Count, total, outside, unmapped, ambiguous, predictions);
     }
 }

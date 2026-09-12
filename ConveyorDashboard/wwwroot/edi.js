@@ -1,4 +1,5 @@
 const REFRESH_SECONDS = 60;
+const TRANSPORT_PAGE = document.body.dataset.ediPage === 'transport';
 const CLIENT_PAGE = document.body.dataset.ediPage === 'clients';
 const FORECAST_PAGE = document.body.dataset.ediPage === 'forecasts';
 const DELIVERY_PAGE = document.body.dataset.ediPage === 'deliveries';
@@ -351,7 +352,7 @@ function renderForecast(forecast, archive) {
     const annualDetails = annual ? `<br>${escapeHtml(annual.note)}${annual.references.length ? `<br>Références annuelles : ${annual.references.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis`).join(' · ')}` : ''}${annualUsed ? `<br>Référence annuelle ajustée : ${number.format(annual.adjustedParcels)} colis (facteur ${Number(annual.growthFactor).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}, ${annual.growthPairs} paires).<br>${annual.event ? '100 % de la référence événementielle ajustée' : `50 % × ${number.format(recentEstimate)} + 50 % × ${number.format(annual.adjustedParcels)}`} ≈ <strong>${number.format(day.parcels)} colis</strong>.` : ''}` : '';
     row.innerHTML = `<td class="day-name">${escapeHtml(day.dayName)}</td><td>${formatDate(day.date)}</td>
       <td><strong>${day.parcels == null ? 'Indisponible' : number.format(day.parcels)}</strong></td>
-      <td>${comparison?.actual == null ? 'En attente / non évaluable' : number.format(comparison.actual)}</td>
+      <td>${comparison?.actual == null ? '' : number.format(comparison.actual)}</td>
       <td>${comparison?.difference == null ? '—' : `${comparison.difference > 0 ? '+' : ''}${number.format(comparison.difference)}`}</td>
       <td>${day.historicalLow == null ? '—' : `${number.format(day.historicalLow)} – ${number.format(day.historicalHigh)}`}</td>
       <td>${explanation}<details><summary>Voir les volumes et le calcul</summary>${samples.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis × ${sample.weight}`).join('<br>')}${recentEstimate == null ? '' : `<br>Tendance récente : somme pondérée ÷ ${weightSum} ≈ ${number.format(recentEstimate)} colis.`}${annualDetails}</details></td>`;
@@ -466,18 +467,31 @@ function render(data) {
     return;
   }
 
+  if (TRANSPORT_PAGE) {
+    $('linehaul-parcels-label').textContent = isToday ? 'Colis linehaul aujourd’hui' : 'Colis linehaul · ' + selectedDateLabel;
+    $('linehaul-pallets-label').textContent = isToday ? 'Palettes linehaul aujourd’hui' : 'Palettes linehaul · ' + selectedDateLabel;
+    $('linehaul-parcels-context').textContent = isToday ? 'Expéditions par région jusqu’à maintenant' : 'Expéditions par région pour la journée';
+    $('regions-period-label').textContent = isToday
+      ? 'Aujourd’hui, hier et même période la semaine dernière'
+      : `${selectedDateLabel}, veille et même journée la semaine précédente`;
+    $('regions-current-label').textContent = isToday ? 'Aujourd’hui' : selectedDateLabel;
+
+    renderRegions(regions);
+    $('week-range').textContent = formatDate(data.weekStart) + ' au ' + formatDate(data.weekEnd);
+    $('database-time').textContent = formatTime(data.databaseNow);
+    $('last-refresh').textContent = 'Actualisé à ' + formatTime(data.databaseNow);
+    return;
+  }
+
   $('snapshot-today-label').textContent = isToday ? 'Colis aujourd’hui' : `Colis · ${selectedDateLabel}`;
   $('snapshot-today-context').textContent = isToday ? 'Depuis 4 h jusqu’à maintenant' : 'Journée complète · 4 h à 4 h';
   $('snapshot-d7-context').textContent = isToday ? 'Même période et même heure' : 'Même journée, sept jours plus tôt';
   $('linehaul-parcels-label').textContent = isToday ? 'Colis linehaul aujourd’hui' : `Colis linehaul · ${selectedDateLabel}`;
   $('linehaul-pallets-label').textContent = isToday ? 'Palettes linehaul aujourd’hui' : `Palettes linehaul · ${selectedDateLabel}`;
   $('linehaul-parcels-context').textContent = isToday ? 'Expéditions par région jusqu’à maintenant' : 'Expéditions par région pour la journée';
-  $('regions-period-label').textContent = isToday
-    ? 'Aujourd’hui, hier et même période la semaine dernière'
-    : `${selectedDateLabel}, veille et même journée la semaine précédente`;
-  $('regions-current-label').textContent = isToday ? 'Aujourd’hui' : selectedDateLabel;
-
-  renderRegions(regions);
+  const regionalTotals = totalsForRegions(regions);
+  $('parcels-today').textContent = number.format(regionalTotals.parcelsToday);
+  $('pallets-today').textContent = number.format(regionalTotals.palletsToday);
   renderNowcast(data.nowcast);
   renderWeek(days, Number(data.weeklyBudget || 0), selectedAnalysisDate);
   $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);

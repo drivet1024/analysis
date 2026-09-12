@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Colis et estimation des palettes de transport par région.">
+  <title>Nationex - EDI TRANSPORT</title>
+  <link rel="stylesheet" href="/edi.css?v=20260912-12">
+</head>
+<body data-edi-page="transport">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <div class="brand-content"><h1>Nationex - EDI TRANSPORT</h1></div>
+      </div>
+      <div class="topbar-actions">
+        <div class="live-panel">
+          <span id="live-dot" class="live-dot waiting" aria-hidden="true"></span>
+          <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+          <button id="refresh-button" type="button">Actualiser</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-navigation">
+      <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+        <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
+        <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
+        <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
+        <a class="dashboard-tab" href="/edi.html" data-edi-navigation>EDI</a>
+        <a class="dashboard-tab active" href="/edi-transport.html" data-edi-navigation aria-current="page">EDI TRANSPORT</a>
+        <a class="dashboard-tab" href="/edi-clients.html" data-edi-navigation>EDI CLIENT</a>
+        <a class="dashboard-tab" href="/edi-previsions.html" data-edi-navigation>EDI PRÉVISION</a>
+        <a class="dashboard-tab" href="/livraison-previsions.html" data-edi-navigation>LIVRAISON PRÉVISION</a>
+      </nav>
+      <div class="analysis-date-context">
+        <span>Date analysée</span>
+        <span class="date-navigation">
+          <button id="previous-date" type="button" aria-label="Afficher la journée précédente">‹</button>
+          <input id="analysis-date" type="date" aria-label="Date analysée">
+          <button id="next-date" type="button" aria-label="Afficher la journée suivante">›</button>
+        </span>
+      </div>
+    </div>
+
+    <section class="context-strip" aria-label="Contexte des données">
+      <div><span>Semaine analysée</span><strong id="week-range">—</strong></div>
+      <div><span>Dernière lecture</span><strong id="database-time">—</strong></div>
+      <div><span>Prochaine mise à jour</span><strong><span id="countdown">60</span> s</strong></div>
+      <div><span>Conversion</span><strong>60 colis par palette</strong></div>
+    </section>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+    <section class="kpi-grid" aria-label="Résumé transport">
+      <article class="kpi-card accent-blue"><span id="linehaul-parcels-label">Colis linehaul aujourd’hui</span><strong id="parcels-today">—</strong><small id="linehaul-parcels-context">Expéditions par région jusqu’à maintenant</small></article>
+      <article class="kpi-card accent-green"><span id="linehaul-pallets-label">Palettes linehaul aujourd’hui</span><strong id="pallets-today">—</strong><small>Arrondi supérieur · 60 colis par palette</small></article>
+    </section>
+    <section class="data-section" aria-labelledby="regions-title">
+      <div class="section-heading">
+        <div><p>Volumes EDI</p><h2 id="regions-title">Colis et palettes par région</h2></div>
+        <span id="regions-period-label">Aujourd’hui, hier et même période la semaine dernière</span>
+      </div>
+      <div class="pallet-controls">
+        <label>Unité des dimensions enregistrées <select id="pallet-unit" disabled><option value="in">Pouces · confirmé</option></select></label>
+        <label>Hauteur utile de colis <select id="pallet-height"><option value="76">76 po · réserve de 8 po de base</option><option value="78" selected>78 po · réserve de 6 po de base</option><option value="80">80 po · réserve de 4 po de base</option></select></label>
+        <label>Remplissage <select id="pallet-fill"><option value="0.6">60 % · empilage difficile</option><option value="0.65">65 %</option><option value="0.7" selected>70 % · 30 % de vide</option><option value="0.75">75 %</option><option value="0.8">80 % · empilage soigné</option></select></label>
+      </div>
+      <p class="method-note" id="pallet-assumptions"></p>
+      <div class="table-wrap">
+        <table class="regions-table">
+          <thead>
+            <tr>
+              <th rowspan="2">Région</th>
+              <th rowspan="2">Dépôts</th>
+              <th id="regions-current-label" colspan="3">Aujourd’hui</th>
+              <th colspan="2">Hier</th>
+              <th colspan="2">Semaine dernière</th>
+            </tr>
+            <tr>
+              <th>Colis</th><th>Palettes / 60 colis</th><th>Palettes estimées · volume</th>
+              <th>Colis</th><th>Palettes</th>
+              <th>Colis</th><th>Palettes</th>
+            </tr>
+          </thead>
+          <tbody id="regions-body"><tr><td colspan="9" class="empty-cell">Chargement des régions…</td></tr></tbody>
+          <tfoot id="regions-foot"></tfoot>
+        </table>
+      </div>
+      <details class="forecast-method"><summary>Calcul des palettes et limites de l’estimation</summary>
+        <p>Pour chaque client, moyenne des volumes individuels L × l × h des colis créés dans les 28 journées complètes précédant la date analysée, hors statuts 500 et 501. Seules les trois dimensions strictement positives sont utilisées. Il faut au moins 20 colis dimensionnés; sinon, la moyenne générale des colis dimensionnés de la période sert de remplacement. Le pourcentage affiché indique la part des colis du jour couverte par un profil client.</p>
+        <p>Volume régional estimé = somme des colis du jour de chaque client × son volume moyen. Palettes = volume régional ÷ (40 × 48 × hauteur utile × taux de remplissage), arrondi à l’entier supérieur par région. Le total additionne ces arrondis sans mélanger les régions. Les dimensions des colis sont confirmées en pouces.</p>
+        <p>Palette confirmée : 40 × 48 × 84 po, base incluse dans la hauteur. Réglage initial : hauteur utile de 78 po (réserve estimée de 6 po pour la base) et 70 % de remplissage. La réserve et le remplissage restent des hypothèses modifiables, non des mesures de votre empilage réel. L’estimation volumétrique ne simule pas le placement de chaque colis : colis hors gabarit, fragiles, non empilables, limites de poids et séparation des tournées peuvent exiger davantage de palettes. Les dimensions absentes et les changements de produits limitent aussi la précision.</p>
+      </details>
+    </section>
+    <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes de référence sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
+  </main>
+  <script src="/edi.js?v=20260912-21" defer></script>
+</body>
+</html>
