@@ -26,6 +26,7 @@ builder.Services.AddSingleton<EdiDepotService>();
 builder.Services.AddSingleton<EdiMapService>();
 builder.Services.AddSingleton<EdiHistoryService>();
 builder.Services.AddSingleton<EdiFiscalHistoryService>();
+builder.Services.AddSingleton<FloorScanService>();
 builder.Services.AddHostedService<EdiForecastRefreshService>();
 builder.Services.AddSingleton<EdiSectorForecastService>();
 builder.Services.AddSingleton<EdiSectorWeeklyService>();
@@ -303,6 +304,19 @@ app.MapGet("/api/scan-depots", async (ConveyorDataService data) =>
 {
     try { return Results.Ok(await data.GetScanDepotsAsync()); }
     catch (Exception ex) { return Results.Problem($"La liste des dépôts n'a pas pu être chargée : {ex.Message}"); }
+});
+
+app.MapGet("/api/floor-scans", async (string? date, FloorScanService data, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var selected = ResolveAnalysisDate(date, today);
+        if (selected > today) return Results.BadRequest("La date ne peut pas être future.");
+        return Results.Ok(await data.GetAsync(selected, cancellationToken));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Les scans plancher n'ont pas pu être calculés : {ex.Message}"); }
 });
 
 app.MapGet("/api/quebec-depot-scans", async (int? depotId, string? date, string? startTime, string? endTime, ConveyorDataService data) =>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Suivi des scans plancher par dépôt Nationex.">
+  <title>Nationex - SCAN PLANCHER</title>
+  <link rel="stylesheet" href="/edi.css?v=20260913-7">
+  <link rel="stylesheet" href="/floor-scans.css?v=20260913-1">
+  <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <div class="brand-content"><h1>Nationex - SCAN PLANCHER</h1></div>
+      </div>
+      <div class="topbar-actions">
+        <div class="live-panel">
+          <span id="live-dot" class="live-dot waiting" aria-hidden="true"></span>
+          <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
+          <button id="refresh-button" type="button">Actualiser</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-navigation">
+      <nav class="dashboard-tabs" aria-label="Sections du tableau de bord">
+        <a class="dashboard-tab" href="/?depot=st-hubert&amp;tab=routes-tab">Routes 500xx</a>
+        <a class="dashboard-tab" href="/?tab=conveyor-tab">Données convoyeur</a>
+        <a class="dashboard-tab" href="/quebec-scans.html">Analyse code 25</a>
+        <a class="dashboard-tab active" href="/floor-scans.html" aria-current="page">SCAN PLANCHER</a>
+        <a class="dashboard-tab" href="/edi.html" data-analysis-navigation>EDI</a>
+        <a class="dashboard-tab" href="/edi-transport.html" data-analysis-navigation>EDI TRANSPORT</a>
+        <a class="dashboard-tab" href="/edi-clients.html" data-analysis-navigation>EDI CLIENT</a>
+        <a class="dashboard-tab" href="/edi-previsions.html" data-analysis-navigation>EDI PRÉVISION</a>
+        <a class="dashboard-tab" href="/livraison-previsions.html" data-analysis-navigation>LIVRAISON PRÉVISION</a>
+      </nav>
+      <div class="analysis-date-context">
+        <span>Date analysée</span>
+        <span class="date-navigation">
+          <button id="previous-date" type="button" aria-label="Afficher la journée précédente">‹</button>
+          <input id="analysis-date" type="date" aria-label="Date analysée">
+          <button id="next-date" type="button" aria-label="Afficher la journée suivante">›</button>
+        </span>
+      </div>
+    </div>
+
+    <section class="context-strip" aria-label="Contexte des scans plancher">
+      <div><span>Graphique</span><strong id="chart-range">—</strong></div>
+      <div><span>Jours sans scan</span><strong id="month-range">—</strong></div>
+      <div><span>Dernière lecture</span><strong id="database-time">—</strong></div>
+      <div><span>Prochaine mise à jour</span><strong><span id="countdown">60</span> s</strong></div>
+    </section>
+
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+    <section class="data-section" aria-labelledby="floor-scan-title">
+      <div class="section-heading">
+        <div><p>Exception 904 · colis uniques</p><h2 id="floor-scan-title">Scans plancher par dépôt</h2></div>
+        <span>Sept derniers jours · échelle propre à chaque dépôt</span>
+      </div>
+      <div id="floor-scan-grid" class="floor-scan-grid" aria-live="polite">
+        <div class="floor-scan-loading">Chargement des dépôts…</div>
+      </div>
+    </section>
+
+    <p class="method-note">Un colis est compté une seule fois par dépôt et par journée lorsqu’il possède l’exception 904. Le compteur sous chaque graphique couvre les 30 journées complètes précédentes et exclut les samedis et dimanches. La journée courante, lorsqu’elle est affichée, est partielle et apparaît en bleu.</p>
+  </main>
+  <script src="/floor-scans.js?v=20260913-1" defer></script>
+  <script src="/deployment-footer.js?v=20260913-1" defer></script>
+</body>
+</html>
