@@ -23,6 +23,8 @@ builder.Services.AddSingleton(config);
 builder.Services.AddSingleton<EdiMlForecastService>();
 builder.Services.AddSingleton<EdiForecastArchive>();
 builder.Services.AddSingleton<ConveyorDataService>();
+builder.Services.AddSingleton<ConveyorEfficiencyService>();
+builder.Services.AddHostedService<ConveyorEfficiencyRefreshWorker>();
 builder.Services.AddSingleton<EdiDepotService>();
 builder.Services.AddSingleton<EdiMapService>();
 builder.Services.AddSingleton<EdiHistoryService>();
@@ -288,6 +290,14 @@ app.MapGet("/api/conveyor-quality", async (string? date, string? depot, Conveyor
     }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Les indicateurs de qualité du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
+});
+
+app.MapGet("/api/conveyor-efficiency", (ConveyorEfficiencyService efficiency) =>
+{
+    var snapshot = efficiency.Current;
+    return snapshot is null
+        ? Results.Json(new { error = "Le calcul initial de l'efficacité mensuelle est en cours." }, statusCode: StatusCodes.Status503ServiceUnavailable)
+        : Results.Ok(snapshot);
 });
 
 app.MapGet("/api/high-conveyor-capacity", async (string? date, string? depot, ConveyorDataService data) =>

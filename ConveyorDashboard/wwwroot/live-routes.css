@@ -51,6 +51,15 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .tab-panel[hidden] { display: none; }
 .conveyor-tab-panel { padding-top: 20px; }
 .conveyor-heading { margin-bottom: 12px; }
+.conveyor-efficiency-card { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: 100%; margin-bottom: 12px; padding: 18px 24px; border: 1px solid rgba(56, 220, 154, .5); border-radius: 22px; background: radial-gradient(circle at 88% 0%, rgba(56, 220, 154, .16), transparent 32rem), linear-gradient(135deg, rgba(14, 36, 39, .96), rgba(14, 26, 36, .96)); color: var(--text); box-shadow: var(--shadow); cursor: pointer; text-align: left; transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+.conveyor-efficiency-card:hover { border-color: var(--green); transform: translateY(-1px); box-shadow: 0 24px 75px rgba(0, 0, 0, .34), 0 0 0 1px rgba(56, 220, 154, .12); }
+.conveyor-efficiency-card:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.conveyor-efficiency-copy, .conveyor-efficiency-value { display: grid; }
+.conveyor-efficiency-copy > strong { font-size: clamp(1.05rem, 2vw, 1.5rem); letter-spacing: -.02em; }
+.conveyor-efficiency-copy > small { margin-top: 6px; color: var(--muted); font-size: .78rem; }
+.conveyor-efficiency-value { justify-items: end; flex: 0 0 auto; }
+.conveyor-efficiency-value > strong { color: var(--green); font-size: clamp(2.5rem, 5vw, 4.4rem); line-height: .86; letter-spacing: -.06em; }
+.conveyor-efficiency-value > small { margin-top: 9px; color: #b9d8e7; font-size: .72rem; font-weight: 800; }
 .conveyor-date-context { display: grid; flex: 0 0 auto; gap: 5px; margin-left: auto; }
 .conveyor-date-context > span { color: var(--muted); font-size: .65rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 .conveyor-date-navigation { display: grid; grid-template-columns: 36px minmax(142px, 1fr) 36px; gap: 6px; }
@@ -229,6 +238,27 @@ dialog { width: min(1380px, calc(100% - 28px)); max-height: 88vh; padding: 24px;
 dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); }
 .dialog-head { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
 .dialog-close { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 50%; background: var(--panel-2); color: var(--text); cursor: pointer; font-size: 1.7rem; }
+.dialog-action-button { display: inline-flex; align-items: center; gap: 7px; padding: 9px 13px; border: 1px solid var(--blue); border-radius: 10px; background: linear-gradient(180deg, rgba(81, 167, 255, .12), rgba(81, 167, 255, .04)); color: var(--text); cursor: pointer; font-weight: 850; }
+.dialog-action-button:hover { background: rgba(81, 167, 255, .2); }
+.dialog-action-button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.conveyor-efficiency-dialog { width: min(1160px, calc(100% - 28px)); }
+.conveyor-efficiency-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 22px 0 16px; }
+.conveyor-efficiency-summary > div { padding: 13px 15px; border: 1px solid var(--line); border-radius: 13px; background: rgba(18, 35, 48, .7); }
+.conveyor-efficiency-summary span { display: block; color: var(--muted); font-size: .67rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.conveyor-efficiency-summary strong { display: block; margin-top: 5px; font-size: 1.15rem; }
+.conveyor-efficiency-chart { min-height: 390px; padding: 14px 12px 4px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(180deg, rgba(18, 35, 48, .72), rgba(7, 16, 24, .38)); overflow-x: auto; }
+.conveyor-efficiency-chart svg { display: block; width: 100%; min-width: 760px; height: 365px; overflow: visible; }
+.efficiency-grid-line { stroke: rgba(173, 208, 229, .15); stroke-width: 1; }
+.efficiency-axis-label { fill: var(--muted); font-size: 12px; }
+.efficiency-area { fill: url(#efficiency-area-gradient); }
+.efficiency-line { fill: none; stroke: var(--green); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 8px rgba(56, 220, 154, .22)); }
+.efficiency-point { fill: var(--panel); stroke: var(--green); stroke-width: 3; }
+.efficiency-point.current { fill: var(--blue); stroke: #b9ddff; }
+.efficiency-value-label { fill: var(--text); font-size: 12px; font-weight: 850; text-anchor: middle; paint-order: stroke; stroke: var(--panel); stroke-width: 4px; }
+.efficiency-month-label { fill: var(--muted); font-size: 11px; text-anchor: middle; }
+.conveyor-efficiency-method { margin-top: 15px; padding: 14px 16px; border-left: 3px solid var(--green); border-radius: 0 10px 10px 0; background: rgba(56, 220, 154, .06); }
+.conveyor-efficiency-method > strong { font-size: .84rem; }
+.conveyor-efficiency-method p { margin: 6px 0 0; color: var(--muted); font-size: .78rem; line-height: 1.55; }
 .client-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
 .client-summary article { padding: 15px 17px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
 .client-summary span { color: var(--muted); font-size: .7rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
@@ -277,6 +307,12 @@ dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); 
   .conveyor-date-context { width: 100%; margin-left: 0; }
   .conveyor-date-navigation { grid-template-columns: 38px minmax(0, 1fr) 38px; }
   .conveyor-pill-grid, .conveyor-pill-grid.single-conveyor, .conveyor-quality-grid { grid-template-columns: 1fr; }
+  .conveyor-efficiency-card { align-items: flex-start; padding: 17px; }
+  .conveyor-efficiency-value > strong { font-size: 2.6rem; }
+  .conveyor-efficiency-value > small { max-width: 112px; text-align: right; }
+  .conveyor-efficiency-summary { grid-template-columns: 1fr; }
+  .conveyor-efficiency-chart { min-height: 330px; }
+  .conveyor-efficiency-chart svg { height: 305px; }
   .conveyor-pill { padding-inline: 12px; }
   .conveyor-pill-content { grid-template-columns: minmax(100px, 1fr) minmax(122px, 1fr); gap: 8px; }
   .conveyor-charts-grid, .conveyor-charts-grid.single-conveyor { grid-template-columns: 1fr; }

@@ -4,6 +4,7 @@ const number = new Intl.NumberFormat('fr-CA');
 const time = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 const blockTime = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit' });
 const shortDateTime = new Intl.DateTimeFormat('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const efficiencyMonth = new Intl.DateTimeFormat('fr-CA', { month: 'short', year: '2-digit', timeZone: 'UTC' });
 const DEPOTS = {
   'st-hubert': { name: 'Saint-Hubert', startHour: 16, endHour: 4, hasFloor: true, supportsMeasurements: true },
   quebec: { name: 'Québec', startHour: 13, endHour: 7, hasFloor: false, supportsMeasurements: true },
@@ -20,6 +21,8 @@ let countdown = REFRESH_SECONDS;
 let loading = false;
 let conveyorRequestVersion = 0;
 let dashboardRequestVersion = 0;
+let conveyorEfficiencyData = null;
+let conveyorEfficiencyPromise = null;
 
 function isoLocalDate(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
@@ -541,6 +544,112 @@ function renderCapacityError() {
   $('quality-capacity-potential-context').textContent = 'Données indisponibles';
 }
 
+function formatEfficiency(value) {
+  return `${Number(value || 0).toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
+}
+
+function efficiencyMonthLabel(value) {
+  return efficiencyMonth.format(new Date(`${String(value).slice(0, 10)}T00:00:00Z`)).replace('.', '');
+}
+
+function efficiencyCurve(points) {
+  if (!points.length) return '';
+  let path = `M ${points[0].x} ${points[0].y}`;
+  for (let index = 1; index < points.length; index += 1) {
+    const previous = points[index - 1];
+    const point = points[index];
+    const midpoint = (previous.x + point.x) / 2;
+    path += ` C ${midpoint} ${previous.y}, ${midpoint} ${point.y}, ${point.x} ${point.y}`;
+  }
+  return path;
+}
+
+function renderConveyorEfficiencyChart(data) {
+  const months = [...(data.months || [])].sort((left, right) => String(left.month).localeCompare(String(right.month)));
+  const chart = $('conveyor-efficiency-chart');
+  if (!months.length) {
+    chart.innerHTML = '<p class="empty-cell">Aucun historique mensuel disponible.</p>';
+    return;
+  }
+  const width = 1040;
+  const height = 350;
+  const margin = { top: 38, right: 26, bottom: 54, left: 58 };
+  const values = months.map((month) => Number(month.efficiencyPercent) || 0);
+  let yMinimum = Math.max(0, Math.floor((Math.min(...values) - 3) / 5) * 5);
+  let yMaximum = Math.min(100, Math.ceil((Math.max(...values) + 3) / 5) * 5);
+  if (yMaximum - yMinimum < 10) {
+    yMinimum = Math.max(0, yMinimum - 5);
+    yMaximum = Math.min(100, yMaximum + 5);
+  }
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const x = (index) => margin.left + (months.length === 1 ? plotWidth / 2 : (plotWidth * index) / (months.length - 1));
+  const y = (value) => margin.top + ((yMaximum - value) / Math.max(1, yMaximum - yMinimum)) * plotHeight;
+  const points = months.map((month, index) => ({ x: x(index), y: y(values[index]), month }));
+  const linePath = efficiencyCurve(points);
+  const areaPath = `${linePath} L ${points.at(-1).x} ${margin.top + plotHeight} L ${points[0].x} ${margin.top + plotHeight} Z`;
+  const grid = Array.from({ length: 5 }, (_, index) => {
+    const value = yMaximum - ((yMaximum - yMinimum) * index) / 4;
+    const yPosition = y(value);
+    return `<line class="efficiency-grid-line" x1="${margin.left}" y1="${yPosition}" x2="${width - margin.right}" y2="${yPosition}"></line><text class="efficiency-axis-label" x="${margin.left - 11}" y="${yPosition + 4}" text-anchor="end">${value.toLocaleString('fr-CA', { maximumFractionDigits: 1 })} %</text>`;
+  }).join('');
+  const pointMarkup = points.map((point) => {
+    const month = point.month;
+    const currentClass = month.isPartial ? ' current' : '';
+    const label = `${efficiencyMonthLabel(month.month)} : ${formatEfficiency(month.efficiencyPercent)} · ${number.format(month.successfulOutcomes)} réussis sur ${number.format(month.assessedOutcomes)} résultats`;
+    return `<g><title>${label}</title><circle class="efficiency-point${currentClass}" cx="${point.x}" cy="${point.y}" r="6"></circle><text class="efficiency-value-label" x="${point.x}" y="${point.y - 14}">${Number(month.efficiencyPercent).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %</text><text class="efficiency-month-label" x="${point.x}" y="${height - 20}">${efficiencyMonthLabel(month.month)}</text></g>`;
+  }).join('');
+  chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" aria-hidden="true"><defs><linearGradient id="efficiency-area-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38dc9a" stop-opacity=".26"></stop><stop offset="100%" stop-color="#38dc9a" stop-opacity="0"></stop></linearGradient></defs>${grid}<path class="efficiency-area" d="${areaPath}"></path><path class="efficiency-line" d="${linePath}"></path>${pointMarkup}</svg>`;
+}
+
+function renderConveyorEfficiency(data) {
+  conveyorEfficiencyData = data;
+  const months = data.months || [];
+  const current = months.find((month) => String(month.month).slice(0, 7) === String(data.currentMonth).slice(0, 7)) || months.at(-1);
+  if (!current) throw new Error('Mois courant absent');
+  $('conveyor-efficiency-rate').textContent = formatEfficiency(current.efficiencyPercent);
+  $('conveyor-efficiency-context').textContent = `${number.format(current.successfulOutcomes)} résultats réussis sur ${number.format(current.assessedOutcomes)} · ${number.format(current.revenueRiskParcels)} colis à risque de revenu`;
+  $('conveyor-efficiency-card').classList.remove('loading-card');
+  $('conveyor-efficiency-summary').innerHTML = `<div><span>Mois courant</span><strong>${formatEfficiency(current.efficiencyPercent)}</strong></div><div><span>Résultats évalués</span><strong>${number.format(current.assessedOutcomes)}</strong></div><div><span>Colis à risque de revenu</span><strong>${number.format(current.revenueRiskParcels)}</strong></div>`;
+  $('conveyor-efficiency-generated').textContent = `Dernier calcul : ${formatShortDateTime(data.generatedAt)}${current.lastScan ? ` · données reçues jusqu’au ${formatShortDateTime(current.lastScan)}` : ''}. Le point bleu représente le mois en cours.`;
+  renderConveyorEfficiencyChart(data);
+}
+
+function renderConveyorEfficiencyError() {
+  $('conveyor-efficiency-rate').textContent = '— %';
+  $('conveyor-efficiency-context').textContent = 'Calcul temporairement indisponible. Cliquez pour réessayer.';
+  $('conveyor-efficiency-card').classList.remove('loading-card');
+}
+
+async function loadConveyorEfficiency(force = false) {
+  if (conveyorEfficiencyData && !force) return conveyorEfficiencyData;
+  if (conveyorEfficiencyPromise && !force) return conveyorEfficiencyPromise;
+  $('conveyor-efficiency-card').classList.add('loading-card');
+  conveyorEfficiencyPromise = fetch(`/api/conveyor-efficiency?t=${Date.now()}`, { cache: 'no-store' })
+    .then((response) => {
+      if (!response.ok) throw new Error(`Efficiency response ${response.status}`);
+      return response.json();
+    })
+    .then((data) => {
+      renderConveyorEfficiency(data);
+      return data;
+    })
+    .catch((error) => {
+      renderConveyorEfficiencyError();
+      throw error;
+    })
+    .finally(() => { conveyorEfficiencyPromise = null; });
+  return conveyorEfficiencyPromise;
+}
+
+async function openConveyorEfficiencyDialog() {
+  try {
+    const data = await loadConveyorEfficiency(!conveyorEfficiencyData);
+    renderConveyorEfficiencyChart(data);
+    $('conveyor-efficiency-dialog').showModal();
+  } catch { /* La pastille affiche déjà l'état d'erreur. */ }
+}
+
 async function loadConveyorData(timestamp = Date.now()) {
   const requestVersion = ++conveyorRequestVersion;
   const requestedDate = selectedConveyorDate;
@@ -625,6 +734,11 @@ $('conveyor-tab-button').addEventListener('click', () => activateTab('conveyor-t
 $('previous-conveyor-date').addEventListener('click', () => moveConveyorDate(-1));
 $('next-conveyor-date').addEventListener('click', () => moveConveyorDate(1));
 $('conveyor-analysis-date').addEventListener('change', (event) => applyConveyorDate(event.target.value));
+$('conveyor-efficiency-card').addEventListener('click', openConveyorEfficiencyDialog);
+$('conveyor-efficiency-close').addEventListener('click', () => $('conveyor-efficiency-dialog').close());
+$('conveyor-efficiency-dialog').addEventListener('click', (event) => {
+  if (event.target === $('conveyor-efficiency-dialog')) $('conveyor-efficiency-dialog').close();
+});
 $('dialog-close').addEventListener('click', () => $('client-dialog').close());
 $('client-dialog').addEventListener('click', (event) => {
   if (event.target === $('client-dialog')) $('client-dialog').close();
@@ -650,4 +764,5 @@ function activateTab(tabId) {
     button.classList.toggle('active', active);
     button.setAttribute('aria-selected', String(active));
   });
+  if (tabId === 'conveyor-tab') loadConveyorEfficiency().catch(() => {});
 }

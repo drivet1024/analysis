@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des convoyeurs Nationex par dépôt.">
   <title>Nationex - Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260908-6">
+  <link rel="stylesheet" href="/live-routes.css?v=20260913-1">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body>
@@ -128,6 +128,10 @@
       <div class="section-heading conveyor-heading">
         <div><p id="conveyor-shift-kicker" class="section-kicker">Quart de 16:00 à 03:59</p><h2>Données convoyeur · <span id="conveyor-depot-heading">Saint-Hubert</span></h2></div>
       </div>
+      <button id="conveyor-efficiency-card" class="conveyor-efficiency-card" type="button" aria-haspopup="dialog" aria-controls="conveyor-efficiency-dialog">
+        <span class="conveyor-efficiency-copy"><span class="section-kicker">Tous les convoyeurs automatisés</span><strong>Efficacité du mois courant</strong><small id="conveyor-efficiency-context">Calcul mensuel en cours…</small></span>
+        <span class="conveyor-efficiency-value"><strong id="conveyor-efficiency-rate">— %</strong><small>Voir la tendance sur 12 mois <span aria-hidden="true">→</span></small></span>
+      </button>
       <div id="conveyor-pill-grid" class="conveyor-pill-grid" aria-live="polite">
         <article id="conveyor-high-card" class="conveyor-pill conveyor-pill-high"><span id="conveyor-high-label">Convoyeur du haut</span><div class="conveyor-pill-content"><div class="conveyor-pill-volume"><strong id="conveyor-high-total">—</strong><small id="conveyor-high-average-stat" class="historical-conveyor-stat" hidden><b id="conveyor-high-average">—</b></small></div><div class="conveyor-pill-times"><small>Début <b id="conveyor-high-start">—</b></small><small id="conveyor-high-end-stat" class="historical-conveyor-stat" hidden>Fin <b id="conveyor-high-end">—</b></small><small id="conveyor-high-duration-stat" class="historical-conveyor-stat" hidden>Durée <b id="conveyor-high-duration">—</b></small></div></div></article>
         <article id="conveyor-floor-card" class="conveyor-pill conveyor-pill-floor"><span>Convoyeur du bas</span><div class="conveyor-pill-content"><div class="conveyor-pill-volume"><strong id="conveyor-floor-total">—</strong><small id="conveyor-floor-average-stat" class="historical-conveyor-stat" hidden><b id="conveyor-floor-average">—</b></small></div><div class="conveyor-pill-times"><small>Début <b id="conveyor-floor-start">—</b></small><small id="conveyor-floor-end-stat" class="historical-conveyor-stat" hidden>Fin <b id="conveyor-floor-end">—</b></small><small id="conveyor-floor-duration-stat" class="historical-conveyor-stat" hidden>Durée <b id="conveyor-floor-duration">—</b></small></div></div></article>
@@ -211,7 +215,21 @@
     <p id="dialog-source" class="dialog-source">Horaire officiel du jour sur le serveur 101, vérifié avec les colis observés en haut, au sol et aux postes manuels depuis 16:00.</p>
   </dialog>
 
-  <script src="/live-routes.js?v=20260908-3" defer></script>
+  <dialog id="conveyor-efficiency-dialog" class="conveyor-efficiency-dialog">
+    <div class="dialog-head">
+      <div><p class="section-kicker">Performance automatisée</p><h2>Efficacité des convoyeurs · 12 mois</h2></div>
+      <button id="conveyor-efficiency-close" class="dialog-action-button" type="button">Fermer <span aria-hidden="true">×</span></button>
+    </div>
+    <div id="conveyor-efficiency-summary" class="conveyor-efficiency-summary" aria-live="polite"></div>
+    <div id="conveyor-efficiency-chart" class="conveyor-efficiency-chart" role="img" aria-label="Courbe mensuelle de l’efficacité globale des convoyeurs automatisés"></div>
+    <div class="conveyor-efficiency-method">
+      <strong>Méthode</strong>
+      <p>Un résultat réussi ne contient aucun non-lu caméra, aucune chute 16 ou 98, aucune recirculation et aucune mesure manquante requise pour la facturation au poids. Les scans manuels sont exclus. Un résultat ayant plusieurs problèmes ne compte qu’une fois.</p>
+      <p id="conveyor-efficiency-generated"></p>
+    </div>
+  </dialog>
+
+  <script src="/live-routes.js?v=20260913-1" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>
