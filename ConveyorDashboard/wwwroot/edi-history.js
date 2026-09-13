@@ -78,3 +78,91 @@
     if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
   } });
 })();
+
+(() => {
+  const trigger = document.getElementById('weekly-parcels-card');
+  if (!trigger) return;
+  trigger.setAttribute('role', 'button');
+  trigger.setAttribute('tabindex', '0');
+  trigger.setAttribute('aria-haspopup', 'dialog');
+  trigger.setAttribute('aria-label', 'Afficher les colis par semaine depuis le début de l’année fiscale');
+  const dialog = document.createElement('dialog');
+  dialog.id = 'edi-fiscal-history-dialog';
+  dialog.setAttribute('aria-labelledby', 'edi-fiscal-history-title');
+  dialog.innerHTML = `<div class="section-heading"><div><h2 id="edi-fiscal-history-title">Colis par semaine · année fiscale</h2></div><button type="button" id="edi-fiscal-history-close">Fermer</button></div>
+    <div class="edi-history-legend" aria-label="Légende"><span><i class="current"></i>Année fiscale courante</span><span><i class="previous"></i>Année fiscale précédente</span><span><i class="partial"></i>Semaine en cours</span></div>
+    <p id="edi-fiscal-history-status" role="status"></p><div id="edi-fiscal-history-plot" class="edi-history-plot"></div>
+    <p>Semaines du samedi au vendredi, depuis le 1er juin. Les deux bandes comparent le même numéro de semaine fiscale. La semaine en cours est comparée au même jour et à la même heure. La première semaine peut comporter moins de sept jours afin de commencer exactement le 1er juin.</p>`;
+  document.body.append(dialog);
+  const $ = id => document.getElementById(id);
+  const number = new Intl.NumberFormat('fr-CA');
+  const date = value => new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
+  const escape = text => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');
+  let context = null, cached = null, request = 0, controller = null;
+  function draw(data) {
+    const width = Math.max(1120, data.weeks.length * 68 + 100), height = 470, left = 80, top = 35, bottom = 80;
+    const plotHeight = height - top - bottom, plotWidth = width - left - 20;
+    const max = Math.max(1, ...data.weeks.flatMap(week => [week.parcels, week.previousParcels]));
+    const step = plotWidth / data.weeks.length, barWidth = Math.max(8, Math.min(24, step * .32));
+    let svg = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparaison hebdomadaire des colis des deux années fiscales">`;
+    for (let i = 0; i <= 4; i++) {
+      const y = top + plotHeight * (1 - i / 4);
+      svg += `<line x1="${left}" y1="${y}" x2="${width - 20}" y2="${y}" stroke="#334856"/><text x="${left - 10}" y="${y + 4}" text-anchor="end" fill="#a5baca" font-size="12">${number.format(Math.round(max * i / 4))}</text>`;
+    }
+    data.weeks.forEach((week, index) => {
+      const center = left + (index + .5) * step;
+      const currentHeight = week.parcels / max * plotHeight;
+      const previousHeight = week.previousParcels / max * plotHeight;
+      const difference = week.previousParcels > 0 ? (week.parcels - week.previousParcels) * 100 / week.previousParcels : null;
+      const comparison = difference == null ? 'écart indisponible' : `${difference > 0 ? '+' : ''}${difference.toLocaleString('fr-CA', { maximumFractionDigits: 1 })} %`;
+      const label = `Semaine ${week.week} · ${date(week.start)} au ${date(week.end)} : ${number.format(week.parcels)} colis${week.partial ? ' (en cours)' : ''} · exercice précédent, ${date(week.previousStart)} au ${date(week.previousEnd)} : ${number.format(week.previousParcels)} colis · ${comparison}`;
+      const currentColor = week.partial ? '#51a7ff' : '#38dc9a';
+      svg += `<g tabindex="0" data-label="${escape(label)}" aria-label="${escape(label)}"><title>${escape(label)}</title><rect x="${center - step / 2}" y="${top}" width="${step}" height="${plotHeight + 30}" fill="transparent"/><rect x="${center - barWidth - 2}" y="${top + plotHeight - currentHeight}" width="${barWidth}" height="${currentHeight}" rx="2" fill="${currentColor}"/><rect x="${center + 2}" y="${top + plotHeight - previousHeight}" width="${barWidth}" height="${previousHeight}" rx="2" fill="#ab8cff"/><text x="${center}" y="${height - bottom + 19}" text-anchor="middle" fill="#c2d2dd" font-size="12">S${week.week}</text><text transform="translate(${center + 5},${height - bottom + 37}) rotate(-45)" text-anchor="end" fill="#829aaa" font-size="10">${week.start.slice(5)}</text></g>`;
+    });
+    $('edi-fiscal-history-plot').innerHTML = svg + '</svg>';
+    const status = `Exercice ${data.fiscalStart.slice(0, 4)}–${Number(data.fiscalStart.slice(0, 4)) + 1} comparé à ${data.previousFiscalStart.slice(0, 4)}–${Number(data.previousFiscalStart.slice(0, 4)) + 1} · relevé ${new Date(data.asOf).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })}`;
+    $('edi-fiscal-history-status').textContent = status;
+    $('edi-fiscal-history-plot').querySelectorAll('[data-label]').forEach(bar => {
+      const show = () => { $('edi-fiscal-history-status').textContent = bar.dataset.label; };
+      bar.addEventListener('mouseenter', show); bar.addEventListener('focus', show);
+      bar.addEventListener('mouseleave', () => { $('edi-fiscal-history-status').textContent = status; });
+      bar.addEventListener('blur', () => { $('edi-fiscal-history-status').textContent = status; });
+    });
+  }
+  async function load() {
+    const version = ++request;
+    controller?.abort();
+    if (!context) { $('edi-fiscal-history-status').textContent = 'Chargement des données EDI…'; return; }
+    const key = `${context.date}/${context.asOf}`;
+    if (cached?.key === key && Date.now() - cached.loadedAt < 60_000) { draw(cached.data); return; }
+    controller = new AbortController();
+    $('edi-fiscal-history-status').textContent = 'Chargement des semaines fiscales…';
+    $('edi-fiscal-history-plot').replaceChildren();
+    try {
+      const response = await fetch('/api/edi/fiscal-history?' + new URLSearchParams({ date: context.date }), { signal: controller.signal, cache: 'no-store' });
+      if (!response.ok) throw new Error('Historique indisponible');
+      const data = await response.json();
+      if (version !== request || !dialog.open) return;
+      if (data.date !== context.date || !data.weeks?.length) throw new Error('Historique incomplet');
+      draw(data);
+      cached = { key, data, loadedAt: Date.now() };
+    } catch (error) {
+      if (version === request && dialog.open && error.name !== 'AbortError') $('edi-fiscal-history-status').textContent = 'Historique fiscal indisponible. Fermez puis rouvrez pour réessayer.';
+    }
+  }
+  globalThis.updateEdiFiscalHistoryContext = next => {
+    const changed = context?.date !== next.date || context?.asOf !== next.asOf;
+    context = next;
+    if (dialog.open && changed) load();
+  };
+  globalThis.resetEdiFiscalHistoryContext = dateValue => { if (context && context.date !== dateValue) { dialog.close(); context = null; } };
+  const open = () => { dialog.showModal(); load(); };
+  trigger.addEventListener('click', open);
+  trigger.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+  $('edi-fiscal-history-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => { ++request; controller?.abort(); trigger.focus(); });
+  dialog.addEventListener('click', event => { if (event.target === dialog) {
+    const box = dialog.getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
+  } });
+})();

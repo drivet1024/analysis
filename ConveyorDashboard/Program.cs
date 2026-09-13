@@ -25,6 +25,7 @@ builder.Services.AddSingleton<ConveyorDataService>();
 builder.Services.AddSingleton<EdiDepotService>();
 builder.Services.AddSingleton<EdiMapService>();
 builder.Services.AddSingleton<EdiHistoryService>();
+builder.Services.AddSingleton<EdiFiscalHistoryService>();
 builder.Services.AddHostedService<EdiForecastRefreshService>();
 builder.Services.AddSingleton<EdiSectorForecastService>();
 builder.Services.AddSingleton<EdiSectorWeeklyService>();
@@ -182,6 +183,19 @@ app.MapGet("/api/edi/history", async (string? date, EdiHistoryService data, Canc
     }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Historique des colis indisponible : {ex.Message}"); }
+});
+
+app.MapGet("/api/edi/fiscal-history", async (string? date, EdiFiscalHistoryService data, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var today = CurrentOperationalDate(DateTime.Now);
+        var selected = ResolveAnalysisDate(date, today);
+        if (selected > today) return Results.BadRequest("La date ne peut pas être future.");
+        return Results.Ok(await data.GetAsync(selected, cancellationToken));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Historique fiscal des colis indisponible : {ex.Message}"); }
 });
 
 app.MapGet("/api/edi/map", async (string? date, EdiMapService data, CancellationToken cancellationToken) =>
