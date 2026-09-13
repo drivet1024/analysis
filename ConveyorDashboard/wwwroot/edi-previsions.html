@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI PRÉVISION</title>
-  <link rel="stylesheet" href="/edi.css?v=20260912-19">
+  <link rel="stylesheet" href="/edi.css?v=20260913-10">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body data-edi-page="forecasts">
@@ -72,7 +72,7 @@
           <div class="table-wrap forecast-comparison-wrap"><table><thead><tr><th>Jour récent</th><th>Colis</th><th>Jour comparable N−1</th><th>Colis N−1</th></tr></thead><tbody id="forecast-growth-pairs"></tbody></table></div>
         </details>
       </div>
-      <div class="forecast-chart-actions"><button id="forecast-chart-open" type="button" disabled>Afficher le graphique</button></div>
+      <div class="forecast-chart-actions"><button id="forecast-chart-open" class="app-button" type="button" disabled>Afficher le graphique</button></div>
       <div class="table-wrap forecast-wrap">
         <table class="forecast-table">
           <thead><tr><th>Jour</th><th>Date</th><th>Colis prévus</th><th>Réel</th><th>Écart</th><th>Min.–max. récent</th><th>Explication du chiffre</th></tr></thead>
@@ -96,7 +96,7 @@
 
   </main>
   <dialog id="forecast-chart-dialog" aria-labelledby="forecast-chart-title">
-    <header class="forecast-chart-header"><div><h2 id="forecast-chart-title">Prévisions et réel</h2><p id="forecast-chart-version"></p></div><button id="forecast-chart-close" type="button" aria-label="Fermer le graphique">Fermer ✕</button></header>
+    <header class="forecast-chart-header"><div><h2 id="forecast-chart-title">Prévisions et réel</h2><p id="forecast-chart-version"></p></div><button id="forecast-chart-close" class="app-button" type="button" aria-label="Fermer le graphique">Fermer ✕</button></header>
     <div class="forecast-chart-legend" aria-label="Légende">
       <span><i class="chart-key chart-low"></i>Minimum historique</span><span><i class="chart-key chart-high"></i>Maximum historique</span><span><i class="chart-key chart-predicted"></i>Prévu</span><span><i class="chart-key chart-actual"></i>Réel</span>
     </div>

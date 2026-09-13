@@ -8,7 +8,7 @@
   const dialog = document.createElement('dialog');
   dialog.id = 'edi-history-dialog';
   dialog.setAttribute('aria-labelledby', 'edi-history-title');
-  dialog.innerHTML = `<div class="section-heading"><div><h2 id="edi-history-title">Colis · 30 derniers jours</h2></div><button type="button" id="edi-history-close">Fermer</button></div>
+  dialog.innerHTML = `<div class="section-heading"><div><h2 id="edi-history-title">Colis · 30 derniers jours</h2></div><button class="app-button" type="button" id="edi-history-close">Fermer ✕</button></div>
     <p id="edi-history-status" role="status"></p><div id="edi-history-plot"></div>
     <p>Journées de 4 h à 4 h. La dernière journée est incluse; si elle est en cours, son volume est partiel (en bleu). Survolez une bande ou sélectionnez-la au clavier pour lire son volume.</p>`;
   document.body.append(dialog);
@@ -89,7 +89,7 @@
   const dialog = document.createElement('dialog');
   dialog.id = 'edi-fiscal-history-dialog';
   dialog.setAttribute('aria-labelledby', 'edi-fiscal-history-title');
-  dialog.innerHTML = `<div class="section-heading"><div><h2 id="edi-fiscal-history-title">Colis par semaine · année fiscale</h2></div><button type="button" id="edi-fiscal-history-close">Fermer</button></div>
+  dialog.innerHTML = `<div class="section-heading"><div><h2 id="edi-fiscal-history-title">Colis par semaine · année fiscale</h2></div><button class="app-button" type="button" id="edi-fiscal-history-close">Fermer ✕</button></div>
     <div class="edi-history-legend" aria-label="Légende"><span><i class="current"></i>Année fiscale courante</span><span><i class="previous"></i>Année fiscale précédente</span></div>
     <p id="edi-fiscal-history-status" role="status"></p><div id="edi-fiscal-history-plot" class="edi-history-plot"></div>
     <p>Semaines du samedi au vendredi, depuis le 1er juin. Les deux lignes comparent le même numéro de semaine fiscale. Toute semaine encore en cours est exclue afin de ne montrer que des périodes terminées et comparables. La première semaine peut comporter moins de sept jours afin de commencer exactement le 1er juin.</p>`;
