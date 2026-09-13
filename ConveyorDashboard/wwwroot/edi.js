@@ -467,6 +467,7 @@ async function loadDepots(date, version) {
 }
 
 function renderParcelSnapshot(data) {
+  globalThis.updateEdiHistoryContext?.({ date: selectedAnalysisDate, asOf: data.nowcast?.asOf });
   globalThis.updateEdiMapContext?.({ date: selectedAnalysisDate, asOf: data.nowcast?.asOf });
   const isToday = selectedAnalysisDate === currentEdiDate();
   const selectedDateLabel = formatDate(selectedAnalysisDate);
@@ -549,6 +550,7 @@ function render(data) {
 async function load(snapshotId) {
   const version = ++requestVersion;
   globalThis.resetEdiMapContext?.(selectedAnalysisDate);
+  globalThis.resetEdiHistoryContext?.(selectedAnalysisDate);
   $('refresh-button').disabled = true;
   if ($('depot-body')) {
     globalThis.resetDepotClientContext?.(selectedAnalysisDate);

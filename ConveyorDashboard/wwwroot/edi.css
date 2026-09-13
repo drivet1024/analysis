@@ -85,6 +85,15 @@ h3 { font-size: 1rem; }
 @media (min-width: 701px) and (max-width: 1100px) { .parcel-snapshot { grid-template-columns: repeat(2, minmax(0, 1fr)); } .snapshot-final { grid-column: 1 / -1; } }
 .snapshot-pill { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 86px; padding: 15px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); box-shadow: var(--shadow); }
 .snapshot-today { border-color: rgba(56, 220, 154, .42); background: linear-gradient(120deg, rgba(56, 220, 154, .09), var(--panel) 55%); }
+.snapshot-today[role="button"] { cursor: pointer; }
+.snapshot-today[role="button"]:hover, .snapshot-today[role="button"]:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+#edi-history-dialog { width: min(1400px, calc(100vw - 24px)); max-height: 92vh; padding: 20px; border: 1px solid var(--line); border-radius: 14px; color: var(--text); background: var(--panel); }
+#edi-history-dialog::backdrop { background: #000b; }
+#edi-history-dialog .section-heading { flex-wrap: wrap; }
+#edi-history-dialog p { color: var(--muted); font-size: .85rem; }
+#edi-history-plot { overflow-x: auto; }
+#edi-history-plot svg { display: block; width: 100%; min-width: 960px; }
+#edi-history-plot g:focus rect:last-of-type, #edi-history-plot g:hover rect:last-of-type { stroke: white; stroke-width: 2px; }
 .snapshot-d7 { border-color: rgba(171, 140, 255, .42); background: linear-gradient(120deg, rgba(171, 140, 255, .09), var(--panel) 55%); }
 .snapshot-pill div { display: grid; gap: 4px; }
 .snapshot-pill span { color: var(--muted); font-size: .72rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
