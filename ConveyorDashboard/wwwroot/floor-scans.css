@@ -1,3 +1,29 @@
+.floor-trend-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.floor-trend-summary div { padding: 14px 16px; border: 1px solid var(--line); border-radius: 13px; background: rgba(18,35,48,.72); }
+.floor-trend-summary span { display: block; color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.floor-trend-summary strong { display: block; margin-top: 4px; color: var(--text); font-size: 1.55rem; }
+.floor-trend-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.floor-trend-panel { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, rgba(18,35,48,.97), rgba(11,25,35,.97)); box-shadow: var(--shadow); }
+.floor-trend-panel.positive { border-color: rgba(56,220,154,.32); }
+.floor-trend-panel.negative { border-color: rgba(255,107,114,.38); }
+.floor-trend-panel-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.floor-trend-panel-head h3 { font-size: .95rem; }
+.floor-trend-panel.positive .floor-trend-panel-head h3, .floor-trend-row.positive .floor-trend-change strong { color: var(--green); }
+.floor-trend-panel.negative .floor-trend-panel-head h3, .floor-trend-row.negative .floor-trend-change strong { color: var(--red); }
+.floor-trend-panel-head > strong { min-width: 28px; padding: 4px 8px; border-radius: 999px; background: rgba(143,166,182,.12); text-align: center; }
+.floor-trend-list { max-height: 430px; overflow-y: auto; }
+.floor-trend-row { display: grid; grid-template-columns: minmax(150px, 1fr) 184px minmax(92px, auto); align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(173,208,229,.12); }
+.floor-trend-row:last-child { border-bottom: 0; }
+.floor-trend-identity strong, .floor-trend-change strong { display: block; font-size: .82rem; }
+.floor-trend-identity small, .floor-trend-change small { display: block; margin-top: 3px; color: var(--muted); font-size: .64rem; }
+.floor-trend-change { text-align: right; white-space: nowrap; }
+.floor-trend-sparkline { width: 184px; height: 46px; overflow: visible; }
+.floor-trend-sparkline line { stroke: rgba(173,208,229,.16); stroke-width: 1; }
+.floor-trend-sparkline polyline { fill: none; stroke: var(--green); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.floor-trend-sparkline circle { fill: var(--panel); stroke: var(--green); stroke-width: 2; }
+.floor-trend-sparkline.negative polyline { stroke: var(--red); }
+.floor-trend-sparkline.negative circle { stroke: var(--red); }
+.floor-trend-empty { margin: 0; padding: 24px 16px; color: var(--muted); font-size: .78rem; }
 .floor-scan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .floor-scan-card { overflow: hidden; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, rgba(18,35,48,.97), rgba(11,25,35,.97)); box-shadow: var(--shadow); }
 .floor-scan-card.has-gap { border-color: rgba(255,189,89,.32); }
@@ -22,5 +48,6 @@
 .floor-scan-card.large-gap .floor-scan-gap strong { color: var(--red); }
 .floor-scan-gap small { display: block; margin-top: 4px; color: var(--muted); font-size: .66rem; }
 .floor-scan-loading { grid-column: 1 / -1; padding: 40px; border: 1px solid var(--line); border-radius: 16px; color: var(--muted); text-align: center; }
+@media (max-width: 1250px) { .floor-trend-columns { grid-template-columns: 1fr; } }
 @media (max-width: 1150px) { .floor-scan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .floor-scan-grid { grid-template-columns: 1fr; } .floor-bars { gap: 3px; height: 175px; } .floor-day-value { font-size: .6rem; } }
+@media (max-width: 700px) { .floor-trend-summary { grid-template-columns: 1fr 1fr; } .floor-trend-row { grid-template-columns: 1fr auto; } .floor-trend-sparkline { grid-column: 1 / -1; width: 100%; } .floor-scan-grid { grid-template-columns: 1fr; } .floor-bars { gap: 3px; height: 175px; } .floor-day-value { font-size: .6rem; } }

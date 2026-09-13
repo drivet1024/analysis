@@ -13,8 +13,21 @@ assert(data.depots.every(depot => depot.days.length === 7));
 assert(data.depots.every(depot => depot.sevenDayTotal === depot.days.reduce((sum, day) => sum + day.parcels, 0)));
 assert(data.depots.every(depot => depot.weekdaysObserved === expectedWorkdays));
 assert(data.depots.every(depot => depot.weekdaysWithoutScans >= 0 && depot.weekdaysWithoutScans <= depot.weekdaysObserved));
+assert(data.depots.every(depot => depot.months.length === 6));
+assert(data.depots.every(depot => depot.months.every(month => month.daysWithScans >= 0 && month.daysWithScans <= month.weekdaysObserved)));
+assert(data.depots.every(depot => depot.sixMonthDailyScanRate == null || depot.sixMonthDailyScanRate >= 0 && depot.sixMonthDailyScanRate <= 100));
+assert(data.depots.every(depot => depot.previousThreeMonthRate == null || depot.previousThreeMonthRate >= 0 && depot.previousThreeMonthRate <= 100));
+assert(data.depots.every(depot => depot.recentThreeMonthRate == null || depot.recentThreeMonthRate >= 0 && depot.recentThreeMonthRate <= 100));
+assert(data.depots.every(depot => depot.trendChangePoints == null
+  || Math.abs(depot.trendChangePoints - (depot.recentThreeMonthRate - depot.previousThreeMonthRate)) < 0.11));
+assert(data.depots.every(depot => depot.trendDirection === 'unavailable'
+  || depot.trendDirection === 'positive' && depot.trendChangePoints >= data.trendThresholdPoints
+  || depot.trendDirection === 'negative' && depot.trendChangePoints <= -data.trendThresholdPoints
+  || depot.trendDirection === 'stable' && Math.abs(depot.trendChangePoints) < data.trendThresholdPoints));
 assert(data.depots.some(depot => depot.sevenDayTotal > 0));
 assert(data.depots.some(depot => depot.weekdaysWithoutScans === depot.weekdaysObserved));
+assert(data.depots.some(depot => depot.trendDirection === 'positive'));
+assert(data.depots.some(depot => depot.trendDirection === 'negative'));
 
 const html = fs.readFileSync('ConveyorDashboard/wwwroot/floor-scans.html', 'utf8');
 const nodes = new Map([...html.matchAll(/id="([^"]+)"/g)].map(match => [match[1], {
@@ -39,7 +52,13 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   assert.equal((rendered.match(/<article class="floor-scan-card/g) || []).length, data.depots.length);
   assert.equal((rendered.match(/<div class="floor-day(?: |")/g) || []).length, data.depots.length * 7);
   assert(rendered.includes('jour sans scan plancher'));
+  assert.equal((nodes.get('positive-trend-list').innerHTML.match(/floor-trend-row positive/g) || []).length,
+    data.depots.filter(depot => depot.trendDirection === 'positive').length);
+  assert.equal((nodes.get('negative-trend-list').innerHTML.match(/floor-trend-row negative/g) || []).length,
+    data.depots.filter(depot => depot.trendDirection === 'negative').length);
+  assert(nodes.get('floor-trend-summary').innerHTML.includes('En amélioration'));
+  assert(nodes.get('trend-range').textContent.includes('3 derniers mois'));
   assert(nodes.get('month-range').textContent.includes('fins de semaine exclues'));
   assert.equal(nodes.get('live-label').textContent, 'En ligne');
-  console.log('All depots, seven-day bars, weekday denominator, missing-scan labels and live state verified.');
+  console.log('All depots, seven-day bars, six-month adherence trends, missing-scan labels and live state verified.');
 })();

@@ -6,7 +6,7 @@
   <meta name="description" content="Suivi des scans plancher par dépôt Nationex.">
   <title>Nationex - SCAN PLANCHER</title>
   <link rel="stylesheet" href="/edi.css?v=20260913-7">
-  <link rel="stylesheet" href="/floor-scans.css?v=20260913-1">
+  <link rel="stylesheet" href="/floor-scans.css?v=20260913-2">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body>
@@ -56,6 +56,24 @@
 
     <div id="error-banner" class="error-banner" role="alert" hidden></div>
 
+    <section class="data-section" aria-labelledby="floor-trend-title">
+      <div class="section-heading">
+        <div><p>ASSIDUITÉ QUOTIDIENNE</p><h2 id="floor-trend-title">Tendance sur six mois</h2></div>
+        <span id="trend-range">Trois derniers mois comparés aux trois précédents</span>
+      </div>
+      <div id="floor-trend-summary" class="floor-trend-summary" aria-live="polite"></div>
+      <div class="floor-trend-columns">
+        <article class="floor-trend-panel positive">
+          <div class="floor-trend-panel-head"><h3>↗ Tendance positive</h3><strong id="positive-trend-count">—</strong></div>
+          <div id="positive-trend-list" class="floor-trend-list"></div>
+        </article>
+        <article class="floor-trend-panel negative">
+          <div class="floor-trend-panel-head"><h3>↘ Tendance négative</h3><strong id="negative-trend-count">—</strong></div>
+          <div id="negative-trend-list" class="floor-trend-list"></div>
+        </article>
+      </div>
+    </section>
+
     <section class="data-section" aria-labelledby="floor-scan-title">
       <div class="section-heading">
         <div><p>Exception 904 · colis uniques</p><h2 id="floor-scan-title">Scans plancher par dépôt</h2></div>
@@ -66,9 +84,9 @@
       </div>
     </section>
 
-    <p class="method-note">Un colis est compté une seule fois par dépôt et par journée lorsqu’il possède l’exception 904. Le compteur sous chaque graphique couvre les 30 journées complètes précédentes et exclut les samedis et dimanches. La journée courante, lorsqu’elle est affichée, est partielle et apparaît en bleu.</p>
+    <p class="method-note">Un colis est compté une seule fois par dépôt et par journée lorsqu’il possède l’exception 904. Le compteur sous chaque graphique couvre les 30 journées complètes précédentes et exclut les samedis et dimanches. La tendance compare le taux de jours ouvrables avec au moins un scan durant les trois derniers mois civils au taux des trois mois précédents; une variation d’au moins 2 points est classée en hausse ou en baisse. La journée courante est exclue de cette tendance. Lorsqu’elle est affichée dans le graphique de sept jours, elle est partielle et apparaît en bleu.</p>
   </main>
-  <script src="/floor-scans.js?v=20260913-1" defer></script>
+  <script src="/floor-scans.js?v=20260913-2" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>

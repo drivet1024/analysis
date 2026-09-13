@@ -2,11 +2,15 @@ using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 
 sealed record FloorScanDay(DateOnly Date, long Parcels, bool Partial);
+sealed record FloorScanMonth(DateOnly Month, int DaysWithScans, int WeekdaysObserved, double? DailyScanRate);
 sealed record FloorScanDepotRow(int DepotId, string DepotName, string DepotShortLabel,
     long SevenDayTotal, int WeekdaysWithoutScans, int WeekdaysObserved, DateTime? LatestScan,
-    IReadOnlyList<FloorScanDay> Days);
+    double? SixMonthDailyScanRate, double? PreviousThreeMonthRate, double? RecentThreeMonthRate,
+    double? TrendChangePoints, string TrendDirection,
+    IReadOnlyList<FloorScanDay> Days, IReadOnlyList<FloorScanMonth> Months);
 sealed record FloorScanResponse(DateOnly Date, DateTime DatabaseNow, DateOnly SevenDayStart,
-    DateOnly MonthStart, DateOnly MonthEnd, bool CurrentDayPartial, IReadOnlyList<FloorScanDepotRow> Depots);
+    DateOnly MonthStart, DateOnly MonthEnd, DateOnly TrendStart, DateOnly TrendEnd,
+    double TrendThresholdPoints, bool CurrentDayPartial, IReadOnlyList<FloorScanDepotRow> Depots);
 
 sealed class FloorScanService(DashboardConfig config)
 {
@@ -19,7 +23,8 @@ sealed class FloorScanService(DashboardConfig config)
         public DateTime? LatestScan { get; set; }
     }
 
-    private readonly MemoryCache cache = new(new MemoryCacheOptions { SizeLimit = 8 });
+    private const double TrendThresholdPoints = 2.0;
+    private readonly MemoryCache cache = new(new MemoryCacheOptions { SizeLimit = 24 });
     private readonly SemaphoreSlim gate = new(1, 1);
 
     public async Task<FloorScanResponse> GetAsync(DateOnly date, CancellationToken cancellationToken)
@@ -35,6 +40,9 @@ sealed class FloorScanService(DashboardConfig config)
             var asOf = date == today ? now : date.AddDays(1).ToDateTime(TimeOnly.MinValue);
             var monthStart = date.AddDays(-30);
             var chartStart = date.AddDays(-6);
+            var trendStartCandidate = date.AddMonths(-5);
+            var trendStart = new DateOnly(trendStartCandidate.Year, trendStartCandidate.Month, 1);
+            var trendEnd = date.AddDays(-1);
 
             await using var connection = new MySqlConnection(config.ConnectionString);
             await connection.OpenAsync(cancellationToken);
@@ -82,6 +90,8 @@ sealed class FloorScanService(DashboardConfig config)
                 if (depot.LatestScan is null || latestScan > depot.LatestScan) depot.LatestScan = latestScan;
             }
 
+            var trendDaily = await GetTrendDailyAsync(trendStart, date, cancellationToken);
+
             var rows = depots.Select(depot =>
             {
                 var days = Enumerable.Range(0, 7).Select(index => chartStart.AddDays(index))
@@ -90,15 +100,84 @@ sealed class FloorScanService(DashboardConfig config)
                 var workdays = Enumerable.Range(0, 30).Select(index => monthStart.AddDays(index))
                     .Where(day => day.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday)
                     .ToArray();
+                trendDaily.TryGetValue(depot.Id, out var depotTrendDaily);
+                depotTrendDaily ??= [];
+                var months = Enumerable.Range(0, 6).Select(index => trendStart.AddMonths(index))
+                    .Select(month =>
+                    {
+                        var endExclusive = month.AddMonths(1) < date ? month.AddMonths(1) : date;
+                        var observed = Enumerable.Range(0, Math.Max(0, endExclusive.DayNumber - month.DayNumber))
+                            .Select(offset => month.AddDays(offset))
+                            .Where(day => day.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday)
+                            .ToArray();
+                        var scanned = observed.Count(day => depotTrendDaily.GetValueOrDefault(day) > 0);
+                        return new FloorScanMonth(month, scanned, observed.Length,
+                            observed.Length == 0 ? null : Math.Round(scanned * 100.0 / observed.Length, 1));
+                    }).ToArray();
+                var previousObserved = months.Take(3).Sum(month => month.WeekdaysObserved);
+                var recentObserved = months.Skip(3).Sum(month => month.WeekdaysObserved);
+                var allObserved = previousObserved + recentObserved;
+                var previousScanned = months.Take(3).Sum(month => month.DaysWithScans);
+                var recentScanned = months.Skip(3).Sum(month => month.DaysWithScans);
+                var allScanned = previousScanned + recentScanned;
+                double? sixMonthRate = allObserved == 0 ? null : Math.Round(allScanned * 100.0 / allObserved, 1);
+                double? previousRate = previousObserved == 0 ? null : Math.Round(previousScanned * 100.0 / previousObserved, 1);
+                double? recentRate = recentObserved == 0 ? null : Math.Round(recentScanned * 100.0 / recentObserved, 1);
+                double? trendChange = previousRate is null || recentRate is null ? null
+                    : Math.Round(recentRate.Value - previousRate.Value, 1);
+                var trendDirection = trendChange switch
+                {
+                    >= TrendThresholdPoints => "positive",
+                    <= -TrendThresholdPoints => "negative",
+                    null => "unavailable",
+                    _ => "stable"
+                };
                 return new FloorScanDepotRow(depot.Id, depot.Name, depot.ShortLabel,
                     days.Sum(day => day.Parcels), workdays.Count(day => depot.Daily.GetValueOrDefault(day) == 0),
-                    workdays.Length, depot.LatestScan, days);
+                    workdays.Length, depot.LatestScan, sixMonthRate, previousRate, recentRate,
+                    trendChange, trendDirection, days, months);
             }).ToArray();
             var result = new FloorScanResponse(date, databaseNow, chartStart, monthStart, date.AddDays(-1),
-                date == today, rows);
+                trendStart, trendEnd, TrendThresholdPoints, date == today, rows);
             cache.Set(key, result, new MemoryCacheEntryOptions { Size = 1, AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1) });
             return result;
         }
         finally { gate.Release(); }
+    }
+
+    private async Task<Dictionary<int, Dictionary<DateOnly, long>>> GetTrendDailyAsync(
+        DateOnly trendStart, DateOnly endExclusive, CancellationToken cancellationToken)
+    {
+        var key = $"floor-scan-trend:{trendStart:yyyy-MM-dd}:{endExclusive:yyyy-MM-dd}";
+        if (cache.TryGetValue<Dictionary<int, Dictionary<DateOnly, long>>>(key, out var hit)) return hit!;
+        await using var connection = new MySqlConnection(config.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new MySqlCommand("""
+            SELECT ph.DEPOT_ID depot_id,DATE(ph.DATE_LIV) scan_date,
+              COUNT(DISTINCT ph.PARCEL_ID) parcels
+            FROM parcel_history ph
+            WHERE ph.EXCEPTION=904 AND COALESCE(ph.VOID,0)=0
+              AND ph.PARCEL_ID IS NOT NULL AND ph.PARCEL_ID<>0
+              AND ph.DATE_INSERT>=@trendStart-INTERVAL 1 DAY
+              AND ph.DATE_INSERT<@trendEnd+INTERVAL 1 DAY
+              AND ph.DATE_LIV>=@trendStart AND ph.DATE_LIV<@trendEnd
+            GROUP BY ph.DEPOT_ID,DATE(ph.DATE_LIV)
+            """, connection) { CommandTimeout = 180 };
+        command.Parameters.AddWithValue("@trendStart", trendStart.ToDateTime(TimeOnly.MinValue));
+        command.Parameters.AddWithValue("@trendEnd", endExclusive.ToDateTime(TimeOnly.MinValue));
+        var result = new Dictionary<int, Dictionary<DateOnly, long>>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var depotId = reader.GetInt32("depot_id");
+            if (!result.TryGetValue(depotId, out var daily)) result[depotId] = daily = [];
+            daily[DateOnly.FromDateTime(reader.GetDateTime("scan_date"))] = reader.GetInt64("parcels");
+        }
+        cache.Set(key, result, new MemoryCacheEntryOptions
+        {
+            Size = 1,
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6)
+        });
+        return result;
     }
 }
