@@ -4,6 +4,8 @@
   if (!dialog) return;
   const number = new Intl.NumberFormat('fr-CA');
   let context = null, map = null, clusters = null, libraries = null, request = 0, controller = null;
+  let rendered = null;
+  const cacheLifetime = 60_000;
   function asset(url, css = false) {
     return new Promise((resolve, reject) => {
       const element = document.createElement(css ? 'link' : 'script');
@@ -78,10 +80,17 @@
     if (!context) { $('edi-map-status').textContent = 'Chargement des données EDI en cours…'; return; }
     const version = ++request;
     const date = context.date;
+    const asOf = context.asOf;
     controller?.abort();
+    if (rendered && rendered.date === date && rendered.contextAsOf === asOf && Date.now() - rendered.loadedAt < cacheLifetime) {
+      map.invalidateSize();
+      $('edi-map-status').textContent = rendered.status;
+      return;
+    }
     controller = new AbortController();
-    $('edi-map-status').textContent = 'Chargement des destinations…';
-    if (map && clusters) { map.removeLayer(clusters); clusters = null; }
+    const sameDate = rendered?.date === date;
+    $('edi-map-status').textContent = sameDate ? rendered.status + ' · Actualisation…' : 'Chargement des destinations…';
+    if (!sameDate && map && clusters) { map.removeLayer(clusters); clusters = null; rendered = null; }
     try {
       const [, data] = await Promise.all([
         ensureLibraries(),
@@ -90,10 +99,18 @@
       ]);
       if (version !== request || !dialog.open) return;
       if (data.date !== date) throw new Error('Date incorrecte');
-      draw(data, fit);
+      if (rendered?.date === date && rendered.dataAsOf === data.asOf) {
+        map.invalidateSize();
+        $('edi-map-status').textContent = rendered.status;
+      } else {
+        draw(data, fit && !sameDate);
+      }
+      rendered = { date, contextAsOf: asOf, dataAsOf: data.asOf, loadedAt: Date.now(), status: $('edi-map-status').textContent };
     } catch (error) {
       if (version === request && dialog.open && error.name !== 'AbortError')
-        $('edi-map-status').textContent = 'Carte indisponible. Fermez puis rouvrez pour réessayer.';
+        $('edi-map-status').textContent = sameDate
+          ? rendered.status + ' · Actualisation indisponible; dernier relevé conservé. Fermez puis rouvrez pour réessayer.'
+          : 'Carte indisponible. Fermez puis rouvrez pour réessayer.';
     }
   }
   globalThis.updateEdiMapContext = next => {

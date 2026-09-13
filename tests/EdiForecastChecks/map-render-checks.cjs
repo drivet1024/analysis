@@ -17,11 +17,13 @@ const nodes = new Map([...html.matchAll(/id="([^"]+)"/g)].map(match => [match[1]
 }]));
 const groups = [], assets = [], markers = [];
 let calls = 0;
+let now = Date.now();
 const map = { setView() { return this; }, invalidateSize() {}, removeLayer() {}, fitBounds(bounds) { this.bounds = bounds; } };
 const context = {
   document: { getElementById: id => nodes.get(id), createElement: () => ({ remove() {} }),
     head: { append(element) { assets.push(element); queueMicrotask(() => element.onload()); } } },
   URLSearchParams, AbortController,
+  Date: class extends Date { static now() { return now; } },
   fetch: async () => { calls++; return { ok: true, json: async () => data }; },
   L: {
     map: () => map, tileLayer: () => ({ on() { return this; }, addTo() {} }), latLngBounds: points => points,
@@ -60,11 +62,22 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   group.events.clustermouseout({ layer: cluster }); assert.equal(cluster.open, false);
   assert(markers.every((marker, i) => marker.options.parcelCount === data.points[i].parcels && marker.tooltip.includes('colis')));
   for (let i = 0; i < markers.length; i++) if (data.points[i].postalParcels) assert(markers[i].tooltip.includes('approximative'));
+  nodes.get('edi-map-close').events.click();
+  nodes.get('edi-map-open').events.click(); await tick();
+  assert.equal(calls, 1, 'Reopening a fresh map makes no request');
+  assert.equal(groups.length, 1, 'Reopening reuses existing clusters');
+  now += 61_000;
+  nodes.get('edi-map-close').events.click();
+  nodes.get('edi-map-open').events.click(); await tick();
+  assert.equal(calls, 2, 'Expired cache requests fresh data');
+  assert.equal(groups.length, 1, 'Identical server snapshot does not rebuild markers');
+  context.updateEdiMapContext({ date: data.date, asOf: 'changed' }); await tick();
+  assert.equal(calls, 3, 'New dashboard snapshot invalidates browser cache');
   context.resetEdiMapContext('2000-01-01');
   assert.equal(nodes.get('edi-map-dialog').open, false);
   context.fetch = async () => ({ ok: false });
-  context.updateEdiMapContext({ date: data.date, asOf: data.asOf });
+  context.updateEdiMapContext({ date: data.date, asOf: 'newer' });
   nodes.get('edi-map-open').events.click(); await tick();
   assert(nodes.get('edi-map-status').textContent.includes('indisponible'));
-  console.log('Map reconciliation, valid positions, lazy loading, weighted clusters, hover, approximation and failure state verified.');
+  console.log('Map reconciliation, clusters, browser cache, expiry, snapshot invalidation and failure state verified.');
 })();
