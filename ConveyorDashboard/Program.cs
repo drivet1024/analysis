@@ -23,6 +23,7 @@ builder.Services.AddSingleton(config);
 builder.Services.AddSingleton<EdiForecastArchive>();
 builder.Services.AddSingleton<ConveyorDataService>();
 builder.Services.AddSingleton<EdiDepotService>();
+builder.Services.AddSingleton<EdiMapService>();
 builder.Services.AddHostedService<EdiForecastRefreshService>();
 builder.Services.AddSingleton<EdiSectorForecastService>();
 builder.Services.AddSingleton<EdiSectorWeeklyService>();
@@ -167,6 +168,19 @@ app.MapGet("/api/edi", async (string? date, ConveyorDataService data) =>
     }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Le tableau de bord EDI n'a pas pu être calculé : {ex.Message}"); }
+});
+
+app.MapGet("/api/edi/map", async (string? date, EdiMapService data, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var today = CurrentOperationalDate(DateTime.Now);
+        var selected = ResolveAnalysisDate(date, today);
+        if (selected > today) return Results.BadRequest("La date ne peut pas être future.");
+        return Results.Ok(await data.GetAsync(selected, cancellationToken));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Carte des envois indisponible : {ex.Message}"); }
 });
 
 app.MapGet("/api/edi/depots", async (string? date, EdiDepotService data, CancellationToken cancellationToken) =>

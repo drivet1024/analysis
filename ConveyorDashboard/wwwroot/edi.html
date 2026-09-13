@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI</title>
-  <link rel="stylesheet" href="/edi.css?v=20260913-4">
+  <link rel="stylesheet" href="/edi.css?v=20260913-5">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body>
@@ -16,6 +16,7 @@
         <div class="brand-content"><h1>Nationex - EDI</h1></div>
       </div>
       <div class="topbar-actions">
+        <button id="edi-map-open" type="button" aria-haspopup="dialog">Carte des envois</button>
         <div class="live-panel">
           <span id="live-dot" class="live-dot waiting" aria-hidden="true"></span>
           <div><strong id="live-label">Connexion…</strong><small id="last-refresh">Première lecture</small></div>
@@ -123,6 +124,14 @@
 
     <p class="method-note">Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
+  <dialog id="edi-map-dialog" aria-labelledby="edi-map-title">
+    <div class="section-heading"><div><p>Destinations des colis EDI</p><h2 id="edi-map-title">Carte des envois</h2></div><button id="edi-map-close" type="button">Fermer</button></div>
+    <p id="edi-map-status" role="status">Chargement…</p>
+    <p id="edi-map-background-status" class="method-note" role="status"></p>
+    <div id="edi-map-canvas" aria-label="Carte interactive des destinations"></div>
+    <p class="method-note">Les nombres dans les regroupements représentent des colis. Survolez un point pour son volume; cliquez sur un regroupement pour zoomer. Les points ambrés incluent des positions approximatives par code postal.</p>
+  </dialog>
+  <script src="/edi-map.js?v=20260913-1" defer></script>
   <dialog id="depot-clients-dialog" aria-labelledby="depot-clients-title">
     <div class="section-heading"><div><p>Clients expéditeurs</p><h2 id="depot-clients-title">Clients du dépôt</h2></div><button id="depot-clients-close" type="button">Fermer</button></div>
     <p id="depot-clients-period" class="method-note"></p>
@@ -131,7 +140,7 @@
     <div class="table-wrap"><table class="regions-table"><thead><tr><th>Client</th><th>Colis</th><th>Part du dépôt</th></tr></thead><tbody id="depot-clients-body"></tbody><tfoot id="depot-clients-foot"></tfoot></table></div>
   </dialog>
   <script src="/edi-depot-clients.js?v=20260913-1" defer></script>
-  <script src="/edi.js?v=20260913-4" defer></script>
+  <script src="/edi.js?v=20260913-5" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>

@@ -231,3 +231,13 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
 #depot-clients-dialog { width: min(850px, calc(100vw - 28px)); max-height: 90vh; padding: 24px; border: 1px solid var(--line); border-radius: 14px; color: var(--text); background: var(--panel); }
 #depot-clients-dialog::backdrop { background: rgba(0,0,0,.7); }
 #depot-clients-dialog .section-heading { flex-wrap: wrap; }
+
+#edi-map-dialog { width: min(1400px, calc(100vw - 24px)); max-height: 94vh; padding: 20px; border: 1px solid var(--line); border-radius: 14px; color: var(--text); background: var(--panel); }
+#edi-map-dialog::backdrop { background: rgba(0,0,0,.7); }
+#edi-map-canvas { height: min(65vh, 750px); min-height: 300px; width: 100%; border-radius: 10px; background: #dce6ed; }
+#edi-map-dialog .section-heading { flex-wrap: wrap; }
+.edi-map-point { background: #198fee; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 5px #0009; }
+.edi-map-point.edi-map-approximate { background: #d88616; }
+.edi-map-cluster { display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #0a766ddd; border: 3px solid #71e3c9; color: white; font: 700 12px system-ui,sans-serif; box-shadow: 0 1px 6px #0006; }
+#edi-map-canvas .leaflet-tooltip, #edi-map-canvas .leaflet-popup-content { color: #172633; }
+#edi-map-canvas .leaflet-control-zoom a { color: #172633; }
