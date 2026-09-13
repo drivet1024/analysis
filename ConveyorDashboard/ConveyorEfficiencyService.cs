@@ -20,12 +20,14 @@ sealed record ConveyorEfficiencyMonth(
 
 sealed record ConveyorEfficiencySnapshot(
     DateOnly CurrentMonth,
+    int CalculationVersion,
     IReadOnlyList<ConveyorEfficiencyMonth> Months,
     DateTimeOffset GeneratedAt,
     IReadOnlyList<string> Notes);
 
 sealed class ConveyorEfficiencyService
 {
+    private const int CurrentCalculationVersion = 2;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private readonly DashboardConfig config;
     private readonly ILogger<ConveyorEfficiencyService> logger;
@@ -41,7 +43,9 @@ sealed class ConveyorEfficiencyService
         archivePath = Environment.GetEnvironmentVariable("CONVEYOR_EFFICIENCY_PATH")
             ?? Path.Combine(environment.ContentRootPath, "App_Data", "conveyor-efficiency.json");
         seedPath = Path.Combine(environment.ContentRootPath, "ConveyorEfficiencySeed.json");
-        cached = LoadSnapshot(archivePath) ?? LoadSnapshot(seedPath);
+        var archived = LoadSnapshot(archivePath);
+        var seeded = LoadSnapshot(seedPath);
+        cached = archived?.CalculationVersion == CurrentCalculationVersion ? archived : seeded;
     }
 
     public ConveyorEfficiencySnapshot? Current => cached;
@@ -50,6 +54,7 @@ sealed class ConveyorEfficiencyService
     {
         var currentMonth = new DateOnly(now.Year, now.Month, 1);
         return cached is null
+            || cached.CalculationVersion != CurrentCalculationVersion
             || cached.CurrentMonth != currentMonth
             || cached.GeneratedAt < now.AddHours(-20);
     }
@@ -62,16 +67,24 @@ sealed class ConveyorEfficiencyService
             var now = EdiForecastArchive.LocalNow;
             var currentMonth = new DateOnly(now.Year, now.Month, 1);
             var current = await CalculateMonthAsync(currentMonth, currentMonth.AddMonths(1), true, cancellationToken);
+            var refreshedMonths = new List<ConveyorEfficiencyMonth> { current };
+            if (now.Day <= 8)
+            {
+                var previousMonth = currentMonth.AddMonths(-1);
+                refreshedMonths.Add(await CalculateMonthAsync(previousMonth, currentMonth, false, cancellationToken));
+            }
+            var refreshedDates = refreshedMonths.Select(month => month.Month).ToHashSet();
             var months = (cached?.Months ?? [])
-                .Where(month => month.Month != currentMonth)
-                .Append(current)
+                .Where(month => !refreshedDates.Contains(month.Month))
+                .Concat(refreshedMonths)
                 .OrderBy(month => month.Month)
                 .TakeLast(12)
                 .ToArray();
-            cached = new ConveyorEfficiencySnapshot(currentMonth, months, now,
+            cached = new ConveyorEfficiencySnapshot(currentMonth, CurrentCalculationVersion, months, now,
             [
                 "Postes automatisés seulement; les LINE_ID 201xx des scans manuels sont exclus.",
                 "Un résultat est problématique s'il contient un non-lu caméra, une chute 16 ou 98, une recirculation, ou une mesure manquante requise pour la facturation.",
+                "Une mesure complète obtenue lors d'un autre passage automatisé dans les sept jours avant ou après le passage régularise le colis.",
                 "Une mesure est requise lorsqu'une ligne regul_weight_chg correspond au compte client et à la zone LOC_NAT_ZONE_ID du code postal de destination.",
                 "Un résultat cumulant plusieurs problèmes compte une seule fois. Gilmore ne produit pas de mesures et n'est pas pénalisé pour le poids ou les dimensions.",
             ]);
@@ -142,6 +155,13 @@ sealed class ConveyorEfficiencyService
                 FROM automated_scans s
                 WHERE operational_date>=@monthStart AND operational_date<@monthEnd
             ),
+            measurement_resolution AS (
+                SELECT parcel_id,
+                       MAX(weight>0 AND l>0 AND w>0 AND h>0) has_complete_measurement
+                FROM automated_scans
+                WHERE parcel_id IS NOT NULL AND parcel_id<>0
+                GROUP BY parcel_id
+            ),
             parcel_rollup AS (
                 SELECT conveyor_key,supports_measurements,operational_date,parcel_id,
                        MAX(chute IN (16,98) OR (chute IS NOT NULL AND chute<>98 AND same_chute_occurrence>1)) operational_issue,
@@ -171,9 +191,12 @@ sealed class ConveyorEfficiencyService
                 SELECT pr.*,
                        pz.zone_id,
                        wc.BILLING_ACCOUNT IS NOT NULL billed_by_weight,
+                       COALESCE(pm.has_complete_measurement,0) has_complete_measurement,
                        (pr.operational_issue OR
-                         (pr.supports_measurements AND wc.BILLING_ACCOUNT IS NOT NULL AND pr.measurement_issue)) is_problem
+                         (pr.supports_measurements AND wc.BILLING_ACCOUNT IS NOT NULL AND pr.measurement_issue
+                          AND NOT COALESCE(pm.has_complete_measurement,0))) is_problem
                 FROM parcel_rollup pr
+                LEFT JOIN measurement_resolution pm ON pm.parcel_id=pr.parcel_id
                 LEFT JOIN parcel_ref pref ON pref.PARCEL_ID=pr.parcel_id
                 LEFT JOIN shipment s ON s.SHIPPING_ID=pref.shipping_id AND s.EXP_DATE=pref.exp_date
                 LEFT JOIN customer c ON c.CUSTOMER_ID=COALESCE(NULLIF(s.CUSTOMER_ID,0),pref.customer_id)
@@ -187,8 +210,8 @@ sealed class ConveyorEfficiencyService
                        COALESCE(SUM(operational_issue),0) operational_problem_parcels,
                        COALESCE(SUM(supports_measurements AND billed_by_weight),0) weight_billed_parcels,
                        COALESCE(SUM(supports_measurements AND NOT billed_by_weight),0) parcel_billed_parcels,
-                       COALESCE(SUM(supports_measurements AND NOT billed_by_weight AND measurement_issue),0) excluded_measurement_issues,
-                       COALESCE(SUM(supports_measurements AND billed_by_weight AND measurement_issue),0) revenue_risk_parcels,
+                       COALESCE(SUM(supports_measurements AND NOT billed_by_weight AND measurement_issue AND NOT has_complete_measurement),0) excluded_measurement_issues,
+                       COALESCE(SUM(supports_measurements AND billed_by_weight AND measurement_issue AND NOT has_complete_measurement),0) revenue_risk_parcels,
                        COALESCE(SUM(supports_measurements AND zone_id IS NULL),0) unknown_zone_parcels,
                        COALESCE(SUM(is_problem),0) problem_readable_parcels,
                        COALESCE(SUM(NOT is_problem),0) successful_readable_parcels
@@ -217,8 +240,8 @@ sealed class ConveyorEfficiencyService
         var end = nextMonth.ToDateTime(TimeOnly.MinValue);
         command.Parameters.AddWithValue("@monthStart", start);
         command.Parameters.AddWithValue("@monthEnd", end);
-        command.Parameters.AddWithValue("@scanStart", start.AddHours(13));
-        command.Parameters.AddWithValue("@scanEnd", end.AddHours(9));
+        command.Parameters.AddWithValue("@scanStart", start.AddDays(-7).AddHours(13));
+        command.Parameters.AddWithValue("@scanEnd", end.AddDays(7).AddHours(9));
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         await reader.ReadAsync(cancellationToken);
         return new ConveyorEfficiencyMonth(
@@ -256,7 +279,7 @@ sealed class ConveyorEfficiencyRefreshWorker(
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             catch (Exception ex) { logger.LogError(ex, "Actualisation de l'efficacité mensuelle des convoyeurs impossible; dernière archive conservée."); }
 
-            var next = new DateTime(now.Year, now.Month, now.Day, 10, 15, 0, DateTimeKind.Local);
+            var next = new DateTime(now.Year, now.Month, now.Day, 11, 0, 0, DateTimeKind.Local);
             if (next <= now) next = next.AddDays(1);
             try { await Task.Delay(next - now, stoppingToken); }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }

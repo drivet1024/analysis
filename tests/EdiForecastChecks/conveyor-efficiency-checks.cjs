@@ -7,6 +7,7 @@ const script = fs.readFileSync('ConveyorDashboard/wwwroot/live-routes.js', 'utf8
 const service = fs.readFileSync('ConveyorDashboard/ConveyorEfficiencyService.cs', 'utf8');
 
 assert.equal(seed.months.length, 12, 'The initial trend contains twelve months');
+assert.equal(seed.calculationVersion, 2, 'The persisted snapshot uses the cross-conveyor measurement rule');
 assert.equal(seed.months.at(-1).month, seed.currentMonth, 'The current month is the final point');
 for (let index = 0; index < seed.months.length; index += 1) {
   const month = seed.months[index];
@@ -18,9 +19,10 @@ for (let index = 0; index < seed.months.length; index += 1) {
 const august = seed.months.find((month) => month.month === '2026-08-01');
 assert(august, 'Validated August control month exists');
 assert.equal(august.assessedOutcomes, 791822);
-assert.equal(august.problemOutcomes, 115197);
-assert.equal(august.successfulOutcomes, 676625);
-assert.equal(august.efficiencyPercent, 85.452);
+assert.equal(august.problemOutcomes, 98166);
+assert.equal(august.successfulOutcomes, 693656);
+assert.equal(august.revenueRiskParcels, 34417);
+assert.equal(august.efficiencyPercent, 87.603);
 
 assert(html.includes('id="conveyor-efficiency-card"'));
 assert(html.includes('id="conveyor-efficiency-dialog"'));
@@ -30,5 +32,8 @@ const liveRefreshBody = script.match(/async function loadConveyorData[\s\S]*?\n}
 assert(!liveRefreshBody.includes('/api/conveyor-efficiency'), 'The monthly KPI is absent from the ten-second live refresh');
 assert(service.includes('CONVEYOR_EFFICIENCY_PATH'));
 assert(service.includes('SaveSnapshotAsync(cached'), 'The daily result is persisted');
+assert(service.includes('measurement_resolution'));
+assert(service.includes('NOT COALESCE(pm.has_complete_measurement,0)'), 'A later complete automated measurement clears the measurement issue');
+assert(service.includes('now.Year, now.Month, now.Day, 11, 0, 0'), 'The daily calculation is scheduled for 11:00');
 
 console.log('Twelve-month conveyor efficiency, reconciliation, lazy UI loading and persistence verified.');
