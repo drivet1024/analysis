@@ -35,6 +35,7 @@ docker run --rm --user 0 --entrypoint /bin/sh "${old_volumes[@]}" \
     /persist /app/App_Data /legacy/ConveyorDashboard/App_Data \
     /legacy/dashboard-source/ConveyorDashboard/App_Data
 
+export DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 "${compose[@]}" up -d --no-build
 mount=$(docker inspect conveyor-dashboard --format '{{range .Mounts}}{{if eq .Destination "/app/App_Data"}}{{.Source}}{{end}}{{end}}')
 [[ "$mount" == "$APP_DATA_PATH" ]] || { echo 'Incorrect forecast storage mount'; exit 1; }

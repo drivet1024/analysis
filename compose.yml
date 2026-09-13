@@ -18,6 +18,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ASPNETCORE_ENVIRONMENT: Production
       TZ: America/Toronto
+      DEPLOYED_AT: ${DEPLOYED_AT:-}
       EDI_FORECAST_PATH: /app/App_Data/edi-forecasts
 
     volumes:

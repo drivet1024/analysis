@@ -433,6 +433,7 @@ function renderNowcast(nowcast) {
 }
 
 function renderDepots(data) {
+  globalThis.updateDepotClientContext?.(data);
   const rows = data.depots || [];
   const total = rows.reduce((sum, row) => sum + row.parcelsToday, 0);
   const d7 = rows.reduce((sum, row) => sum + row.parcelsD7, 0);
@@ -442,7 +443,7 @@ function renderDepots(data) {
     ? 'Depuis 4 h jusqu’à ' + formatTime(data.asOf) + ' · D−7 à la même heure'
     : 'Journée complète · 4 h à 4 h · comparaison D−7';
   $('depot-body').innerHTML = rows.length ? rows.map(row => '<tr><td><strong>' +
-    (row.depotId > 0 ? number.format(row.depotId) + ' · ' : '') + escapeHtml(row.depotName) +
+    '<button type="button" class="sector-chart-trigger" data-depot-clients="' + row.depotId + '" aria-haspopup="dialog">' + (row.depotId > 0 ? number.format(row.depotId) + ' · ' : '') + escapeHtml(row.depotName) + '</button>' +
     '</strong></td><td>' + number.format(row.parcelsToday) + '</td><td>' + number.format(row.parcelsD7) +
     '</td><td>' + difference(row.parcelsToday - row.parcelsD7) + '</td><td>' +
     (total ? decimal.format(100 * row.parcelsToday / total) + ' %' : '—') + '</td></tr>').join('')
@@ -539,6 +540,7 @@ async function load(snapshotId) {
   const version = ++requestVersion;
   $('refresh-button').disabled = true;
   if ($('depot-body')) {
+    globalThis.resetDepotClientContext?.(selectedAnalysisDate);
     $('depot-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Chargement des dépôts…</td></tr>';
     $('depot-foot').replaceChildren();
   }
