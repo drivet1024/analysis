@@ -23,6 +23,18 @@
   function clusterTotal(cluster) {
     return cluster.getAllChildMarkers().reduce((sum, marker) => sum + marker.options.parcelCount, 0);
   }
+  function sectorColor(sector) {
+    return Number.isInteger(sector) && sector > 0 ? `hsl(${Math.round(sector * 137.508) % 360}, 68%, 32%)` : '#626b75';
+  }
+  function countIcon(count, sector, clustered) {
+    const label = number.format(count);
+    const size = Math.max(clustered ? 58 : 36, label.length * 11 + 16);
+    return globalThis.L.divIcon({
+      html: `<div class="edi-map-count" style="background:${sectorColor(sector)}">${label}</div>`,
+      className: clustered ? 'edi-map-cluster' : 'edi-map-point',
+      iconSize: [size, size], iconAnchor: [size / 2, size / 2]
+    });
+  }
   function draw(data, fit) {
     const L = globalThis.L;
     if (!map) {
@@ -37,10 +49,10 @@
     if (clusters) map.removeLayer(clusters);
     clusters = L.markerClusterGroup({
       maxClusterRadius: 55, showCoverageOnHover: false, chunkedLoading: true,
-      iconCreateFunction: cluster => L.divIcon({
-        html: '<span>' + number.format(clusterTotal(cluster)) + '</span>',
-        className: 'edi-map-cluster', iconSize: [52, 52]
-      })
+      iconCreateFunction: cluster => {
+        const sectors = new Set(cluster.getAllChildMarkers().map(marker => marker.options.sectorId));
+        return countIcon(clusterTotal(cluster), sectors.size === 1 ? sectors.values().next().value : null, true);
+      }
     });
     clusters.on('clustermouseover', event => {
       event.layer.bindTooltip(number.format(clusterTotal(event.layer)) + ' colis · ' + number.format(event.layer.getChildCount()) + ' positions', { direction: 'top' }).openTooltip();
@@ -48,16 +60,18 @@
     clusters.on('clustermouseout', event => event.layer.closeTooltip());
     clusters.addTo(map);
     clusters.addLayers(data.points.map(point => {
-      const label = number.format(point.parcels) + ' colis' + (point.postalParcels ? '<br>' + number.format(point.postalParcels) + ' avec position approximative par code postal' : '<br>Coordonnées de destination de l’expédition');
+      const sector = Number.isInteger(point.sectorId) && point.sectorId > 0 ? point.sectorId : null;
+      const label = number.format(point.parcels) + ' colis' + (sector ? '<br>Secteur ' + sector : '<br>Plusieurs secteurs ou secteur inconnu') + (point.postalParcels ? '<br>' + number.format(point.postalParcels) + ' avec position approximative par code postal' : '<br>Coordonnées de destination de l’expédition');
       return L.marker([point.latitude, point.longitude], {
-        parcelCount: point.parcels, title: number.format(point.parcels) + ' colis',
-        icon: L.divIcon({ className: 'edi-map-point' + (point.postalParcels ? ' edi-map-approximate' : ''), iconSize: [16, 16] })
+        parcelCount: point.parcels, sectorId: sector, title: number.format(point.parcels) + ' colis',
+        icon: countIcon(point.parcels, sector, false)
       }).bindTooltip(label, { direction: 'top' }).bindPopup(label);
     }));
     if (fit && data.points.length) map.fitBounds(L.latLngBounds(data.points.map(p => [p.latitude, p.longitude])), { padding: [30, 30], maxZoom: 13 });
     const at = new Intl.DateTimeFormat('fr-CA', { timeZone: 'America/Toronto', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data.asOf));
     $('edi-map-status').textContent = `${data.date} · ${number.format(data.mapped)} / ${number.format(data.total)} colis positionnés · ${number.format(data.unmapped)} sans position fiable · ${number.format(data.postalParcels)} positionnés par code postal · relevé ${at}`;
     if (!data.points.length) $('edi-map-status').textContent += ' · Aucun point disponible pour cette journée.';
+    $('edi-map-status').textContent += ' · Couleur par secteur; gris : plusieurs secteurs ou secteur inconnu.';
   }
   async function load(fit = false) {
     if (!context) { $('edi-map-status').textContent = 'Chargement des données EDI en cours…'; return; }

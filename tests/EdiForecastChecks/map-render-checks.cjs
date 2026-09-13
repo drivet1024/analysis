@@ -42,6 +42,16 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   assert.equal(markers.length, data.points.length);
   assert.equal(map.bounds.length, data.points.length);
   const group = groups[0];
+  const iconFor = sectors => group.options.iconCreateFunction({ getAllChildMarkers: () => sectors.map(sectorId => ({ options: { sectorId, parcelCount: 7 } })) });
+  const same = iconFor([515, 515]);
+  assert(!same.html.includes('#626b75'), 'Same-sector clusters retain their sector color');
+  assert(iconFor([515, 530]).html.includes('#626b75'), 'Mixed sectors are gray');
+  assert(iconFor([515, null]).html.includes('#626b75'), 'Unknown sectors cannot take a known-sector color');
+  assert(iconFor([null]).html.includes('#626b75'));
+  assert.notEqual(iconFor([515]).html, iconFor([530]).html);
+  assert.equal(same.iconAnchor[0], same.iconSize[0] / 2);
+  assert(markers.every((marker, i) => marker.options.icon.html.includes(new Intl.NumberFormat('fr-CA').format(data.points[i].parcels))), 'Individual points display parcel counts too');
+  assert(markers.every(marker => marker.options.icon.iconSize[0] >= 36));
   const cluster = { getAllChildMarkers: () => group.rows, getChildCount: () => group.rows.length,
     bindTooltip(text) { this.tooltip = text; return this; }, openTooltip() { this.open = true; }, closeTooltip() { this.open = false; } };
   assert(group.options.iconCreateFunction(cluster).html.includes(new Intl.NumberFormat('fr-CA').format(data.mapped)));
