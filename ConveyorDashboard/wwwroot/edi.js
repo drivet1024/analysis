@@ -471,7 +471,16 @@ function renderParcelSnapshot(data) {
   const isToday = selectedAnalysisDate === currentEdiDate();
   const selectedDateLabel = formatDate(selectedAnalysisDate);
   $('snapshot-today-label').textContent = isToday ? 'Colis aujourd’hui' : `Colis · ${selectedDateLabel}`;
-  $('snapshot-today-context').textContent = isToday ? 'Depuis 4 h jusqu’à maintenant' : 'Journée complète · 4 h à 4 h';
+  const todayVolume = data.parcelsTodaySnapshot;
+  const lastWeekVolume = data.parcelsLastWeekSameTime;
+  const change = Number.isFinite(todayVolume) && Number.isFinite(lastWeekVolume) && lastWeekVolume > 0
+    ? Math.round((todayVolume - lastWeekVolume) / lastWeekVolume * 100) : null;
+  $('snapshot-today-context').textContent = change === null
+    ? 'Comparaison indisponible avec la semaine passée'
+    : `${change > 0 ? '+' : ''}${number.format(change === 0 ? 0 : change)} % par rapport à la semaine passée`;
+  $('snapshot-today-context').title = isToday
+    ? 'Comparaison avec le même jour la semaine passée, depuis 4 h et à la même heure.'
+    : 'Comparaison des journées complètes, de 4 h à 4 h, à sept jours d’intervalle.';
   $('snapshot-d7-context').textContent = isToday ? 'Même période et même heure' : 'Même journée, sept jours plus tôt';
   renderNowcast(data.nowcast);
   $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);
