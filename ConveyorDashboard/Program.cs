@@ -1267,11 +1267,11 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
 
         var regions = new List<EdiRegionRow>();
         var dimensionProfiles = scope == "transport" ? await GetEdiDimensionProfilesAsync(analysisDate, connection) : "[]";
-        if (scope != "clients")
+        if (scope == "transport")
         await using (var command = new MySqlCommand(regionsSql, connection) { CommandTimeout = 180 })
         {
             command.Parameters.AddWithValue("@dimensionProfiles", dimensionProfiles);
-            command.Parameters.AddWithValue("@regionsStart", scope == "main" ? analysisStart : analysisStart.AddDays(-7));
+            command.Parameters.AddWithValue("@regionsStart", analysisStart.AddDays(-7));
             command.Parameters.AddWithValue("@analysisDate", analysisStart);
             command.Parameters.AddWithValue("@analysisEnd", analysisEnd);
             await using var reader = await command.ExecuteReaderAsync();

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI</title>
-  <link rel="stylesheet" href="/edi.css?v=20260912-12">
+  <link rel="stylesheet" href="/edi.css?v=20260913-1">
 </head>
 <body>
   <main class="shell">
@@ -74,9 +74,7 @@
       <div class="table-wrap"><table><thead><tr><th>Journée similaire</th><th>À la même heure</th><th>Total final</th><th>Proportion reçue</th><th>Poids</th></tr></thead><tbody id="nowcast-samples"></tbody></table></div>
     </details>
 
-    <section class="kpi-grid" aria-label="Résumé EDI">
-      <article class="kpi-card accent-blue"><span id="linehaul-parcels-label">Colis linehaul aujourd’hui</span><strong id="parcels-today">—</strong><small id="linehaul-parcels-context">Expéditions par région jusqu’à maintenant</small></article>
-      <article class="kpi-card accent-green"><span id="linehaul-pallets-label">Palettes linehaul aujourd’hui</span><strong id="pallets-today">—</strong><small>Arrondi supérieur · 60 colis par palette</small></article>
+    <section class="kpi-grid kpi-grid-two" aria-label="Résumé EDI">
       <article class="kpi-card accent-violet"><span>Colis cette semaine</span><strong id="weekly-parcels">—</strong><small>Du samedi au vendredi</small></article>
       <article class="kpi-card accent-amber"><span>Budget hebdomadaire</span><strong id="weekly-budget">—</strong><small id="weekly-progress">—</small></article>
     </section>
@@ -111,6 +109,6 @@
 
     <p class="method-note">Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
-  <script src="/edi.js?v=20260912-23" defer></script>
+  <script src="/edi.js?v=20260913-1" defer></script>
 </body>
 </html>

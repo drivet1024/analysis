@@ -12,6 +12,7 @@ for (const response of [main, clients, transport]) {
 for (const key of ['parcelsTodaySnapshot', 'parcelsLastWeekSameTime', 'weeklyBudget', 'days', 'nowcast'])
   assert.deepEqual(main[key], baseline[key], key);
 assert.deepEqual(main.clients, []);
+assert.deepEqual(main.regions, []);
 assert.deepEqual(clients.regions, []);
 assert.deepEqual(clients.days, []);
 assert.deepEqual(transport.clients, []);
@@ -20,9 +21,7 @@ assert.deepEqual(clients.clients, baseline.clients);
 assert.equal(transport.regions.length, baseline.regions.length);
 for (const original of baseline.regions) {
   const region = transport.regions.find(row => row.region === original.region);
-  const summary = main.regions.find(row => row.region === original.region);
-  assert(region && summary, original.region);
-  for (const key of ['parcelsToday', 'palletsToday']) assert.equal(summary[key], original[key]);
+  assert(region, original.region);
   for (const key of Object.keys(original).filter(key => key !== 'estimatedParcelVolume'))
     assert.deepEqual(region[key], original[key], `${original.region}: ${key}`);
   if (original.estimatedParcelVolume == null) assert.equal(region.estimatedParcelVolume, null);

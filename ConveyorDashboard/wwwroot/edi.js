@@ -486,12 +486,6 @@ function render(data) {
   $('snapshot-today-label').textContent = isToday ? 'Colis aujourd’hui' : `Colis · ${selectedDateLabel}`;
   $('snapshot-today-context').textContent = isToday ? 'Depuis 4 h jusqu’à maintenant' : 'Journée complète · 4 h à 4 h';
   $('snapshot-d7-context').textContent = isToday ? 'Même période et même heure' : 'Même journée, sept jours plus tôt';
-  $('linehaul-parcels-label').textContent = isToday ? 'Colis linehaul aujourd’hui' : `Colis linehaul · ${selectedDateLabel}`;
-  $('linehaul-pallets-label').textContent = isToday ? 'Palettes linehaul aujourd’hui' : `Palettes linehaul · ${selectedDateLabel}`;
-  $('linehaul-parcels-context').textContent = isToday ? 'Expéditions par région jusqu’à maintenant' : 'Expéditions par région pour la journée';
-  const regionalTotals = totalsForRegions(regions);
-  $('parcels-today').textContent = number.format(regionalTotals.parcelsToday);
-  $('pallets-today').textContent = number.format(regionalTotals.palletsToday);
   renderNowcast(data.nowcast);
   renderWeek(days, Number(data.weeklyBudget || 0), selectedAnalysisDate);
   $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);

@@ -92,6 +92,7 @@ h3 { font-size: 1rem; }
 .snapshot-pill strong { font-size: clamp(2rem, 4vw, 3.3rem); line-height: .9; letter-spacing: -.055em; }
 .snapshot-today strong { color: var(--green); }.snapshot-d7 strong { color: #c4b1ff; }
 .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.kpi-grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .kpi-card { --accent: var(--blue); position: relative; overflow: hidden; min-height: 116px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 15px; background: linear-gradient(145deg, rgba(18, 35, 48, .96), rgba(11, 25, 35, .96)); box-shadow: var(--shadow); }
 .kpi-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--accent); }
 .accent-blue { --accent: var(--blue); }.accent-green { --accent: var(--green); }.accent-violet { --accent: var(--violet); }.accent-amber { --accent: var(--amber); }
