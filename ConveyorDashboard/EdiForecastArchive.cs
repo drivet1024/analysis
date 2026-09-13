@@ -4,16 +4,17 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 sealed record EdiForecastSnapshot(string Id, DateTimeOffset SavedAt, DateOnly ScheduledDate,
-    string ModelVersion, string Origin, EdiForecastResponse Forecast);
+    string ModelVersion, string Origin, EdiForecastResponse Forecast, EdiMlForecastResponse? MlForecast = null);
 sealed record EdiForecastComparison(string SnapshotId, DateTimeOffset SavedAt, string ModelVersion,
-    DateOnly Date, int Horizon, long? Predicted, long? Actual, long? Difference, double? ErrorPercent);
+    DateOnly Date, int Horizon, long? Predicted, long? Actual, long? Difference, double? ErrorPercent,
+    long? MlPredicted = null, long? MlDifference = null, double? MlErrorPercent = null);
 sealed record EdiForecastArchiveView(EdiForecastSnapshot? Snapshot, DateTimeOffset NextRefresh,
     string Mode, IReadOnlyList<EdiForecastComparison> Comparisons, bool RefreshPending);
 sealed record EdiForecastActuals(DateOnly AsOfDate, DateTimeOffset UpdatedAt, IReadOnlyList<EdiHistoryDay> Days);
 
-sealed class EdiForecastArchive(IWebHostEnvironment environment)
+sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastService? mlForecast = null)
 {
-    public const string ModelVersion = "weekday-annual-v4-today-cyber-monday";
+    public const string ModelVersion = "weekday-annual-v5-lightgbm-challenger";
     private readonly string directory = Environment.GetEnvironmentVariable("EDI_FORECAST_PATH")
         ?? Path.Combine(environment.ContentRootPath, "App_Data", "edi-forecasts");
     private readonly SemaphoreSlim gate = new(1, 1);
@@ -84,15 +85,17 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment)
         {
             var now = LocalNow;
             var due = DueDate(now);
-            var id = $"{due:yyyy-MM-dd}-v4";
+            var id = $"{due:yyyy-MM-dd}-v5";
             var existing = Read().FirstOrDefault(s => s.Id == id);
             if (existing != null) return existing;
             // Do not invent a 6 am snapshot if the service starts later: save the actual timestamp.
-            var history = await data.GetEdiHistoryAsync(due.AddDays(-EdiForecast.HistoryDays), due);
+            var historyDays = mlForecast?.RequiredHistoryDays(due) ?? EdiForecast.HistoryDays;
+            var history = await data.GetEdiHistoryAsync(due.AddDays(-historyDays), due);
             if (history.Count == 0) throw new InvalidOperationException("Historique EDI vide; prévision précédente conservée.");
             var forecast = EdiForecast.Build(due, history);
+            var ml = mlForecast == null ? null : await mlForecast.BuildAsync(due, history);
             var snapshot = new EdiForecastSnapshot(id, DateTimeOffset.UtcNow, due, ModelVersion,
-                "Renouvellement quotidien à 6 h (ou rattrapage au démarrage)", forecast);
+                "Renouvellement quotidien à 6 h (ou rattrapage au démarrage)", forecast, ml);
             Directory.CreateDirectory(directory);
             var path = Path.Combine(directory, id + ".json");
             var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
@@ -127,9 +130,13 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment)
             long? actual = day.Date < operationalDate && (savedLocal < day.Date.ToDateTime(new TimeOnly(4, 0)) || sameDayForecast)
                 && byDate.TryGetValue(day.Date, out var observed) ? observed.Parcels : null;
             long? difference = actual.HasValue && day.Parcels.HasValue ? actual.Value - day.Parcels.Value : null;
+            var mlPredicted = snapshot.MlForecast?.Days.FirstOrDefault(candidate => candidate.Date == day.Date)?.Parcels;
+            long? mlDifference = actual.HasValue && mlPredicted.HasValue ? actual.Value - mlPredicted.Value : null;
             return new EdiForecastComparison(snapshot.Id, snapshot.SavedAt, snapshot.ModelVersion, day.Date,
                 day.Date.DayNumber - snapshot.Forecast.AsOfDate.DayNumber, day.Parcels, actual, difference,
-                actual > 0 && difference.HasValue ? Math.Round(Math.Abs((double)difference.Value) / actual.Value * 100, 1) : null);
+                actual > 0 && difference.HasValue ? Math.Round(Math.Abs((double)difference.Value) / actual.Value * 100, 1) : null,
+                mlPredicted, mlDifference,
+                actual > 0 && mlDifference.HasValue ? Math.Round(Math.Abs((double)mlDifference.Value) / actual.Value * 100, 1) : null);
         })).OrderByDescending(r => r.Date).ThenByDescending(r => r.SavedAt).ToArray();
         return new(selected, NextRefresh(now), selected == null ? "Reconstitution non archivée" : "Prévision sauvegardée", rows,
             analysisDate == operationalDate && (selected == null || selected.ScheduledDate < DueDate(now) || selected.ModelVersion != ModelVersion));

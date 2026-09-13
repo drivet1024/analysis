@@ -133,6 +133,57 @@ Check(annualForecast.Days.All(d => d.Annual!.References.All(r => r.Date < asOf))
 Check(annualForecast.Seasonality!.ComparedDays == annualForecast.BacktestDays
     && annualForecast.Seasonality.SeasonalComparedWape == annualForecast.BacktestWape, "Model comparison uses the same scored days");
 
+var mlTemp = Path.Combine(Path.GetTempPath(), "edi-ml-check-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(mlTemp);
+Environment.SetEnvironmentVariable("EDI_ML_MODEL_PATH", mlTemp);
+try
+{
+    var mlAsOf = new DateOnly(2026, 9, 12);
+    var mlHistory = Enumerable.Range(1, EdiMlForecastService.TrainingHistoryDays)
+        .Select(i => mlAsOf.AddDays(-i))
+        .Select(date => new EdiHistoryDay(date,
+            800 + 75 * (int)date.DayOfWeek + (date.Year - 2023) * 40
+            + (EdiSeasonality.EventOffset(date) == 0 ? 1800 : 0))).ToArray();
+    var mlLogger = new TestLogger<EdiMlForecastService>();
+    var mlService = new EdiMlForecastService(new TestEnvironment(), mlLogger);
+    Check(mlService.RequiredHistoryDays(mlAsOf) == EdiMlForecastService.TrainingHistoryDays,
+        "First LightGBM run requests the complete training history");
+    var firstMl = await mlService.BuildAsync(mlAsOf, mlHistory);
+    Check(firstMl.ModelId != null && firstMl.Days.Count == 7 && firstMl.Days.All(day => day.Parcels >= 0),
+        $"LightGBM trains locally and predicts seven EDI days ({firstMl.Status}; {string.Join(", ", firstMl.Days.Select(day => day.Status).Distinct())}; {mlLogger.LastException})");
+    Check(firstMl.TrainingRows >= 365 && firstMl.BacktestDays == 56 && firstMl.BacktestMae >= 0
+        && firstMl.BacktestWape >= 0 && firstMl.StatisticalBacktestWape >= 0,
+        "LightGBM and statistical baseline share chronological holdout metrics");
+    Check(File.Exists(Path.Combine(mlTemp, firstMl.ModelId + ".zip"))
+        && File.Exists(Path.Combine(mlTemp, firstMl.ModelId + ".json")), "LightGBM model and metadata persist");
+    var modelBytes = File.ReadAllBytes(Path.Combine(mlTemp, firstMl.ModelId + ".zip"));
+    Check(mlService.RequiredHistoryDays(mlAsOf) == EdiForecast.HistoryDays
+        && mlService.RequiredHistoryDays(mlAsOf.AddDays(1)) == EdiForecast.HistoryDays
+        && mlService.RequiredHistoryDays(mlAsOf.AddDays(7)) == EdiMlForecastService.TrainingHistoryDays,
+        "Saved weekly model keeps ordinary daily history reads bounded");
+    var repeatedSaturdayMl = await mlService.BuildAsync(mlAsOf, mlHistory);
+    Check(repeatedSaturdayMl.ModelId == firstMl.ModelId
+        && Directory.EnumerateFiles(mlTemp, "*.zip").Count() == 1
+        && modelBytes.SequenceEqual(File.ReadAllBytes(Path.Combine(mlTemp, firstMl.ModelId + ".zip"))),
+        "Repeated Saturday prediction does not retrain or rewrite LightGBM");
+    var restartedMl = new EdiMlForecastService(new TestEnvironment(), new TestLogger<EdiMlForecastService>());
+    var sundayMl = await restartedMl.BuildAsync(mlAsOf.AddDays(1), mlHistory.Append(new EdiHistoryDay(mlAsOf, 1200)).ToArray());
+    Check(sundayMl.ModelId == firstMl.ModelId && modelBytes.SequenceEqual(File.ReadAllBytes(Path.Combine(mlTemp, firstMl.ModelId + ".zip"))),
+        "Weekday prediction reloads the saved model without retraining or rewriting it");
+    var knownMl = mlHistory.ToDictionary(day => day.Date);
+    var cleanFeatures = EdiMlForecastService.CreateFeatures(mlAsOf, knownMl)!;
+    knownMl[mlAsOf.AddDays(10)] = new EdiHistoryDay(mlAsOf.AddDays(10), 9999999);
+    var futurePoisonedFeatures = EdiMlForecastService.CreateFeatures(mlAsOf, knownMl)!;
+    Check(cleanFeatures.RecentEight == futurePoisonedFeatures.RecentEight
+        && cleanFeatures.AnnualReference == futurePoisonedFeatures.AnnualReference,
+        "Future EDI data cannot leak into LightGBM features");
+}
+finally
+{
+    Environment.SetEnvironmentVariable("EDI_ML_MODEL_PATH", null);
+    Directory.Delete(mlTemp, recursive: true);
+}
+
 var temp = Path.Combine(Path.GetTempPath(), "edi-archive-check-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(temp);
 Environment.SetEnvironmentVariable("EDI_FORECAST_PATH", temp);
@@ -189,14 +240,19 @@ try
     var target = today.AddDays(-2);
     var old = first with { Id = "prior-test", SavedAt = DateTimeOffset.UtcNow.AddDays(-5),
         Forecast = first.Forecast with { AsOfDate = target.AddDays(-1), Days = new[] {
-            new EdiForecastDay(target, "test", 100, 80, 110, Array.Empty<EdiForecastSample>()) } } };
+            new EdiForecastDay(target, "test", 100, 80, 110, Array.Empty<EdiForecastSample>()) } },
+        MlForecast = new EdiMlForecastResponse("ml-test", EdiMlForecastService.FeatureVersion,
+            DateTimeOffset.UtcNow.AddDays(-10), target.AddDays(-6), 700, 10, 8, 12, 9, 56,
+            [new EdiMlForecastDay(target, "test", 110, "Prévision LightGBM")], 110, "test") };
     var json = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
     File.WriteAllText(Path.Combine(temp, "prior-test.json"), System.Text.Json.JsonSerializer.Serialize(old, json));
     var late = old with { Id = "late-test", SavedAt = DateTimeOffset.UtcNow };
     File.WriteAllText(Path.Combine(temp, "late-test.json"), System.Text.Json.JsonSerializer.Serialize(late, json));
     var view = restarted.View(today, new[] { new EdiHistoryDay(target, 125) });
     var compared = view.Comparisons.Single(r => r.SnapshotId == "prior-test");
-    Check(compared.Actual == 125 && compared.Difference == 25 && compared.ErrorPercent == 20, "Archived forecasts compared with completed actuals");
+    Check(compared.Actual == 125 && compared.Difference == 25 && compared.ErrorPercent == 20
+        && compared.MlPredicted == 110 && compared.MlDifference == 15 && compared.MlErrorPercent == 12,
+        "Archived statistical and LightGBM forecasts compare with completed actuals");
     Check(view.Comparisons.Single(r => r.SnapshotId == "late-test").Actual == null, "Late-created forecasts cannot be scored");
     var targetStart = target.ToDateTime(new TimeOnly(6, 0));
     var targetSaved = new DateTimeOffset(targetStart, TimeZoneInfo.FindSystemTimeZoneById("America/Toronto").GetUtcOffset(targetStart));

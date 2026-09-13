@@ -9,13 +9,14 @@
   const series = [
     { key: 'low', name: 'Minimum historique', color: '#ab8cff', width: 2, dash: '7 5' },
     { key: 'high', name: 'Maximum historique', color: '#ffbd59', width: 2, dash: '7 5' },
-    { key: 'predicted', name: 'Prévu', color: '#51a7ff', width: 3, dash: '' },
+    { key: 'predicted', name: 'Statistique', color: '#51a7ff', width: 3, dash: '' },
+    { key: 'mlPredicted', name: 'ML.NET', color: '#ff77c8', width: 3, dash: '' },
     { key: 'actual', name: 'Réel', color: '#38dc9a', width: 5, dash: '' }
   ];
   let rows = [], snapshot = null;
   let sectorPayload = null, selectedSectorId = null, sectorSubtitle = '';
   const valueLabel = value => value == null ? 'indisponible' : number.format(value);
-  const describe = row => `${row.label} : prévu ${valueLabel(row.predicted)} · réel ${valueLabel(row.actual)} · minimum ${valueLabel(row.low)} · maximum ${valueLabel(row.high)} colis.`;
+  const describe = row => `${row.label} : statistique ${valueLabel(row.predicted)}${selectedSectorId == null ? ` · ML.NET ${valueLabel(row.mlPredicted)}` : ''} · réel ${valueLabel(row.actual)} · minimum ${valueLabel(row.low)} · maximum ${valueLabel(row.high)} colis.`;
   function render() {
     const width = 1000, height = 450, left = 85, right = 32, top = 35, bottom = 65;
     const plotWidth = width - left - right, plotHeight = height - top - bottom;
@@ -64,8 +65,10 @@
   globalThis.updateEdiForecastChart = function (forecast, archive) {
     snapshot = archive?.snapshot || null;
     const comparisons = new Map((archive?.comparisons || []).filter(row => row.snapshotId === snapshot?.id).map(row => [row.date, row]));
+    const mlDays = new Map((snapshot?.mlForecast?.days || []).map(day => [day.date, day]));
     rows = (forecast?.days || []).map(day => ({ label: dateLabel.format(new Date(day.date + 'T12:00:00')),
-      predicted: day.parcels, actual: comparisons.get(day.date)?.actual ?? null, low: day.historicalLow, high: day.historicalHigh }));
+      predicted: day.parcels, mlPredicted: mlDays.get(day.date)?.parcels ?? null,
+      actual: comparisons.get(day.date)?.actual ?? null, low: day.historicalLow, high: day.historicalHigh }));
     if (button) button.disabled = !rows.length;
     if (dialog.open) render();
   };

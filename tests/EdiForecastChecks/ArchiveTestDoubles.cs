@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 
 sealed class ConveyorDataService
 {
@@ -25,6 +26,18 @@ sealed class TestWeekClock(DateTimeOffset now) : TimeProvider
 {
     public DateTimeOffset Now { get; set; } = now;
     public override DateTimeOffset GetUtcNow() => Now;
+}
+
+sealed class TestLogger<T> : ILogger<T>
+{
+    public Exception? LastException { get; private set; }
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+    public bool IsEnabled(LogLevel logLevel) => true;
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+        Func<TState, Exception?, string> formatter)
+    {
+        if (exception != null) LastException = exception;
+    }
 }
 sealed class EdiSectorForecastService(TestWeekClock clock)
 {

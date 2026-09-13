@@ -4,13 +4,14 @@ set -eu
 target=$1
 backup=$2
 shift 2
-mkdir -p "$target/edi-forecasts" "$backup"
+mkdir -p "$target/edi-forecasts" "$target/ml-models" "$backup"
 source_number=0
 for source in "$@"; do
     source_number=$((source_number + 1))
-    [ -d "$source/edi-forecasts" ] || continue
-    tar -czf "$backup/source-$source_number.tar.gz" -C "$source" edi-forecasts
-    find "$source/edi-forecasts" -type f -name '*.json' -exec sh -eu -c '
+    for protected_root in edi-forecasts ml-models; do
+        [ -d "$source/$protected_root" ] || continue
+        tar -czf "$backup/source-$source_number-$protected_root.tar.gz" -C "$source" "$protected_root"
+        find "$source/$protected_root" -type f \( -name '*.json' -o -name '*.zip' \) -exec sh -eu -c '
         source=$1; target=$2; backup=$3; source_number=$4
         shift 4
         for file do
@@ -31,8 +32,9 @@ for source in "$@"; do
             fi
         done
     ' sh "$source" "$target" "$backup" "$source_number" {} +
+    done
 done
-# Record all files that must survive container replacement, including actuals.
+# Record all forecasts, actuals, trained models and model metadata that must survive replacement.
 cd "$target"
-find edi-forecasts -type f -name '*.json' -exec sha256sum {} + | sort > "$backup/manifest.sha256"
-echo "Forecast archives preserved: $(wc -l < "$backup/manifest.sha256")"
+find edi-forecasts ml-models -type f \( -name '*.json' -o -name '*.zip' \) -exec sha256sum {} + | sort > "$backup/manifest.sha256"
+echo "Forecast archives and ML models preserved: $(wc -l < "$backup/manifest.sha256")"

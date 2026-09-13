@@ -189,8 +189,8 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
 .day-column small { align-self: end; color: var(--muted); font-size: .61rem; text-transform: capitalize; white-space: nowrap; }
 .method-note { margin: 13px 2px 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
 .forecast-wrap { margin-top: 12px; }
-.forecast-table { min-width: 780px; }
-.forecast-table td:last-child { width: 43%; text-align: left; line-height: 1.5; }
+.forecast-table { min-width: 1120px; }
+.forecast-table td:last-child { width: 36%; min-width: 360px; text-align: left; line-height: 1.5; }
 .forecast-table summary, .forecast-method summary { cursor: pointer; color: var(--blue); }
 .forecast-table details { margin-top: 6px; color: var(--muted); }
 .forecast-method { margin-top: 12px; color: var(--muted); font-size: .8rem; line-height: 1.6; }
@@ -203,6 +203,8 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
 .forecast-seasonality { margin-top: 14px; padding: 16px; border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 12px; background: var(--panel); }
 .forecast-seasonality p, .forecast-seasonality summary { color: var(--muted); font-size: .8rem; line-height: 1.6; }
 .forecast-seasonality summary { cursor: pointer; color: var(--blue); }
+.forecast-ml-summary { padding: 10px 12px; border-left: 3px solid #ff77c8; border-radius: 6px; background: rgba(255, 119, 200, .06); }
+.ml-explanation { color: #ff9bd5; }
 
 @media (max-width: 1050px) {
   .kpi-grid, .context-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -244,6 +246,7 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
 .chart-low { border-color: var(--violet); border-top-style: dashed; }
 .chart-high { border-color: var(--amber); border-top-style: dashed; }
 .chart-predicted { border-color: var(--blue); }
+.chart-ml { border-color: #ff77c8; }
 .chart-actual { border-color: var(--green); border-top-width: 5px; }
 #forecast-chart-plot { overflow-x: auto; }
 #forecast-chart-plot svg { display: block; width: 100%; min-width: 600px; }

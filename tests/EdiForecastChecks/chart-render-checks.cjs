@@ -4,12 +4,13 @@ const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],{innerHTML:
 const context={document:{getElementById:id=>nodes.get(id)}};
 vm.createContext(context);vm.runInContext(fs.readFileSync('ConveyorDashboard/wwwroot/edi-forecast-chart.js','utf8'),context);
 const payload=JSON.parse(fs.readFileSync('tmp/edi-seasonality-fast-main.json','utf8').replace(/^\uFEFF/,''));
+payload.forecastArchive.snapshot.mlForecast={days:payload.forecast.days.map((day,index)=>({date:day.date,parcels:900+index}))};
 context.updateEdiForecastChart(payload.forecast,payload.forecastArchive);
 assert.equal(nodes.get('forecast-chart-open').disabled,false);
 nodes.get('forecast-chart-open').events.click();
 assert.equal(nodes.get('forecast-chart-dialog').open,true);
 let svg=nodes.get('forecast-chart-plot').innerHTML;
-assert(svg.includes('data-series="predicted"')&&svg.includes('stroke-dasharray="7 5"'));
+assert(svg.includes('data-series="predicted"')&&svg.includes('data-series="mlPredicted"')&&svg.includes('stroke-dasharray="7 5"'));
 assert(!svg.includes('data-series="actual"'),'Future actuals are not drawn as zero');
 const date0=payload.forecast.days[0].date,date2=payload.forecast.days[2].date;
 const archive={...payload.forecastArchive,comparisons:[{snapshotId:payload.forecastArchive.snapshot.id,date:date0,actual:0},{snapshotId:payload.forecastArchive.snapshot.id,date:date2,actual:300},{snapshotId:'wrong-version',date:payload.forecast.days[1].date,actual:999999}]};
@@ -25,4 +26,4 @@ nodes.get('forecast-chart-plot').events.focusin({target:{closest:()=>({dataset:{
 assert(nodes.get('forecast-chart-readout').textContent.includes('réel 0'));
 nodes.get('forecast-chart-close').events.click();assert(!nodes.get('forecast-chart-dialog').open);
 context.updateEdiForecastChart(null,null);assert(nodes.get('forecast-chart-open').disabled);
-console.log('Popup, four line styles, selected-version matching, missing-day gaps, zero actual, keyboard readout and close verified.');
+console.log('Popup, statistical/ML.NET/actual lines, selected-version matching, missing-day gaps, zero actual, keyboard readout and close verified.');

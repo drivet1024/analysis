@@ -4,7 +4,10 @@
   <ItemGroup><Compile Include="../../ConveyorDashboard/EdiHolidayCalendar.cs" Link="EdiHolidayCalendar.cs" /></ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.ML" Version="5.0.0" />
+    <PackageReference Include="Microsoft.ML.LightGbm" Version="5.0.0" />
     <Compile Include="../../ConveyorDashboard/EdiForecastArchive.cs" Link="EdiForecastArchive.cs" />
+    <Compile Include="../../ConveyorDashboard/EdiMlForecast.cs" Link="EdiMlForecast.cs" />
     <Compile Include="../../ConveyorDashboard/EdiSeasonality.cs" Link="EdiSeasonality.cs" />
     <Compile Include="../../ConveyorDashboard/EdiNowcast.cs" Link="EdiNowcast.cs" />
     <Compile Include="../../ConveyorDashboard/EdiSectorModel.cs" Link="EdiSectorModel.cs" />

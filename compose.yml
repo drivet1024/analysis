@@ -20,6 +20,7 @@ services:
       TZ: America/Toronto
       DEPLOYED_AT: ${DEPLOYED_AT:-}
       EDI_FORECAST_PATH: /app/App_Data/edi-forecasts
+      EDI_ML_MODEL_PATH: /app/App_Data/ml-models/edi
 
     volumes:
       - type: bind

@@ -16,6 +16,13 @@ const context = {
   number: new Intl.NumberFormat('fr-CA'), decimal: new Intl.NumberFormat('fr-CA', { maximumFractionDigits: 1 }),
   formatDate: (date) => date, escapeHtml: (value) => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;'),
 };
+payload.forecastArchive.snapshot.mlForecast = {
+  modelId: 'edi-lightgbm-test-v1', featureVersion: 'edi-calendar-lags-v1', trainedAt: '2026-09-12T10:00:00Z',
+  trainedThrough: '2026-09-11', trainingRows: 700, backtestMae: 125.4, backtestWape: 2.1,
+  statisticalBacktestMae: 180.1, statisticalBacktestWape: 3.2, backtestDays: 56,
+  days: payload.forecast.days.map((day, index) => ({ date: day.date, parcels: 1000 + index, status: 'Prévision LightGBM' })),
+  total: 7021, status: 'Modèle LightGBM local chargé'
+};
 vm.createContext(context);
 vm.runInContext(script.slice(script.indexOf('function renderForecast('), script.indexOf('function render(data)')), context);
 context.renderForecast(payload.forecast, payload.forecastArchive);
@@ -26,17 +33,22 @@ assert.match(elements.get('forecast-growth').textContent, /Facteur annuel/);
 assert.match(elements.get('forecast-body').children[0].innerHTML, /50 % de tendance récente/);
 assert.match(elements.get('forecast-body').children[0].innerHTML, /Références annuelles/);
 assert.match(elements.get('forecast-model-comparison').textContent, /mêmes 27 journées/);
+assert.match(elements.get('forecast-ml-summary').textContent, /edi-lightgbm-test-v1/);
+assert.match(elements.get('forecast-ml-summary').textContent, /WAPE 2,1 %/);
+assert.match(elements.get('forecast-ml-summary').textContent, /statistique 180,1 colis, WAPE 3,2 %/);
 const selector = elements.get('forecast-archive-select');
 selector.value = payload.forecastArchive.snapshot.id;
 selector.onchange();
 assert.equal(context.requestedVersion, payload.forecastArchive.snapshot.id);
 assert(!html.includes('id="forecast-comparison-body"'));
-assert.equal((elements.get('forecast-body').children[0].innerHTML.match(/<td/g)||[]).length, 7);
+assert.equal((elements.get('forecast-body').children[0].innerHTML.match(/<td/g)||[]).length, 9);
+assert.match(elements.get('forecast-body').children[0].innerHTML, /1[\s ]?000/);
 const firstDate = payload.forecast.days[0].date;
-const matched = { snapshotId: payload.forecastArchive.snapshot.id, date: firstDate, actual: 0, difference: -10 };
+const matched = { snapshotId: payload.forecastArchive.snapshot.id, date: firstDate, actual: 0, difference: -10, mlDifference: -1000 };
 context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [matched, { ...matched, snapshotId: 'different-version', actual: 99999 }] });
 assert(elements.get('forecast-body').children[0].innerHTML.includes('<td>0</td>'));
 assert(elements.get('forecast-body').children[0].innerHTML.includes('<td>-10</td>'));
+assert.match(elements.get('forecast-body').children[0].innerHTML, /<td>-1[\s ]?000<\/td>/);
 assert(!elements.get('forecast-body').children[0].innerHTML.includes('99999'));
 assert(elements.get('forecast-foot').innerHTML.includes('Incomplet'));
 context.renderForecast({ ...payload.forecast, seasonality: null }, payload.forecastArchive);

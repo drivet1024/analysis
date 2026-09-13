@@ -20,6 +20,7 @@ var config = new DashboardConfig(
     Environment.GetEnvironmentVariable("OPENAI_MODEL") ?? "gpt-5.6-luna");
 
 builder.Services.AddSingleton(config);
+builder.Services.AddSingleton<EdiMlForecastService>();
 builder.Services.AddSingleton<EdiForecastArchive>();
 builder.Services.AddSingleton<ConveyorDataService>();
 builder.Services.AddSingleton<EdiDepotService>();

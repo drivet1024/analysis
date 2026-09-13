@@ -301,6 +301,7 @@ function renderForecast(forecast, archive) {
   if (!forecast) {
     $('forecast-context').textContent = 'Prévision indisponible';
     $('forecast-summary').textContent = 'Aucune prévision sauvegardée pour cette date. Le calcul quotidien est effectué en arrière-plan à 6 h.';
+    $('forecast-ml-summary').textContent = '';
     $('forecast-schedule').textContent = '';
     $('forecast-holidays').textContent = '';
     $('forecast-seasonality').hidden = true;
@@ -309,11 +310,16 @@ function renderForecast(forecast, archive) {
   }
   $('forecast-context').textContent = `${formatDate(forecast.days[0].date)} au ${formatDate(forecast.days[6].date)} · référence du ${formatDate(forecast.asOfDate)}`;
   const saved = archive?.snapshot;
+  const mlForecast = saved?.mlForecast;
+  const mlByDate = new Map((mlForecast?.days || []).map(day => [day.date, day]));
   $('forecast-schedule').textContent = saved
     ? `Prévision sauvegardée le ${new Date(saved.savedAt).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })} (Montréal) · référence ${formatDate(forecast.asOfDate)} · prochain renouvellement à ${new Date(archive.nextRefresh).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })}.`
     : 'Reconstitution non archivée : aucune prévision sauvegardée ne correspond à cette date.';
   if (archive?.refreshPending) $('forecast-schedule').textContent += ' Renouvellement en attente : la dernière version disponible reste affichée.';
   $('forecast-summary').textContent = `Historique consulté : ${formatDate(forecast.historyStart)} au ${formatDate(forecast.historyEnd)} · ${number.format(forecast.observedDays)} jours observés sur ${number.format(forecast.observedDays + forecast.missingDays)}${forecast.missingDays ? ` · ${number.format(forecast.missingDays)} jours sans données, exclus du calcul` : ''}. Estimations, non garanties.`;
+  $('forecast-ml-summary').textContent = mlForecast?.modelId
+    ? `ML.NET LightGBM : modèle ${mlForecast.modelId}, entraîné jusqu’au ${formatDate(mlForecast.trainedThrough)} sur ${number.format(mlForecast.trainingRows)} journées. Validation chronologique sur les mêmes ${number.format(mlForecast.backtestDays)} journées : LightGBM ${number.format(mlForecast.backtestMae)} colis d’erreur moyenne${mlForecast.backtestWape == null ? '' : `, WAPE ${decimal.format(mlForecast.backtestWape)} %`}${mlForecast.statisticalBacktestMae == null ? '' : ` · statistique ${number.format(mlForecast.statisticalBacktestMae)} colis${mlForecast.statisticalBacktestWape == null ? '' : `, WAPE ${decimal.format(mlForecast.statisticalBacktestWape)} %`}`}.`
+    : mlForecast?.status || 'Cette archive précède l’intégration ML.NET; aucune prévision IA n’y est enregistrée.';
   const seasonal = forecast.seasonality;
   $('forecast-seasonality').hidden = !seasonal;
   if (seasonal) {
@@ -337,6 +343,7 @@ function renderForecast(forecast, archive) {
   const byDate = new Map(comparisons.map(row => [row.date, row]));
   forecast.days.forEach((day) => {
     const comparison = byDate.get(day.date);
+    const mlDay = mlByDate.get(day.date);
     const samples = day.samples || [];
     const weightSum = samples.reduce((sum, sample) => sum + sample.weight, 0);
     const row = document.createElement('tr');
@@ -352,17 +359,22 @@ function renderForecast(forecast, archive) {
     const annualDetails = annual ? `<br>${escapeHtml(annual.note)}${annual.references.length ? `<br>Références annuelles : ${annual.references.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis`).join(' · ')}` : ''}${annualUsed ? `<br>Référence annuelle ajustée : ${number.format(annual.adjustedParcels)} colis (facteur ${Number(annual.growthFactor).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}, ${annual.growthPairs} paires).<br>${annual.event ? '100 % de la référence événementielle ajustée' : `50 % × ${number.format(recentEstimate)} + 50 % × ${number.format(annual.adjustedParcels)}`} ≈ <strong>${number.format(day.parcels)} colis</strong>.` : ''}` : '';
     row.innerHTML = `<td class="day-name">${escapeHtml(day.dayName)}</td><td>${formatDate(day.date)}</td>
       <td><strong>${day.parcels == null ? 'Indisponible' : number.format(day.parcels)}</strong></td>
+      <td><strong>${mlDay?.parcels == null ? '' : number.format(mlDay.parcels)}</strong></td>
       <td>${comparison?.actual == null ? '' : number.format(comparison.actual)}</td>
       <td>${comparison?.difference == null ? '—' : `${comparison.difference > 0 ? '+' : ''}${number.format(comparison.difference)}`}</td>
+      <td>${comparison?.mlDifference == null ? '' : `${comparison.mlDifference > 0 ? '+' : ''}${number.format(comparison.mlDifference)}`}</td>
       <td>${day.historicalLow == null ? '—' : `${number.format(day.historicalLow)} – ${number.format(day.historicalHigh)}`}</td>
-      <td>${explanation}<details><summary>Voir les volumes et le calcul</summary>${samples.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis × ${sample.weight}`).join('<br>')}${recentEstimate == null ? '' : `<br>Tendance récente : somme pondérée ÷ ${weightSum} ≈ ${number.format(recentEstimate)} colis.`}${annualDetails}</details></td>`;
+      <td>${explanation}${mlDay?.parcels == null ? '' : `<br><span class="ml-explanation">ML.NET : ${escapeHtml(mlDay.status)}.</span>`}<details><summary>Voir les volumes et le calcul</summary>${samples.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis × ${sample.weight}`).join('<br>')}${recentEstimate == null ? '' : `<br>Tendance récente : somme pondérée ÷ ${weightSum} ≈ ${number.format(recentEstimate)} colis.`}${annualDetails}</details></td>`;
     body.append(row);
   });
   const allActuals = forecast.days.length > 0 && forecast.days.every(day => byDate.get(day.date)?.actual != null);
   const allDifferences = forecast.days.length > 0 && forecast.days.every(day => byDate.get(day.date)?.difference != null);
   const actualTotal = allActuals ? forecast.days.reduce((sum, day) => sum + byDate.get(day.date).actual, 0) : null;
   const differenceTotal = allDifferences ? forecast.days.reduce((sum, day) => sum + byDate.get(day.date).difference, 0) : null;
-  $('forecast-foot').innerHTML = `<tr><td colspan="2">Total sur 7 jours</td><td>${forecast.total == null ? 'Incomplet' : number.format(forecast.total)}</td><td>${actualTotal == null ? 'Incomplet' : number.format(actualTotal)}</td><td>${differenceTotal == null ? '—' : (differenceTotal > 0 ? '+' : '') + number.format(differenceTotal)}</td><td colspan="2">Les totaux réels et les écarts attendent les sept journées évaluables.</td></tr>`;
+  const mlTotal = mlForecast?.total ?? null;
+  const allMlDifferences = forecast.days.length > 0 && forecast.days.every(day => byDate.get(day.date)?.mlDifference != null);
+  const mlDifferenceTotal = allMlDifferences ? forecast.days.reduce((sum, day) => sum + byDate.get(day.date).mlDifference, 0) : null;
+  $('forecast-foot').innerHTML = `<tr><td colspan="2">Total sur 7 jours</td><td>${forecast.total == null ? 'Incomplet' : number.format(forecast.total)}</td><td>${mlTotal == null ? '' : number.format(mlTotal)}</td><td>${actualTotal == null ? 'Incomplet' : number.format(actualTotal)}</td><td>${differenceTotal == null ? '—' : (differenceTotal > 0 ? '+' : '') + number.format(differenceTotal)}</td><td>${mlDifferenceTotal == null ? '' : (mlDifferenceTotal > 0 ? '+' : '') + number.format(mlDifferenceTotal)}</td><td colspan="2">Les totaux réels et les écarts attendent les sept journées évaluables.</td></tr>`;
   $('forecast-validation').textContent = forecast.backtestDays
     ? `Test rétrospectif : quatre horizons de 7 jours, sans utiliser les volumes postérieurs à chaque date de calcul, sur ${forecast.backtestDays} jours évaluables sur 28${forecast.excludedHolidays ? ' (jours fériés exclus)' : ''}. Erreur absolue moyenne : ${number.format(forecast.backtestMae)} colis par jour. ${forecast.backtestWape == null ? 'Erreur relative non calculable (volume réel nul).' : `Erreur absolue cumulée / volume réel cumulé : ${decimal.format(forecast.backtestWape)} %.`} Ces erreurs passées ne garantissent pas la précision future.`
     : 'Test rétrospectif indisponible : historique insuffisant pour évaluer les prévisions passées.';
