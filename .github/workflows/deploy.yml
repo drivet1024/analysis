@@ -7,14 +7,14 @@ on:
 
 concurrency:
   group: conveyor-dashboard-production
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: [self-hosted, linux, x64]
-    # Keep the existing forecast archives outside the checkout cleanup boundary.
+    # Permanent storage is independent of the runner checkout and of each commit.
     env:
-      APP_DATA_PATH: ${{ github.workspace }}/ConveyorDashboard/App_Data
+      APP_DATA_PATH: /opt/conveyordashboard/data
     defaults:
       run:
         working-directory: dashboard-source
@@ -34,11 +34,7 @@ jobs:
         env:
           APP_ENV_FILE: /home/deploy/secrets/analysis.env
         run: |
-          docker compose \
-            --project-name conveyor-dashboard \
-            up -d \
-            --build \
-            --remove-orphans
+          bash deploy/deploy-dashboard.sh
 
       - name: Container status
         env:
