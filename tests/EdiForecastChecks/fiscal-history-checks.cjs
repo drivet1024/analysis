@@ -49,16 +49,19 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
   assert.equal(calls, 1);
   assert(nodes.get('edi-fiscal-history-dialog').open);
   const chart = nodes.get('edi-fiscal-history-plot').innerHTML;
+  const displayedWeeks = data.weeks.filter(week => !week.partial);
   assert.equal((chart.match(/<polyline class="edi-history-line previous"/g) || []).length, 1, 'One prior-year line');
   assert.equal((chart.match(/<polyline class="edi-history-line current"/g) || []).length, 1, 'One current-year line');
-  assert.equal((chart.match(/<circle class="edi-history-point previous"/g) || []).length, data.weeks.length, 'One prior-year point per week');
-  assert.equal((chart.match(/<circle class="edi-history-point current/g) || []).length, data.weeks.length, 'One current-year point per week');
-  const partialWeek = data.weeks.findIndex(week => week.partial);
-  assert.equal(chart.includes('edi-history-line partial-segment'), partialWeek > 0, 'Current partial week segment highlighting matches the data');
-  assert(chart.includes(`S${data.weeks.length}`));
+  assert.equal((chart.match(/<circle class="edi-history-point previous"/g) || []).length, displayedWeeks.length, 'One prior-year point per complete week');
+  assert.equal((chart.match(/<circle class="edi-history-point current"/g) || []).length, displayedWeeks.length, 'One current-year point per complete week');
+  assert(chart.includes(`S${displayedWeeks.at(-1).week}`));
+  if (displayedWeeks.length < data.weeks.length) {
+    assert(!chart.includes(`>S${data.weeks.at(-1).week}</text>`), 'The current partial week is excluded');
+    assert(nodes.get('edi-fiscal-history-status').textContent.includes('semaine en cours exclue'));
+  }
   assert(chart.includes('Comparaison hebdomadaire'));
   nodes.get('edi-fiscal-history-close').events.click();
   weekly.events.keydown({ key: 'Enter', preventDefault() {} }); await tick();
   assert.equal(calls, 1, 'Fresh fiscal history is reused');
-  console.log('Fiscal weeks, current-week reconciliation, prior-year comparison, lazy loading and cache verified.');
+  console.log('Complete fiscal weeks, current-week exclusion, prior-year comparison, lazy loading and cache verified.');
 })();
