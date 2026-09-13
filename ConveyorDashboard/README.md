@@ -90,3 +90,7 @@ Le tableau EDI PRÉVISION réunit désormais les colonnes prévu, réel et écar
 Vérification des résultats sur une journée terminée : `node tests/EdiForecastChecks/edi-page-isolation-checks.cjs <ancienne-api.json> <edi.json> <clients.json> <transport.json>`.
 
 Le workflow déploie le code depuis `dashboard-source` et monte les archives existantes via `APP_DATA_PATH` depuis le dossier historique du runner. Ce dossier reste hors du nettoyage de `actions/checkout`; aucun déplacement ni effacement des archives n’est nécessaire. En local, Compose conserve son montage par défaut `./ConveyorDashboard/App_Data`.
+
+### Colis EDI par dépôt de destination
+
+La page EDI charge `/api/edi/depots` indépendamment des compteurs. Le tableau compte les lignes `parcel` hors statuts 500/501, avec la même borne de fin que le compteur EDI en cache (`nowcast.asOf`), pour la journée opérationnelle et D−7. La destination vient du code postal normalisé dans `location.DEPOTNUMBER`, puis en repli de `route.END_DEPOT_ID` et `sector_info.DEPOTNUMBER` via l’expédition (`SHIPPING_ID` + `EXP_DATE`). Les candidats sont regroupés avant les sommes : une correspondance ambiguë ou manquante reste dans une ligne distincte, sans multiplication ni perte des colis. Réponses en cache 60 secondes, limitées à 16 entrées et identifiées par date et borne de fin. Validation : `node tests/EdiForecastChecks/depot-render-checks.cjs <depots.json> <edi.json>`.

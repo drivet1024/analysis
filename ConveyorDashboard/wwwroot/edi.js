@@ -432,6 +432,39 @@ function renderNowcast(nowcast) {
     : '<tr><td colspan="5" class="empty-cell">Aucune journée comparable utilisée.</td></tr>';
 }
 
+function renderDepots(data) {
+  const rows = data.depots || [];
+  const total = rows.reduce((sum, row) => sum + row.parcelsToday, 0);
+  const d7 = rows.reduce((sum, row) => sum + row.parcelsD7, 0);
+  const difference = value => (value > 0 ? '+' : '') + number.format(value);
+  $('depot-current-label').textContent = data.date === currentEdiDate() ? 'Colis aujourd’hui' : 'Colis · ' + formatDate(data.date);
+  $('depot-period').textContent = data.date === currentEdiDate()
+    ? 'Depuis 4 h jusqu’à ' + formatTime(data.asOf) + ' · D−7 à la même heure'
+    : 'Journée complète · 4 h à 4 h · comparaison D−7';
+  $('depot-body').innerHTML = rows.length ? rows.map(row => '<tr><td><strong>' +
+    (row.depotId > 0 ? number.format(row.depotId) + ' · ' : '') + escapeHtml(row.depotName) +
+    '</strong></td><td>' + number.format(row.parcelsToday) + '</td><td>' + number.format(row.parcelsD7) +
+    '</td><td>' + difference(row.parcelsToday - row.parcelsD7) + '</td><td>' +
+    (total ? decimal.format(100 * row.parcelsToday / total) + ' %' : '—') + '</td></tr>').join('')
+    : '<tr><td colspan="5" class="empty-cell">Aucun colis pour ces deux périodes.</td></tr>';
+  $('depot-foot').innerHTML = '<tr><td>Total</td><td>' + number.format(total) + '</td><td>' +
+    number.format(d7) + '</td><td>' + difference(total - d7) + '</td><td>' + (total ? '100 %' : '—') + '</td></tr>';
+}
+
+async function loadDepots(date, version) {
+  try {
+    const response = await fetch('/api/edi/depots?' + new URLSearchParams({ date }), { cache: 'no-store' });
+    if (!response.ok) throw new Error('Réponse ' + response.status);
+    const data = await response.json();
+    if (version !== requestVersion) return;
+    renderDepots(data);
+  } catch {
+    if (version !== requestVersion) return;
+    $('depot-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Dépôts indisponibles. Nouvelle tentative à la prochaine actualisation.</td></tr>';
+    $('depot-foot').replaceChildren();
+  }
+}
+
 function renderParcelSnapshot(data) {
   const isToday = selectedAnalysisDate === currentEdiDate();
   const selectedDateLabel = formatDate(selectedAnalysisDate);
@@ -505,6 +538,10 @@ function render(data) {
 async function load(snapshotId) {
   const version = ++requestVersion;
   $('refresh-button').disabled = true;
+  if ($('depot-body')) {
+    $('depot-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Chargement des dépôts…</td></tr>';
+    $('depot-foot').replaceChildren();
+  }
   $('error-banner').hidden = true;
   setConnection('waiting', 'Actualisation…');
   try {
@@ -546,6 +583,7 @@ async function load(snapshotId) {
       $('last-refresh').textContent = `Actualisé à ${refreshed}`;
     } else {
       render(data);
+      if ($('depot-body')) loadDepots(selectedAnalysisDate, version);
     }
     setConnection('ok', DELIVERY_PAGE || FORECAST_PAGE ? 'Relevé quotidien' : 'Données en direct');
     countdown = REFRESH_SECONDS;

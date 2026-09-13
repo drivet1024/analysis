@@ -87,6 +87,19 @@
 
 
 
+    <section class="data-section" aria-labelledby="depot-title">
+      <div class="section-heading">
+        <div><p>Destination des colis EDI</p><h2 id="depot-title">Colis par dépôt</h2></div>
+        <span id="depot-period">Journée de 4 h à 4 h · D−7 à la même heure</span>
+      </div>
+      <div class="table-wrap"><table class="regions-table">
+        <thead><tr><th>Dépôt</th><th id="depot-current-label">Colis aujourd’hui</th><th>Colis D−7</th><th>Écart</th><th>Part du total</th></tr></thead>
+        <tbody id="depot-body"><tr><td colspan="5" class="empty-cell">Chargement des dépôts…</td></tr></tbody>
+        <tfoot id="depot-foot"></tfoot>
+      </table></div>
+      <details class="forecast-method"><summary>Sources et rattachement</summary><p>Même population que le compteur EDI : colis créés dans la journée de 4 h à 4 h, hors statuts 500 et 501. Destination déterminée par le code postal de l’expédition et le dépôt de location; à défaut, dépôt de fin de la route de destination, puis dépôt du secteur de destination. Les correspondances multiples sont regroupées dans « Destination ambiguë » et les destinations manquantes dans « Destination non déterminée ». Chaque colis contribue à une seule ligne. D−7 utilise la même plage horaire, sept jours plus tôt. Écart = colis de la journée − colis D−7. Le tableau se charge séparément pour laisser les compteurs EDI disponibles immédiatement.</p></details>
+    </section>
+
     <section class="data-section" aria-labelledby="week-title">
       <div class="section-heading">
         <div><p>Semaine analysée</p><h2 id="week-title">Colis par jour et budget</h2></div>
@@ -109,6 +122,6 @@
 
     <p class="method-note">Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
-  <script src="/edi.js?v=20260913-1" defer></script>
+  <script src="/edi.js?v=20260913-3" defer></script>
 </body>
 </html>
