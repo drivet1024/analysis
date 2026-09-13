@@ -237,7 +237,8 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
 #edi-map-canvas { height: min(65vh, 750px); min-height: 300px; width: 100%; border-radius: 10px; background: #dce6ed; }
 #edi-map-dialog .section-heading { flex-wrap: wrap; }
 #edi-map-canvas .edi-map-point, #edi-map-canvas .edi-map-cluster { background: transparent; border: 0; }
-#edi-map-canvas .edi-map-count { display: grid; place-items: center; box-sizing: border-box; width: 100%; height: 100%; margin: 0; padding: 0; border: 2px solid white; border-radius: 50%; color: white; font: 850 17px/1 system-ui,sans-serif; text-align: center; white-space: nowrap; text-shadow: 0 1px 2px #000b; box-shadow: 0 2px 6px #0008; }
+#edi-map-canvas .edi-map-count { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box; width: 100%; height: 100%; margin: 0; padding: 0; border: 2px solid white; border-radius: 50%; color: white; font: 850 17px/1 system-ui,sans-serif; text-align: center; white-space: nowrap; text-shadow: 0 1px 2px #000b; box-shadow: 0 2px 6px #0008; }
+#edi-map-canvas .edi-map-count .edi-map-sector { margin: 0; padding: 0; color: white; font: 750 11px/1.2 system-ui,sans-serif; }
 #edi-map-canvas .edi-map-cluster .edi-map-count { border-width: 3px; font-size: 19px; }
 #edi-map-canvas .leaflet-tooltip, #edi-map-canvas .leaflet-popup-content { color: #172633; }
 #edi-map-canvas .leaflet-control-zoom a { color: #172633; }

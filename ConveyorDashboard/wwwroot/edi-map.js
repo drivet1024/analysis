@@ -28,9 +28,10 @@
   }
   function countIcon(count, sector, clustered) {
     const label = number.format(count);
-    const size = Math.max(clustered ? 58 : 36, label.length * 11 + 16);
+    const sectorLabel = Number.isInteger(sector) && sector > 0 ? `Secteur ${sector}` : '';
+    const size = Math.max(clustered ? 58 : 36, label.length * 11 + 16, sectorLabel ? sectorLabel.length * 6 + 18 : 0);
     return globalThis.L.divIcon({
-      html: `<div class="edi-map-count" style="background:${sectorColor(sector)}">${label}</div>`,
+      html: `<div class="edi-map-count" style="background:${sectorColor(sector)}"><div>${label}</div>${sectorLabel ? `<div class="edi-map-sector">${sectorLabel}</div>` : ''}</div>`,
       className: clustered ? 'edi-map-cluster' : 'edi-map-point',
       iconSize: [size, size], iconAnchor: [size / 2, size / 2]
     });
