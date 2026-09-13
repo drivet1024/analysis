@@ -54,6 +54,10 @@ app.UseStaticFiles(new StaticFileOptions
     OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate",
 });
 
+app.MapGet("/api/deployment", () => Results.Ok(new {
+    DeployedAt = DateTimeOffset.TryParse(Environment.GetEnvironmentVariable("DEPLOYED_AT"), out var deployed) ? (DateTimeOffset?)deployed : null
+}));
+
 app.MapGet("/api/status", async (ConveyorDataService data, DashboardConfig settings) =>
 {
     try
@@ -176,6 +180,20 @@ app.MapGet("/api/edi/depots", async (string? date, EdiDepotService data, Cancell
     }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Les colis par dépôt sont indisponibles : {ex.Message}"); }
+});
+
+app.MapGet("/api/edi/depots/{depotId:int}/clients", async (int depotId, string? date, EdiDepotService data, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var today = CurrentOperationalDate(DateTime.Now);
+        var selected = ResolveAnalysisDate(date, today);
+        if (selected > today) return Results.BadRequest("La date ne peut pas être future.");
+        var result = await data.GetClientsAsync(selected, depotId, cancellationToken);
+        return result == null ? Results.NotFound("Dépôt absent de ce relevé.") : Results.Ok(result);
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Clients du dépôt indisponibles : {ex.Message}"); }
 });
 
 app.MapGet("/api/edi/clients", async (string? date, ConveyorDataService data) =>
