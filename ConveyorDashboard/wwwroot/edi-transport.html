@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Colis et estimation des palettes de transport par région.">
   <title>Nationex - EDI TRANSPORT</title>
-  <link rel="stylesheet" href="/edi.css?v=20260912-12">
+  <link rel="stylesheet" href="/edi.css?v=20260913-2">
 </head>
 <body data-edi-page="transport">
   <main class="shell">
@@ -53,6 +53,27 @@
 
     <div id="error-banner" class="error-banner" role="alert" hidden></div>
 
+    <section class="parcel-snapshot" aria-label="Comparaison des colis à la même heure">
+      <article class="snapshot-pill snapshot-today">
+        <div><span id="snapshot-today-label">Colis aujourd’hui</span><small id="snapshot-today-context">Depuis 4 h jusqu’à maintenant</small></div>
+        <strong id="snapshot-parcels-today">—</strong>
+      </article>
+      <article class="snapshot-pill snapshot-d7">
+        <div><span>Colis D−7</span><small id="snapshot-d7-context">Même période et même heure</small></div>
+        <strong id="snapshot-parcels-d7">—</strong>
+      </article>
+      <article class="snapshot-pill snapshot-final" aria-live="polite">
+        <div><span id="snapshot-final-label">Finale estimée aujourd’hui</span><small id="snapshot-final-context">Selon les colis déjà créés</small></div>
+        <strong id="snapshot-final-value">—</strong>
+      </article>
+    </section>
+    <details class="nowcast-details">
+      <summary>Comment est estimée la finale de journée ?</summary>
+      <p id="nowcast-explanation">Chargement des journées comparables…</p>
+      <p>Journée de 4 h à 4 h. On compare le même jour de semaine sur les 8 dernières semaines, hors fériés et période Cyber Monday. Les poids vont de 1 à N, du plus ancien au plus récent. Proportion reçue = somme pondérée des colis créés à la même heure ÷ somme pondérée des volumes finaux. Cette estimation se renouvelle avec la page toutes les 60 secondes; elle est distincte des prévisions quotidiennes archivées à 6 h.</p>
+      <div class="table-wrap"><table><thead><tr><th>Journée similaire</th><th>À la même heure</th><th>Total final</th><th>Proportion reçue</th><th>Poids</th></tr></thead><tbody id="nowcast-samples"></tbody></table></div>
+    </details>
+
     <section class="kpi-grid" aria-label="Résumé transport">
       <article class="kpi-card accent-blue"><span id="linehaul-parcels-label">Colis linehaul aujourd’hui</span><strong id="parcels-today">—</strong><small id="linehaul-parcels-context">Expéditions par région jusqu’à maintenant</small></article>
       <article class="kpi-card accent-green"><span id="linehaul-pallets-label">Palettes linehaul aujourd’hui</span><strong id="pallets-today">—</strong><small>Arrondi supérieur · 60 colis par palette</small></article>
@@ -96,6 +117,6 @@
     </section>
     <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes de référence sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
-  <script src="/edi.js?v=20260912-23" defer></script>
+  <script src="/edi.js?v=20260913-2" defer></script>
 </body>
 </html>

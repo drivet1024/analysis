@@ -432,6 +432,17 @@ function renderNowcast(nowcast) {
     : '<tr><td colspan="5" class="empty-cell">Aucune journée comparable utilisée.</td></tr>';
 }
 
+function renderParcelSnapshot(data) {
+  const isToday = selectedAnalysisDate === currentEdiDate();
+  const selectedDateLabel = formatDate(selectedAnalysisDate);
+  $('snapshot-today-label').textContent = isToday ? 'Colis aujourd’hui' : `Colis · ${selectedDateLabel}`;
+  $('snapshot-today-context').textContent = isToday ? 'Depuis 4 h jusqu’à maintenant' : 'Journée complète · 4 h à 4 h';
+  $('snapshot-d7-context').textContent = isToday ? 'Même période et même heure' : 'Même journée, sept jours plus tôt';
+  renderNowcast(data.nowcast);
+  $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);
+  $('snapshot-parcels-d7').textContent = number.format(data.parcelsLastWeekSameTime || 0);
+}
+
 function render(data) {
   const regions = data.regions || [];
   const days = data.days || [];
@@ -468,6 +479,7 @@ function render(data) {
   }
 
   if (TRANSPORT_PAGE) {
+    renderParcelSnapshot(data);
     $('linehaul-parcels-label').textContent = isToday ? 'Colis linehaul aujourd’hui' : 'Colis linehaul · ' + selectedDateLabel;
     $('linehaul-pallets-label').textContent = isToday ? 'Palettes linehaul aujourd’hui' : 'Palettes linehaul · ' + selectedDateLabel;
     $('linehaul-parcels-context').textContent = isToday ? 'Expéditions par région jusqu’à maintenant' : 'Expéditions par région pour la journée';
@@ -483,13 +495,8 @@ function render(data) {
     return;
   }
 
-  $('snapshot-today-label').textContent = isToday ? 'Colis aujourd’hui' : `Colis · ${selectedDateLabel}`;
-  $('snapshot-today-context').textContent = isToday ? 'Depuis 4 h jusqu’à maintenant' : 'Journée complète · 4 h à 4 h';
-  $('snapshot-d7-context').textContent = isToday ? 'Même période et même heure' : 'Même journée, sept jours plus tôt';
-  renderNowcast(data.nowcast);
+  renderParcelSnapshot(data);
   renderWeek(days, Number(data.weeklyBudget || 0), selectedAnalysisDate);
-  $('snapshot-parcels-today').textContent = number.format(data.parcelsTodaySnapshot || 0);
-  $('snapshot-parcels-d7').textContent = number.format(data.parcelsLastWeekSameTime || 0);
   $('week-range').textContent = `${formatDate(data.weekStart)} au ${formatDate(data.weekEnd)}`;
   $('database-time').textContent = formatTime(data.databaseNow);
   $('last-refresh').textContent = `Actualisé à ${formatTime(data.databaseNow)}`;
@@ -504,9 +511,19 @@ async function load(snapshotId) {
     const query = new URLSearchParams({ date: selectedAnalysisDate, t: Date.now().toString() });
     if (FORECAST_PAGE && snapshotId) query.set('version', snapshotId);
     const endpoint = DELIVERY_PAGE ? '/api/edi/sectors' : FORECAST_PAGE ? '/api/edi/forecasts' : CLIENT_PAGE ? '/api/edi/clients' : TRANSPORT_PAGE ? '/api/edi/transport' : '/api/edi';
-    const response = await fetch(`${endpoint}?${query}`, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`Réponse ${response.status}`);
-    const data = await response.json();
+    const readData = async (path) => {
+      const response = await fetch(path + '?' + query, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Réponse ' + response.status);
+      return response.json();
+    };
+    const [pageData, snapshotData] = await Promise.all([
+      readData(endpoint), TRANSPORT_PAGE ? readData('/api/edi') : Promise.resolve(null)
+    ]);
+    const data = snapshotData ? { ...pageData,
+      parcelsTodaySnapshot: snapshotData.parcelsTodaySnapshot,
+      parcelsLastWeekSameTime: snapshotData.parcelsLastWeekSameTime,
+      nowcast: snapshotData.nowcast
+    } : pageData;
     if (version !== requestVersion) return;
     if (DELIVERY_PAGE) {
       renderSectors(data);
