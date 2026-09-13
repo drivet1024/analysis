@@ -44,15 +44,16 @@ static class EdiForecast
                 samples.Length == 0 ? null : samples.Max(d => d.Parcels), samples, holiday, recent, annual);
         }
 
-        var days = Enumerable.Range(1, 7).Select(offset => Predict(asOf.AddDays(offset), asOf)).ToArray();
+        var firstOffset = sectorDelivery ? 1 : 0;
+        var days = Enumerable.Range(firstOffset, 7).Select(offset => Predict(asOf.AddDays(offset), asOf)).ToArray();
         double error = 0, actual = 0, baselineError = 0, comparedActual = 0, seasonalComparedError = 0;
         var compared = 0;
         var tested = 0;
-        // Four historical seven-day horizons, with the same one-day gap as the live forecast.
+        // Four historical horizons with the same start offset as the live forecast.
         for (var week = 0; week < 4; week++)
         {
-            var cutoff = asOf.AddDays(-29 + 7 * week);
-            for (var offset = 1; offset <= 7; offset++)
+            var cutoff = asOf.AddDays(-28 - firstOffset + 7 * week);
+            for (var offset = firstOffset; offset < firstOffset + 7; offset++)
             {
                 var prediction = Predict(cutoff.AddDays(offset), cutoff);
                 if (prediction.Parcels is not long value || !known.TryGetValue(prediction.Date, out var observed)) continue;

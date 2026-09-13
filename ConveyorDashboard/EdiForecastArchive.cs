@@ -13,7 +13,7 @@ sealed record EdiForecastActuals(DateOnly AsOfDate, DateTimeOffset UpdatedAt, IR
 
 sealed class EdiForecastArchive(IWebHostEnvironment environment)
 {
-    public const string ModelVersion = "weekday-annual-v3-cyber-monday";
+    public const string ModelVersion = "weekday-annual-v4-today-cyber-monday";
     private readonly string directory = Environment.GetEnvironmentVariable("EDI_FORECAST_PATH")
         ?? Path.Combine(environment.ContentRootPath, "App_Data", "edi-forecasts");
     private readonly SemaphoreSlim gate = new(1, 1);
@@ -84,7 +84,7 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment)
         {
             var now = LocalNow;
             var due = DueDate(now);
-            var id = $"{due:yyyy-MM-dd}-v3";
+            var id = $"{due:yyyy-MM-dd}-v4";
             var existing = Read().FirstOrDefault(s => s.Id == id);
             if (existing != null) return existing;
             // Do not invent a 6 am snapshot if the service starts later: save the actual timestamp.
@@ -117,9 +117,14 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment)
         var byDate = actuals.ToDictionary(d => d.Date);
         var rows = snapshots.Take(30).SelectMany(snapshot => snapshot.Forecast.Days.Select(day =>
         {
-            // A forecast saved after the target day started cannot be scored as a future forecast.
+            // V4 deliberately forecasts day zero at 6am using only prior completed days.
+            // Legacy versions retain their original pre-day eligibility rule.
             var savedLocal = TimeZoneInfo.ConvertTime(snapshot.SavedAt, Zone).DateTime;
-            long? actual = day.Date < operationalDate && savedLocal < day.Date.ToDateTime(new TimeOnly(4, 0))
+            var sameDayForecast = snapshot.ModelVersion == ModelVersion && snapshot.ScheduledDate == day.Date
+                && snapshot.Forecast.AsOfDate == day.Date
+                && savedLocal >= day.Date.ToDateTime(new TimeOnly(6, 0))
+                && savedLocal < day.Date.AddDays(1).ToDateTime(new TimeOnly(4, 0));
+            long? actual = day.Date < operationalDate && (savedLocal < day.Date.ToDateTime(new TimeOnly(4, 0)) || sameDayForecast)
                 && byDate.TryGetValue(day.Date, out var observed) ? observed.Parcels : null;
             long? difference = actual.HasValue && day.Parcels.HasValue ? actual.Value - day.Parcels.Value : null;
             return new EdiForecastComparison(snapshot.Id, snapshot.SavedAt, snapshot.ModelVersion, day.Date,

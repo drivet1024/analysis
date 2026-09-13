@@ -77,8 +77,8 @@ Check(EdiNowcast.Build(monday, monday.ToDateTime(new TimeOnly(15, 0)), 4000, hol
 var history = Enumerable.Range(1, 84).Select(i => new EdiHistoryDay(asOf.AddDays(-i),
     100 + (int)asOf.AddDays(-i).DayOfWeek * 10)).ToArray();
 var forecast = EdiForecast.Build(asOf, history);
-Check(forecast.Days.Count == 7 && forecast.Days[0].Date == asOf.AddDays(1)
-    && forecast.Days[6].Date == asOf.AddDays(7), "Seven days after analysis date");
+Check(forecast.Days.Count == 7 && forecast.Days[0].Date == asOf
+    && forecast.Days[6].Date == asOf.AddDays(6), "Today plus six days");
 Check(forecast.Days.All(d => d.Parcels == 100 + (int)d.Date.DayOfWeek * 10), "Weekly seasonality");
 Check(forecast.BacktestDays == 27 && forecast.BacktestMae == 0 && forecast.BacktestWape == 0, "Historical evaluation excludes Labour Day");
 Check(forecast.Total == forecast.Days.Sum(d => d.Parcels), "Total reconciles");
@@ -99,7 +99,7 @@ Check(EdiHolidayCalendar.Name(new DateOnly(2026, 4, 3)) == "Vendredi saint"
     && EdiHolidayCalendar.Name(new DateOnly(2026, 4, 6)) == "Lundi de Pâques"
     && EdiHolidayCalendar.Name(new DateOnly(2026, 5, 18)) != null, "Movable holidays");
 var holidayFuture = EdiForecast.Build(new DateOnly(2026, 9, 6), history);
-Check(holidayFuture.Days[0].Holiday != null && holidayFuture.Days[0].Parcels == null && holidayFuture.Total == null, "Future holiday must not receive an ordinary estimate");
+Check(holidayFuture.Days[1].Holiday != null && holidayFuture.Days[1].Parcels == null && holidayFuture.Total == null, "Future holiday must not receive an ordinary estimate");
 Check(EdiForecastArchive.DueDate(new DateTime(2026, 9, 12, 5, 59, 59)) == asOf.AddDays(-1)
     && EdiForecastArchive.DueDate(new DateTime(2026, 9, 12, 6, 0, 0)) == asOf, "6 am boundary");
 Check(EdiForecastArchive.NextRefresh(new DateTime(2026, 3, 7, 12, 0, 0)).Offset == TimeSpan.FromHours(-4)
@@ -114,7 +114,7 @@ var annualHistory = Enumerable.Range(1, 455).Select(i => new EdiHistoryDay(asOf.
 var annualForecast = EdiForecast.Build(asOf, annualHistory);
 Check(annualForecast.Days.All(d => d.Annual?.GrowthFactor == 2 && d.Parcels == 200), "Annual growth is normalized before blending");
 var seasonalReference = asOf.AddDays(7 - 364);
-var seasonalShape = EdiForecast.Build(asOf, annualHistory.Select(d =>
+var seasonalShape = EdiForecast.Build(asOf.AddDays(1), annualHistory.Select(d =>
     new[] { seasonalReference.AddDays(-7), seasonalReference, seasonalReference.AddDays(7) }.Contains(d.Date)
         ? d with { Parcels = 300 } : d).ToArray());
 Check(seasonalShape.Days[6].Parcels == 400 && seasonalShape.Days[6].Annual!.GrowthFactor == 2,
@@ -123,10 +123,10 @@ var cyberAsOf = new DateOnly(2026, 11, 29);
 var cyberHistory = Enumerable.Range(1, 455).Select(i => cyberAsOf.AddDays(-i)).Select(date =>
     new EdiHistoryDay(date, date == new DateOnly(2025, 12, 1) ? 1000 : date.Year == 2026 ? 200 : 100)).ToArray();
 var cyberForecast = EdiForecast.Build(cyberAsOf, cyberHistory);
-Check(cyberForecast.Days[0].Parcels == 2000 && cyberForecast.Days[0].Annual?.Weight == 1,
+Check(cyberForecast.Days[1].Parcels == 2000 && cyberForecast.Days[1].Annual?.Weight == 1,
     "Cyber Monday peak is scaled and never diluted by ordinary Mondays");
 var missingCyber = EdiForecast.Build(cyberAsOf, cyberHistory.Where(d => d.Date != new DateOnly(2025, 12, 1)).ToArray());
-Check(missingCyber.Days[0].Parcels == null, "Missing prior Cyber Monday is explicitly unavailable");
+Check(missingCyber.Days[1].Parcels == null, "Missing prior Cyber Monday is explicitly unavailable");
 var futurePoisoned = EdiForecast.Build(cyberAsOf, cyberHistory.Concat(new[] { new EdiHistoryDay(cyberAsOf.AddDays(1), 9999999) }).ToArray());
 Check(futurePoisoned.Total == cyberForecast.Total, "Annual calculations exclude future observations");
 Check(annualForecast.Days.All(d => d.Annual!.References.All(r => r.Date < asOf)), "Annual references are always prior observations");
@@ -198,6 +198,19 @@ try
     var compared = view.Comparisons.Single(r => r.SnapshotId == "prior-test");
     Check(compared.Actual == 125 && compared.Difference == 25 && compared.ErrorPercent == 20, "Archived forecasts compared with completed actuals");
     Check(view.Comparisons.Single(r => r.SnapshotId == "late-test").Actual == null, "Late-created forecasts cannot be scored");
+    var targetStart = target.ToDateTime(new TimeOnly(6, 0));
+    var targetSaved = new DateTimeOffset(targetStart, TimeZoneInfo.FindSystemTimeZoneById("America/Toronto").GetUtcOffset(targetStart));
+    var sameDay = old with { Id = "same-day-v4", ScheduledDate = target, SavedAt = targetSaved,
+        Forecast = old.Forecast with { AsOfDate = target } };
+    var legacySameDay = sameDay with { Id = "same-day-v3", ModelVersion = "weekday-annual-v3-cyber-monday" };
+    var afterDay = sameDay with { Id = "after-day-v4", SavedAt = targetSaved.AddHours(22) };
+    foreach (var snapshot in new[] { sameDay, legacySameDay, afterDay })
+        File.WriteAllText(Path.Combine(temp, snapshot.Id + ".json"), System.Text.Json.JsonSerializer.Serialize(snapshot, json));
+    var dayZeroView = restarted.View(today, new[] { new EdiHistoryDay(target, 125) });
+    Check(dayZeroView.Comparisons.Single(r => r.SnapshotId == sameDay.Id).Actual == 125
+        && dayZeroView.Comparisons.Single(r => r.SnapshotId == sameDay.Id).Horizon == 0, "6am day-zero forecast compares against completed actuals");
+    Check(dayZeroView.Comparisons.Single(r => r.SnapshotId == legacySameDay.Id).Actual == null, "Legacy day eligibility stays unchanged");
+    Check(dayZeroView.Comparisons.Single(r => r.SnapshotId == afterDay.Id).Actual == null, "No comparison for reconstruction after day closes");
     Check(bytes.SequenceEqual(File.ReadAllBytes(path)), "Comparison never rewrites prediction");
     var readsBeforeActuals = source.Reads;
     await Task.WhenAll(Enumerable.Range(0, 3).Select(_ => archive.EnsureActualsAsync(source)));

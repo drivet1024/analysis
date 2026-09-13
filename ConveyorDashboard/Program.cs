@@ -145,8 +145,8 @@ app.MapGet("/api/edi/forecasts", (string? date, string? version, EdiForecastArch
         var forecast = view.Snapshot?.Forecast;
         return Results.Ok(new {
             ExecutionDate = selected, Forecast = forecast, ForecastArchive = view,
-            WeekStart = forecast?.Days.FirstOrDefault()?.Date ?? selected.AddDays(1),
-            WeekEnd = forecast?.Days.LastOrDefault()?.Date ?? selected.AddDays(7),
+            WeekStart = forecast?.Days.FirstOrDefault()?.Date ?? selected,
+            WeekEnd = forecast?.Days.LastOrDefault()?.Date ?? selected.AddDays(6),
             DatabaseNow = actuals?.UpdatedAt ?? view.Snapshot?.SavedAt,
             ActualsPending = actuals == null || actuals.AsOfDate < EdiForecastArchive.DueDate(now)
         });
