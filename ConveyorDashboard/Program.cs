@@ -35,7 +35,6 @@ builder.Services.AddHttpClient<OpenAiAnalysisService>(client =>
 .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { UseProxy = !HasDiscardProxy() });
 
 var app = builder.Build();
-EdiArchiveRecovery.Map(app);
 app.Use(async (context, next) =>
 {
     if (!context.Request.Path.StartsWithSegments("/api"))
