@@ -406,8 +406,8 @@ function sectorActualLine(row, date) {
   if (!actual) return '';
   if (actual.parcels == null) return '<small class="sector-actual">Réel : ' + (actual.status === 'future' ? 'à venir' : 'indisponible') + '</small>';
   const forecast = row.forecast.days.find(day => day.date === date)?.parcels;
-  const difference = forecast == null ? '' : ' · écart ' + (actual.parcels - forecast > 0 ? '+' : '') + number.format(actual.parcels - forecast);
-  return '<small class="sector-actual">Réel : ' + number.format(actual.parcels) + difference + '</small>';
+  const difference = forecast == null ? '' : ' · ' + (actual.parcels - forecast > 0 ? '+' : '') + number.format(actual.parcels - forecast);
+  return '<small class="sector-actual has-value">Réel : ' + number.format(actual.parcels) + difference + '</small>';
 }
 
 function renderSectors(data) {
