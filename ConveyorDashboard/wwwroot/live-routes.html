@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des convoyeurs Nationex par dépôt.">
   <title>Nationex - Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260913-1">
+  <link rel="stylesheet" href="/live-routes.css?v=20260913-2">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body>
@@ -125,13 +125,11 @@
     </div>
 
     <section id="conveyor-tab" class="tab-panel conveyor-tab-panel" role="tabpanel" aria-labelledby="conveyor-tab-button" hidden>
-      <div class="section-heading conveyor-heading">
-        <div><p id="conveyor-shift-kicker" class="section-kicker">Quart de 16:00 à 03:59</p><h2>Données convoyeur · <span id="conveyor-depot-heading">Saint-Hubert</span></h2></div>
-      </div>
       <button id="conveyor-efficiency-card" class="conveyor-efficiency-card" type="button" aria-haspopup="dialog" aria-controls="conveyor-efficiency-dialog">
         <span class="conveyor-efficiency-copy"><span class="section-kicker">Tous les convoyeurs automatisés</span><strong>Efficacité du mois courant</strong><small id="conveyor-efficiency-context">Calcul mensuel en cours…</small></span>
         <span class="conveyor-efficiency-value"><strong id="conveyor-efficiency-rate">— %</strong><small>Voir la tendance sur 12 mois <span aria-hidden="true">→</span></small></span>
       </button>
+      <p id="conveyor-shift-kicker" class="section-kicker conveyor-shift-divider">Quart de 16:00 à 03:59</p>
       <div id="conveyor-pill-grid" class="conveyor-pill-grid" aria-live="polite">
         <article id="conveyor-high-card" class="conveyor-pill conveyor-pill-high"><span id="conveyor-high-label">Convoyeur du haut</span><div class="conveyor-pill-content"><div class="conveyor-pill-volume"><strong id="conveyor-high-total">—</strong><small id="conveyor-high-average-stat" class="historical-conveyor-stat" hidden><b id="conveyor-high-average">—</b></small></div><div class="conveyor-pill-times"><small>Début <b id="conveyor-high-start">—</b></small><small id="conveyor-high-end-stat" class="historical-conveyor-stat" hidden>Fin <b id="conveyor-high-end">—</b></small><small id="conveyor-high-duration-stat" class="historical-conveyor-stat" hidden>Durée <b id="conveyor-high-duration">—</b></small></div></div></article>
         <article id="conveyor-floor-card" class="conveyor-pill conveyor-pill-floor"><span>Convoyeur du bas</span><div class="conveyor-pill-content"><div class="conveyor-pill-volume"><strong id="conveyor-floor-total">—</strong><small id="conveyor-floor-average-stat" class="historical-conveyor-stat" hidden><b id="conveyor-floor-average">—</b></small></div><div class="conveyor-pill-times"><small>Début <b id="conveyor-floor-start">—</b></small><small id="conveyor-floor-end-stat" class="historical-conveyor-stat" hidden>Fin <b id="conveyor-floor-end">—</b></small><small id="conveyor-floor-duration-stat" class="historical-conveyor-stat" hidden>Durée <b id="conveyor-floor-duration">—</b></small></div></div></article>
@@ -229,7 +227,7 @@
     </div>
   </dialog>
 
-  <script src="/live-routes.js?v=20260913-1" defer></script>
+  <script src="/live-routes.js?v=20260913-2" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>

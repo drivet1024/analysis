@@ -26,6 +26,9 @@ assert.equal(august.efficiencyPercent, 87.893);
 
 assert(html.includes('id="conveyor-efficiency-card"'));
 assert(html.includes('id="conveyor-efficiency-dialog"'));
+assert(!html.includes('id="conveyor-depot-heading"'), 'The redundant conveyor section title is removed');
+assert(html.indexOf('id="conveyor-efficiency-card"') < html.indexOf('id="conveyor-shift-kicker"'));
+assert(html.indexOf('id="conveyor-shift-kicker"') < html.indexOf('id="conveyor-pill-grid"'), 'The shift label sits between the two pill rows');
 assert(script.includes('function efficiencyCurve(points)'));
 assert(script.includes("if (tabId === 'conveyor-tab') loadConveyorEfficiency()"), 'Efficiency is loaded lazily on the conveyor tab');
 const liveRefreshBody = script.match(/async function loadConveyorData[\s\S]*?\n}\n\nasync function load\(\)/)?.[0] || '';

@@ -43,7 +43,6 @@ function applyDepotSelection(depotKey, reload = true) {
   const depot = DEPOTS[depotKey];
   $('depot-select').value = depotKey;
   $('depot-heading').textContent = depot.name;
-  $('conveyor-depot-heading').textContent = depot.name;
   $('conveyor-shift-kicker').textContent = `Quart de ${String(depot.startHour).padStart(2, '0')}:00 à ${String((depot.endHour + 23) % 24).padStart(2, '0')}:59`;
   $('conveyor-high-label').textContent = depot.hasFloor ? 'Convoyeur du haut' : 'Convoyeur';
   $('hourly-high-title').textContent = depot.hasFloor ? 'Convoyeur du haut' : 'Convoyeur';

@@ -50,7 +50,7 @@ h2 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -
 .dashboard-tab:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .tab-panel[hidden] { display: none; }
 .conveyor-tab-panel { padding-top: 20px; }
-.conveyor-heading { margin-bottom: 12px; }
+.conveyor-shift-divider { margin: 16px 4px 10px; }
 .conveyor-efficiency-card { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: 100%; margin-bottom: 12px; padding: 18px 24px; border: 1px solid rgba(56, 220, 154, .5); border-radius: 22px; background: radial-gradient(circle at 88% 0%, rgba(56, 220, 154, .16), transparent 32rem), linear-gradient(135deg, rgba(14, 36, 39, .96), rgba(14, 26, 36, .96)); color: var(--text); box-shadow: var(--shadow); cursor: pointer; text-align: left; transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
 .conveyor-efficiency-card:hover { border-color: var(--green); transform: translateY(-1px); box-shadow: 0 24px 75px rgba(0, 0, 0, .34), 0 0 0 1px rgba(56, 220, 154, .12); }
 .conveyor-efficiency-card:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
