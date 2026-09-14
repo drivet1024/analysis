@@ -35,11 +35,13 @@ assert(script.includes("if (tabId === 'conveyor-tab') loadConveyorEfficiency()")
 const liveRefreshBody = script.match(/async function loadConveyorData[\s\S]*?\n}\n\nasync function load\(\)/)?.[0] || '';
 assert(!liveRefreshBody.includes('/api/conveyor-efficiency'), 'The monthly KPI is absent from the ten-second live refresh');
 assert(service.includes('CONVEYOR_EFFICIENCY_PATH'));
-assert(service.includes('CurrentCalculationVersion = 5'), 'The service requests the cross-depot measurement policy');
+assert(service.includes('CurrentCalculationVersion = 6'), 'The service requests the parcel-wide floor-conveyor exemption');
 assert(service.includes('SaveSnapshotAsync(cached'), 'The daily result is persisted');
 assert(service.includes('measurement_resolution'));
 assert(service.includes('ph.SOURCE_TYPE IN (200,201)'), 'Manual and automated parcel-history measurements supplement scanner data');
-assert(service.includes("pr.conveyor_key='sth-floor' OR COALESCE(pm.has_dimensions,0)"), 'Floor-conveyor parcels do not require dimensions');
+assert(service.includes("(ph.DEPOT_ID=1 AND ph.SOURCE_TYPE=200 AND ph.SOURCE_ID=3) is_floor_pass"), 'Floor-conveyor passes are recovered from parcel history');
+assert(service.includes("(conveyor_key='sth-floor') is_floor_pass"), 'Floor-conveyor passes are recovered from scanner history');
+assert(service.includes('COALESCE(pm.has_floor_pass,0) OR COALESCE(pm.has_dimensions,0)'), 'A floor pass waives dimensions on every later conveyor pass');
 assert(service.includes('COALESCE(pm.has_weight,0)'), 'Weight can be recovered from another automated pass');
 assert(service.includes('history_measurement'), 'Parcel history supplements scanner measurements from other depots');
 assert(service.includes('measurement_observation'), 'Measurements are combined before completeness is evaluated');

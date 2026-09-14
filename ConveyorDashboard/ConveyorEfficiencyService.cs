@@ -27,7 +27,7 @@ sealed record ConveyorEfficiencySnapshot(
 
 sealed class ConveyorEfficiencyService
 {
-    private const int CurrentCalculationVersion = 5;
+    private const int CurrentCalculationVersion = 6;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private readonly DashboardConfig config;
     private readonly ILogger<ConveyorEfficiencyService> logger;
@@ -98,7 +98,7 @@ sealed class ConveyorEfficiencyService
                 "Un résultat est problématique s'il contient un non-lu caméra, une chute 16 ou 98, une recirculation, ou une mesure manquante requise pour la facturation.",
                 "Les mesures obtenues au scan manuel complètent celles des convoyeurs; hors convoyeur du sol, le colis doit avoir un poids et ses trois dimensions au total.",
                 "Le poids et chacune des trois dimensions peuvent provenir de passages automatisés différents et de dépôts différents pour le même colis pendant le mois analysé et les sept jours qui l'entourent.",
-                "Les dimensions manquantes sur le convoyeur du sol de Saint-Hubert sont exclues; le poids demeure requis lorsque le colis est facturé au poids.",
+                "Dès qu'un colis passe sur le convoyeur du sol de Saint-Hubert, ses dimensions manquantes sont exclues pour tous ses passages ultérieurs, peu importe le dépôt; le poids demeure requis lorsque le colis est facturé au poids.",
                 "Une mesure est requise lorsqu'une ligne regul_weight_chg correspond au compte client et à la zone LOC_NAT_ZONE_ID du code postal de destination.",
                 "Un résultat cumulant plusieurs problèmes compte une seule fois. Gilmore ne produit pas de mesures et n'est pas pénalisé pour le poids ou les dimensions.",
             ]);
@@ -173,7 +173,8 @@ sealed class ConveyorEfficiencyService
                 WHERE operational_date>=@monthStart AND operational_date<@monthEnd
             ),
             history_measurement AS (
-                SELECT ph.PARCEL_ID parcel_id,ph.WEIGHT weight,ph.LENGTH l,ph.WIDTH w,ph.HEIGHT h
+                SELECT ph.PARCEL_ID parcel_id,ph.WEIGHT weight,ph.LENGTH l,ph.WIDTH w,ph.HEIGHT h,
+                       (ph.DEPOT_ID=1 AND ph.SOURCE_TYPE=200 AND ph.SOURCE_ID=3) is_floor_pass
                 FROM parcel_history PARTITION ({partitionNames}) ph
                 JOIN (SELECT DISTINCT parcel_id FROM ranked WHERE parcel_id IS NOT NULL AND parcel_id<>0) scope
                   ON scope.parcel_id=ph.PARCEL_ID
@@ -188,15 +189,16 @@ sealed class ConveyorEfficiencyService
                   AND ph.DATE_LIV<@scanEnd
             ),
             measurement_observation AS (
-                SELECT parcel_id,weight,l,w,h FROM automated_scans
+                SELECT parcel_id,weight,l,w,h,(conveyor_key='sth-floor') is_floor_pass FROM automated_scans
                 WHERE parcel_id IS NOT NULL AND parcel_id<>0
                 UNION ALL
-                SELECT parcel_id,weight,l,w,h FROM history_measurement
+                SELECT parcel_id,weight,l,w,h,is_floor_pass FROM history_measurement
             ),
             measurement_resolution AS (
                 SELECT parcel_id,
                        MAX(weight>0) has_weight,
-                       (MAX(l>0) AND MAX(w>0) AND MAX(h>0)) has_dimensions
+                       (MAX(l>0) AND MAX(w>0) AND MAX(h>0)) has_dimensions,
+                       MAX(is_floor_pass) has_floor_pass
                 FROM measurement_observation
                 GROUP BY parcel_id
             ),
@@ -229,11 +231,11 @@ sealed class ConveyorEfficiencyService
                        pz.zone_id,
                        wc.BILLING_ACCOUNT IS NOT NULL billed_by_weight,
                        (COALESCE(pm.has_weight,0) AND
-                        (pr.conveyor_key='sth-floor' OR COALESCE(pm.has_dimensions,0))) measurement_resolved,
+                        (COALESCE(pm.has_floor_pass,0) OR COALESCE(pm.has_dimensions,0))) measurement_resolved,
                        (pr.operational_issue OR
                          (pr.supports_measurements AND wc.BILLING_ACCOUNT IS NOT NULL AND
                           NOT (COALESCE(pm.has_weight,0) AND
-                               (pr.conveyor_key='sth-floor' OR COALESCE(pm.has_dimensions,0))))) is_problem
+                               (COALESCE(pm.has_floor_pass,0) OR COALESCE(pm.has_dimensions,0))))) is_problem
                 FROM parcel_rollup pr
                 LEFT JOIN measurement_resolution pm ON pm.parcel_id=pr.parcel_id
                 LEFT JOIN parcel_ref pref ON pref.PARCEL_ID=pr.parcel_id
