@@ -8,8 +8,9 @@ sealed record EdiForecastSnapshot(string Id, DateTimeOffset SavedAt, DateOnly Sc
 sealed record EdiForecastComparison(string SnapshotId, DateTimeOffset SavedAt, string ModelVersion,
     DateOnly Date, int Horizon, long? Predicted, long? Actual, long? Difference, double? ErrorPercent,
     long? MlPredicted = null, long? MlDifference = null, double? MlErrorPercent = null);
+sealed record EdiForecastPriorDay(EdiForecastDay Day, EdiMlForecastDay? MlDay, EdiForecastComparison Comparison);
 sealed record EdiForecastArchiveView(EdiForecastSnapshot? Snapshot, DateTimeOffset NextRefresh,
-    string Mode, IReadOnlyList<EdiForecastComparison> Comparisons, bool RefreshPending);
+    string Mode, IReadOnlyList<EdiForecastComparison> Comparisons, bool RefreshPending, EdiForecastPriorDay? PreviousDay);
 sealed record EdiForecastActuals(DateOnly AsOfDate, DateTimeOffset UpdatedAt, IReadOnlyList<EdiHistoryDay> Days);
 
 sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastService? mlForecast = null)
@@ -138,8 +139,15 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastSe
                 mlPredicted, mlDifference,
                 actual > 0 && mlDifference.HasValue ? Math.Round(Math.Abs((double)mlDifference.Value) / actual.Value * 100, 1) : null);
         })).OrderByDescending(r => r.Date).ThenByDescending(r => r.SavedAt).ToArray();
+        var previousDate = analysisDate.AddDays(-1);
+        var previousComparison = rows.Where(row => row.Date == previousDate && row.Actual.HasValue)
+            .OrderByDescending(row => row.SavedAt).FirstOrDefault();
+        var previousSnapshot = previousComparison == null ? null : snapshots.FirstOrDefault(snapshot => snapshot.Id == previousComparison.SnapshotId);
+        var previousDay = previousSnapshot?.Forecast.Days.FirstOrDefault(day => day.Date == previousDate);
+        var previous = previousComparison == null || previousDay == null ? null : new EdiForecastPriorDay(previousDay,
+            previousSnapshot?.MlForecast?.Days.FirstOrDefault(day => day.Date == previousDate), previousComparison);
         return new(selected, NextRefresh(now), selected == null ? "Reconstitution non archivée" : "Prévision sauvegardée", rows,
-            analysisDate == operationalDate && (selected == null || selected.ScheduledDate < DueDate(now) || selected.ModelVersion != ModelVersion));
+            analysisDate == operationalDate && (selected == null || selected.ScheduledDate < DueDate(now) || selected.ModelVersion != ModelVersion), previous);
     }
 }
 

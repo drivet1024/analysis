@@ -267,6 +267,21 @@ try
         && dayZeroView.Comparisons.Single(r => r.SnapshotId == sameDay.Id).Horizon == 0, "6am day-zero forecast compares against completed actuals");
     Check(dayZeroView.Comparisons.Single(r => r.SnapshotId == legacySameDay.Id).Actual == null, "Legacy day eligibility stays unchanged");
     Check(dayZeroView.Comparisons.Single(r => r.SnapshotId == afterDay.Id).Actual == null, "No comparison for reconstruction after day closes");
+    var yesterday = today.AddDays(-1);
+    var priorSavedLocal = yesterday.AddDays(-1).ToDateTime(new TimeOnly(6, 0));
+    var priorSnapshot = old with { Id = "previous-day-test", ScheduledDate = yesterday.AddDays(-1),
+        SavedAt = new DateTimeOffset(priorSavedLocal, TimeZoneInfo.FindSystemTimeZoneById("America/Toronto").GetUtcOffset(priorSavedLocal)),
+        ModelVersion = EdiForecastArchive.ModelVersion,
+        Forecast = old.Forecast with { AsOfDate = yesterday.AddDays(-1), Days = new[] {
+            new EdiForecastDay(yesterday, "veille", 300, 250, 350, Array.Empty<EdiForecastSample>()) } },
+        MlForecast = old.MlForecast! with { Days = new[] { new EdiMlForecastDay(yesterday, "veille", 310, "Prévision LightGBM") } } };
+    File.WriteAllText(Path.Combine(temp, priorSnapshot.Id + ".json"), System.Text.Json.JsonSerializer.Serialize(priorSnapshot, json));
+    var previousDayView = restarted.View(today, new[] { new EdiHistoryDay(yesterday, 321) });
+    Check(previousDayView.PreviousDay?.Day.Date == yesterday
+        && previousDayView.PreviousDay.Comparison.Predicted == 300
+        && previousDayView.PreviousDay.Comparison.Actual == 321
+        && previousDayView.PreviousDay.MlDay?.Parcels == 310,
+        "Current forecast view includes yesterday from its latest eligible archived prediction");
     Check(bytes.SequenceEqual(File.ReadAllBytes(path)), "Comparison never rewrites prediction");
     var readsBeforeActuals = source.Reads;
     await Task.WhenAll(Enumerable.Range(0, 3).Select(_ => archive.EnsureActualsAsync(source)));

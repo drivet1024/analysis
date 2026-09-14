@@ -66,7 +66,13 @@
     snapshot = archive?.snapshot || null;
     const comparisons = new Map((archive?.comparisons || []).filter(row => row.snapshotId === snapshot?.id).map(row => [row.date, row]));
     const mlDays = new Map((snapshot?.mlForecast?.days || []).map(day => [day.date, day]));
-    rows = (forecast?.days || []).map(day => ({ label: dateLabel.format(new Date(day.date + 'T12:00:00')),
+    const days = [...(forecast?.days || [])];
+    if (archive?.previousDay?.day && !days.some(day => day.date === archive.previousDay.day.date)) {
+      days.unshift(archive.previousDay.day);
+      comparisons.set(archive.previousDay.day.date, archive.previousDay.comparison);
+      if (archive.previousDay.mlDay) mlDays.set(archive.previousDay.day.date, archive.previousDay.mlDay);
+    }
+    rows = days.map(day => ({ label: dateLabel.format(new Date(day.date + 'T12:00:00')),
       predicted: day.parcels, mlPredicted: mlDays.get(day.date)?.parcels ?? null,
       actual: comparisons.get(day.date)?.actual ?? null, low: day.historicalLow, high: day.historicalHigh }));
     if (button) button.disabled = !rows.length;

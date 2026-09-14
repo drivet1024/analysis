@@ -341,9 +341,17 @@ function renderForecast(forecast, archive) {
     : saved?.modelVersion === 'weekday-weighted-v1-with-holidays' ? 'Archive initiale : les jours fériés étaient encore inclus.' : 'Aucun jour férié observé dans cet historique.';
   const comparisons = (archive?.comparisons || []).filter(row => row.snapshotId === saved?.id);
   const byDate = new Map(comparisons.map(row => [row.date, row]));
-  forecast.days.forEach((day) => {
+  const mlByDisplayDate = new Map(mlByDate);
+  const previousDay = archive?.previousDay;
+  const displayDays = [...forecast.days];
+  if (previousDay?.day && !displayDays.some(day => day.date === previousDay.day.date)) {
+    displayDays.unshift(previousDay.day);
+    byDate.set(previousDay.day.date, previousDay.comparison);
+    if (previousDay.mlDay) mlByDisplayDate.set(previousDay.day.date, previousDay.mlDay);
+  }
+  displayDays.forEach((day) => {
     const comparison = byDate.get(day.date);
-    const mlDay = mlByDate.get(day.date);
+    const mlDay = mlByDisplayDate.get(day.date);
     const samples = day.samples || [];
     const weightSum = samples.reduce((sum, sample) => sum + sample.weight, 0);
     const row = document.createElement('tr');
@@ -357,7 +365,9 @@ function renderForecast(forecast, archive) {
       : `Moyenne pondérée des ${samples.length} derniers ${escapeHtml(day.dayName)}s disponibles. Poids de 1 à ${samples.length}, somme des poids : ${weightSum}.${annual ? ' Référence annuelle insuffisante.' : ''}`;
     const recentEstimate = annual ? day.recentEstimate : day.parcels;
     const annualDetails = annual ? `<br>${escapeHtml(annual.note)}${annual.references.length ? `<br>Références annuelles : ${annual.references.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis`).join(' · ')}` : ''}${annualUsed ? `<br>Référence annuelle ajustée : ${number.format(annual.adjustedParcels)} colis (facteur ${Number(annual.growthFactor).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}, ${annual.growthPairs} paires).<br>${annual.event ? '100 % de la référence événementielle ajustée' : `50 % × ${number.format(recentEstimate)} + 50 % × ${number.format(annual.adjustedParcels)}`} ≈ <strong>${number.format(day.parcels)} colis</strong>.` : ''}` : '';
-    row.innerHTML = `<td class="day-name">${escapeHtml(day.dayName)}</td><td>${formatDate(day.date)}</td>
+    const isPreviousDay = previousDay?.day?.date === day.date;
+    if (isPreviousDay) row.classList.add('forecast-previous-day');
+    row.innerHTML = `<td class="day-name">${escapeHtml(day.dayName)}${isPreviousDay ? '<br><small>Veille</small>' : ''}</td><td>${formatDate(day.date)}</td>
       <td><strong>${day.parcels == null ? 'Indisponible' : number.format(day.parcels)}</strong></td>
       <td><strong>${mlDay?.parcels == null ? '' : number.format(mlDay.parcels)}</strong></td>
       <td>${comparison?.actual == null ? '' : number.format(comparison.actual)}</td>
