@@ -292,6 +292,19 @@ app.MapGet("/api/conveyor-quality", async (string? date, string? depot, Conveyor
     catch (Exception ex) { return Results.Problem($"Les indicateurs de qualité du convoyeur n'ont pas pu être calculés : {ex.Message}"); }
 });
 
+app.MapGet("/api/conveyor-under-two-pounds/clients", async (string? date, string? depot, ConveyorDataService data) =>
+{
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetConveyorUnderTwoPoundsClientsAsync(
+            ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)),
+            selectedDepot));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Les clients ayant des colis sous 2 lb n'ont pas pu être calculés : {ex.Message}"); }
+});
+
 app.MapGet("/api/conveyor-efficiency", (ConveyorEfficiencyService efficiency) =>
 {
     var snapshot = efficiency.Current;
@@ -805,6 +818,21 @@ sealed record ConveyorQualityResponse(
     public double SameChuteRecirculatedPercent => Rate(SameChuteRecirculated);
     public double UnderTwoPoundsPercent => HighConveyorParcels == 0 ? 0 : 100d * UnderTwoPounds / HighConveyorParcels;
 }
+sealed record ConveyorUnderTwoPoundsClientRow(
+    long CustomerId,
+    string CustomerName,
+    long Parcels,
+    double SharePercent,
+    DateTime FirstScan,
+    DateTime LastScan);
+sealed record ConveyorUnderTwoPoundsClientsResponse(
+    DateOnly Date,
+    string Depot,
+    long TotalParcels,
+    long ClientCount,
+    IReadOnlyList<ConveyorUnderTwoPoundsClientRow> Clients,
+    IReadOnlyList<string> Notes,
+    DateTimeOffset GeneratedAt);
 sealed record HighCapacityDailyPeak(
     DateOnly ShiftDate,
     long PeakPerHour,
@@ -2669,6 +2697,114 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             underTwoPounds,
             highConveyorParcels,
             topChutes,
+            DateTimeOffset.Now);
+    }
+
+    public async Task<ConveyorUnderTwoPoundsClientsResponse> GetConveyorUnderTwoPoundsClientsAsync(DateOnly date, DepotDefinition depot)
+    {
+        if (!depot.SupportsMeasurements)
+        {
+            return new ConveyorUnderTwoPoundsClientsResponse(
+                date,
+                depot.Name,
+                0,
+                0,
+                [],
+                ["Ce dépôt ne fournit pas de mesure de poids exploitable."],
+                DateTimeOffset.Now);
+        }
+
+        const string sql = """
+            WITH parcel_weights AS (
+                SELECT ph.PARCEL_ID parcel_id,
+                       ph.WEIGHT weight,
+                       NULLIF(ph.CUSTOMER_ID,0) customer_id,
+                       ph.DATE_LIV scan_time
+                FROM parcel_history PARTITION (p2026) ph
+                WHERE ph.DATE_LIV>=@shiftStart
+                  AND ph.DATE_LIV<@shiftEnd
+                  AND ph.DEPOT_ID=@depotId
+                  AND ph.EXCEPTION=903
+                  AND ph.SOURCE_TYPE=200
+                  AND (ph.SOURCE_ID IS NULL OR (@hasFloor=1 AND ph.SOURCE_ID=1))
+                  AND ph.PARCEL_ID IS NOT NULL
+                  AND ph.PARCEL_ID<>0
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.DATE_INSERT>=@shiftStart-INTERVAL 1 HOUR
+                  AND ph.DATE_INSERT<@shiftEnd
+            ),
+            under_two AS (
+                SELECT parcel_id,
+                       MAX(customer_id) customer_id,
+                       MIN(scan_time) first_scan,
+                       MAX(scan_time) last_scan
+                FROM parcel_weights
+                GROUP BY parcel_id
+                HAVING MAX(weight IS NOT NULL AND weight<2)=1
+            ),
+            parcel_customer AS (
+                SELECT p.PARCEL_ID parcel_id,MAX(NULLIF(p.CUSTOMER_ID,0)) customer_id
+                FROM parcel p
+                JOIN under_two u ON u.parcel_id=p.PARCEL_ID
+                GROUP BY p.PARCEL_ID
+            ),
+            resolved AS (
+                SELECT u.parcel_id,
+                       COALESCE(u.customer_id,pc.customer_id,0) customer_id,
+                       u.first_scan,
+                       u.last_scan
+                FROM under_two u
+                LEFT JOIN parcel_customer pc ON pc.parcel_id=u.parcel_id
+            )
+            SELECT r.customer_id,
+                   CASE WHEN r.customer_id=0 THEN 'Client non identifié'
+                        ELSE COALESCE(NULLIF(TRIM(c.NAME),''),CONCAT('Client ',r.customer_id)) END customer_name,
+                   COUNT(*) parcels,
+                   MIN(r.first_scan) first_scan,
+                   MAX(r.last_scan) last_scan
+            FROM resolved r
+            LEFT JOIN customer c ON c.CUSTOMER_ID=r.customer_id
+            GROUP BY r.customer_id,c.NAME
+            ORDER BY parcels DESC,customer_name
+            """;
+
+        var shiftStart = depot.ShiftStart(date);
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        command.Parameters.AddWithValue("@shiftStart", shiftStart);
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
+        await using var reader = await command.ExecuteReaderAsync();
+        var raw = new List<(long CustomerId, string CustomerName, long Parcels, DateTime FirstScan, DateTime LastScan)>();
+        while (await reader.ReadAsync())
+        {
+            raw.Add((
+                reader.GetInt64("customer_id"),
+                reader.GetString("customer_name").Trim(),
+                Int64OrZero(reader, "parcels"),
+                reader.GetDateTime("first_scan"),
+                reader.GetDateTime("last_scan")));
+        }
+
+        var total = raw.Sum(row => row.Parcels);
+        var clients = raw.Select(row => new ConveyorUnderTwoPoundsClientRow(
+            row.CustomerId,
+            row.CustomerName,
+            row.Parcels,
+            total == 0 ? 0 : 100d * row.Parcels / total,
+            row.FirstScan,
+            row.LastScan)).ToList();
+        return new ConveyorUnderTwoPoundsClientsResponse(
+            date,
+            depot.Name,
+            total,
+            clients.Count,
+            clients,
+            [
+                "Colis uniques ayant au moins une lecture automatisée de poids inférieure à 2 lb pendant le quart sélectionné.",
+                "Les scans manuels sont exclus."
+            ],
             DateTimeOffset.Now);
     }
 

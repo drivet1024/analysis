@@ -5,6 +5,7 @@ const time = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digi
 const blockTime = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit' });
 const shortDateTime = new Intl.DateTimeFormat('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 const efficiencyMonth = new Intl.DateTimeFormat('fr-CA', { month: 'short', year: '2-digit', timeZone: 'UTC' });
+const fullDate = new Intl.DateTimeFormat('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const DEPOTS = {
   'st-hubert': { name: 'Saint-Hubert', startHour: 16, endHour: 4, hasFloor: true, supportsMeasurements: true },
   quebec: { name: 'Québec', startHour: 13, endHour: 7, hasFloor: false, supportsMeasurements: true },
@@ -57,7 +58,10 @@ function applyDepotSelection(depotKey, reload = true) {
   $('hourly-floor-card').hidden = !depot.hasFloor;
   $('conveyor-pill-grid').classList.toggle('single-conveyor', !depot.hasFloor);
   document.querySelector('.conveyor-charts-grid').classList.toggle('single-conveyor', !depot.hasFloor);
-  $('quality-under2-card').classList.toggle('measurement-unavailable', !depot.supportsMeasurements);
+  const underTwoCard = $('quality-under2-card');
+  underTwoCard.classList.toggle('measurement-unavailable', !depot.supportsMeasurements);
+  underTwoCard.setAttribute('aria-disabled', String(!depot.supportsMeasurements));
+  underTwoCard.tabIndex = depot.supportsMeasurements ? 0 : -1;
   $('routes-tab-button').hidden = depotKey !== 'st-hubert';
   if (depotKey !== 'st-hubert') activateTab('conveyor-tab');
   document.title = `Nationex - ${depot.name}`;
@@ -649,6 +653,56 @@ async function openConveyorEfficiencyDialog() {
   } catch { /* La pastille affiche déjà l'état d'erreur. */ }
 }
 
+function renderUnderTwoPoundsClients(data) {
+  const dateLabel = fullDate.format(new Date(`${data.date}T12:00:00`));
+  $('under2-clients-title').textContent = `${data.depot} · ${dateLabel}`;
+  const largest = data.clients?.[0];
+  $('under2-clients-summary').innerHTML = `
+    <article><span>Colis sous 2 lb</span><strong>${number.format(data.totalParcels || 0)}</strong></article>
+    <article><span>Clients</span><strong>${number.format(data.clientCount || 0)}</strong></article>
+    <article><span>Plus gros client</span><strong>${largest ? escapeHtml(largest.customerName) : '—'}</strong></article>`;
+  const body = $('under2-clients-body');
+  body.replaceChildren();
+  if (!(data.clients || []).length) {
+    body.innerHTML = '<tr><td colspan="6" class="empty-cell">Aucun colis sous 2 lb pour ce quart.</td></tr>';
+  } else {
+    data.clients.forEach((client) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td data-label="Client" class="client-name">${escapeHtml(client.customerName)}</td>
+        <td data-label="Nº client">${client.customerId ? number.format(client.customerId) : '—'}</td>
+        <td data-label="Colis sous 2 lb"><strong>${number.format(client.parcels)}</strong></td>
+        <td data-label="Part du total">${Number(client.sharePercent || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %</td>
+        <td data-label="Premier passage">${formatTime(client.firstScan)}</td>
+        <td data-label="Dernier passage">${formatTime(client.lastScan)}</td>`;
+      body.append(row);
+    });
+  }
+  $('under2-clients-source').textContent = (data.notes || []).join(' ');
+}
+
+async function openUnderTwoPoundsClientsDialog() {
+  if (!DEPOTS[selectedDepotKey].supportsMeasurements) return;
+  const requestedDepot = selectedDepotKey;
+  const requestedDate = selectedConveyorDate;
+  const dialog = $('under2-clients-dialog');
+  $('under2-clients-title').textContent = `${DEPOTS[requestedDepot].name} · chargement…`;
+  $('under2-clients-summary').innerHTML = '<article><span>Analyse</span><strong>Chargement…</strong></article>';
+  $('under2-clients-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Regroupement des colis par client…</td></tr>';
+  $('under2-clients-source').textContent = 'Colis uniques du convoyeur automatisé; les scans manuels sont exclus.';
+  if (!dialog.open) dialog.showModal();
+  try {
+    const query = new URLSearchParams({ date: requestedDate, depot: requestedDepot, t: String(Date.now()) });
+    const response = await fetch(`/api/conveyor-under-two-pounds/clients?${query}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Réponse ${response.status}`);
+    if (requestedDepot !== selectedDepotKey || requestedDate !== selectedConveyorDate) return;
+    renderUnderTwoPoundsClients(await response.json());
+  } catch (error) {
+    $('under2-clients-summary').innerHTML = '<article><span>Analyse</span><strong>Indisponible</strong></article>';
+    $('under2-clients-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Impossible de charger les clients pour ce quart.</td></tr>';
+  }
+}
+
 async function loadConveyorData(timestamp = Date.now()) {
   const requestVersion = ++conveyorRequestVersion;
   const requestedDate = selectedConveyorDate;
@@ -737,6 +791,16 @@ $('conveyor-efficiency-card').addEventListener('click', openConveyorEfficiencyDi
 $('conveyor-efficiency-close').addEventListener('click', () => $('conveyor-efficiency-dialog').close());
 $('conveyor-efficiency-dialog').addEventListener('click', (event) => {
   if (event.target === $('conveyor-efficiency-dialog')) $('conveyor-efficiency-dialog').close();
+});
+$('quality-under2-card').addEventListener('click', openUnderTwoPoundsClientsDialog);
+$('quality-under2-card').addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  openUnderTwoPoundsClientsDialog();
+});
+$('under2-clients-close').addEventListener('click', () => $('under2-clients-dialog').close());
+$('under2-clients-dialog').addEventListener('click', (event) => {
+  if (event.target === $('under2-clients-dialog')) $('under2-clients-dialog').close();
 });
 $('dialog-close').addEventListener('click', () => $('client-dialog').close());
 $('client-dialog').addEventListener('click', (event) => {

@@ -5,6 +5,7 @@ const seed = JSON.parse(fs.readFileSync('ConveyorDashboard/ConveyorEfficiencySee
 const html = fs.readFileSync('ConveyorDashboard/wwwroot/live-routes.html', 'utf8');
 const script = fs.readFileSync('ConveyorDashboard/wwwroot/live-routes.js', 'utf8');
 const service = fs.readFileSync('ConveyorDashboard/ConveyorEfficiencyService.cs', 'utf8');
+const program = fs.readFileSync('ConveyorDashboard/Program.cs', 'utf8');
 
 assert.equal(seed.months.length, 12, 'The initial trend contains twelve months');
 assert.equal(seed.calculationVersion, 3, 'The persisted snapshot combines measurements across automated passes');
@@ -39,5 +40,13 @@ assert(service.includes('measurement_resolution'));
 assert(service.includes('NOT COALESCE(pm.has_complete_measurement,0)'), 'A later complete automated measurement clears the measurement issue');
 assert(service.includes('(MAX(weight>0) AND MAX(l>0) AND MAX(w>0) AND MAX(h>0))'), 'Weight and dimensions can come from separate passes');
 assert(service.includes('now.Year, now.Month, now.Day, 11, 0, 0'), 'The daily calculation is scheduled for 11:00');
+
+assert(html.includes('aria-controls="under2-clients-dialog"'), 'The under-two-pound card opens an accessible dialog');
+assert(html.includes('id="under2-clients-body"'), 'The client detail table is present');
+assert(script.includes('/api/conveyor-under-two-pounds/clients?'), 'Client details are loaded only when requested');
+assert(script.includes("if (!DEPOTS[selectedDepotKey].supportsMeasurements) return;"), 'Depots without weight measurements cannot open the detail');
+assert(program.includes('GetConveyorUnderTwoPoundsClientsAsync'), 'The client endpoint has a dedicated data query');
+assert(program.includes('HAVING MAX(weight IS NOT NULL AND weight<2)=1'), 'The popup follows the same unique-parcel weight rule as the KPI');
+assert(program.includes('GROUP BY r.customer_id,c.NAME'), 'Under-two-pound parcels are grouped by client');
 
 console.log('Twelve-month conveyor efficiency, reconciliation, lazy UI loading and persistence verified.');

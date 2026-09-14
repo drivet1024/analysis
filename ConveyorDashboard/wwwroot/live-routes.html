@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des convoyeurs Nationex par dépôt.">
   <title>Nationex - Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260913-2">
+  <link rel="stylesheet" href="/live-routes.css?v=20260913-3">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body>
@@ -145,7 +145,7 @@
           <article class="conveyor-quality-card quality-chute16"><span>Chute 16 hors non-lus</span><strong id="quality-chute16-rate">— %</strong><small id="quality-chute16-total">— passages</small></article>
           <article class="conveyor-quality-card quality-noread"><span>Non-lus caméra</span><strong id="quality-noread-rate">— %</strong><small id="quality-noread-total">— passages</small></article>
           <article class="conveyor-quality-card quality-recirculated"><span>Recirculation</span><strong id="quality-recirculated-rate">— %</strong><small id="quality-recirculated-total">— passages</small><div class="quality-top-chutes"><span>Top 5 chutes</span><ol id="quality-recirculated-top"><li>—</li></ol></div></article>
-          <article id="quality-under2-card" class="conveyor-quality-card quality-under2"><span>Colis sous 2 lb</span><strong id="quality-under2-rate">— %</strong><small id="quality-under2-total">— colis du convoyeur</small></article>
+          <article id="quality-under2-card" class="conveyor-quality-card quality-under2" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="under2-clients-dialog"><span>Colis sous 2 lb</span><strong id="quality-under2-rate">— %</strong><small id="quality-under2-total">— colis du convoyeur</small><span class="quality-card-action">Voir les clients <span aria-hidden="true">→</span></span></article>
         </div>
       </section>
       <section class="capacity-section" aria-labelledby="capacity-title">
@@ -227,7 +227,22 @@
     </div>
   </dialog>
 
-  <script src="/live-routes.js?v=20260913-2" defer></script>
+  <dialog id="under2-clients-dialog" class="under2-clients-dialog">
+    <div class="dialog-head">
+      <div><p class="section-kicker">Colis sous 2 lb</p><h2 id="under2-clients-title">Clients du quart</h2></div>
+      <button id="under2-clients-close" class="dialog-action-button" type="button">Fermer <span aria-hidden="true">×</span></button>
+    </div>
+    <div id="under2-clients-summary" class="client-summary" aria-live="polite"></div>
+    <div class="table-wrap under2-clients-table-wrap">
+      <table class="under2-clients-table">
+        <thead><tr><th>Client</th><th>Nº client</th><th>Colis sous 2 lb</th><th>Part du total</th><th>Premier passage</th><th>Dernier passage</th></tr></thead>
+        <tbody id="under2-clients-body"><tr><td colspan="6" class="empty-cell">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+    <p id="under2-clients-source" class="dialog-source">Colis uniques ayant au moins une lecture automatisée de poids inférieure à 2 lb. Les scans manuels sont exclus.</p>
+  </dialog>
+
+  <script src="/live-routes.js?v=20260913-3" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>
