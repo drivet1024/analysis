@@ -27,7 +27,7 @@ sealed record ConveyorEfficiencySnapshot(
 
 sealed class ConveyorEfficiencyService
 {
-    private const int CurrentCalculationVersion = 2;
+    private const int CurrentCalculationVersion = 3;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private readonly DashboardConfig config;
     private readonly ILogger<ConveyorEfficiencyService> logger;
@@ -84,7 +84,7 @@ sealed class ConveyorEfficiencyService
             [
                 "Postes automatisés seulement; les LINE_ID 201xx des scans manuels sont exclus.",
                 "Un résultat est problématique s'il contient un non-lu caméra, une chute 16 ou 98, une recirculation, ou une mesure manquante requise pour la facturation.",
-                "Une mesure complète obtenue lors d'un autre passage automatisé dans les sept jours avant ou après le passage régularise le colis.",
+                "Le poids et chacune des trois dimensions peuvent provenir de passages automatisés différents du même colis pendant le mois analysé et les sept jours qui l'entourent.",
                 "Une mesure est requise lorsqu'une ligne regul_weight_chg correspond au compte client et à la zone LOC_NAT_ZONE_ID du code postal de destination.",
                 "Un résultat cumulant plusieurs problèmes compte une seule fois. Gilmore ne produit pas de mesures et n'est pas pénalisé pour le poids ou les dimensions.",
             ]);
@@ -157,7 +157,7 @@ sealed class ConveyorEfficiencyService
             ),
             measurement_resolution AS (
                 SELECT parcel_id,
-                       MAX(weight>0 AND l>0 AND w>0 AND h>0) has_complete_measurement
+                       (MAX(weight>0) AND MAX(l>0) AND MAX(w>0) AND MAX(h>0)) has_complete_measurement
                 FROM automated_scans
                 WHERE parcel_id IS NOT NULL AND parcel_id<>0
                 GROUP BY parcel_id
