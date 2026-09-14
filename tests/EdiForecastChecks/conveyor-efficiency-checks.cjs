@@ -35,12 +35,14 @@ assert(script.includes("if (tabId === 'conveyor-tab') loadConveyorEfficiency()")
 const liveRefreshBody = script.match(/async function loadConveyorData[\s\S]*?\n}\n\nasync function load\(\)/)?.[0] || '';
 assert(!liveRefreshBody.includes('/api/conveyor-efficiency'), 'The monthly KPI is absent from the ten-second live refresh');
 assert(service.includes('CONVEYOR_EFFICIENCY_PATH'));
-assert(service.includes('CurrentCalculationVersion = 4'), 'The service requests the new measurement policy');
+assert(service.includes('CurrentCalculationVersion = 5'), 'The service requests the cross-depot measurement policy');
 assert(service.includes('SaveSnapshotAsync(cached'), 'The daily result is persisted');
 assert(service.includes('measurement_resolution'));
-assert(service.includes('MAX(ph.WEIGHT>0 OR ph.LENGTH>0 OR ph.WIDTH>0 OR ph.HEIGHT>0)'), 'A measured manual scan clears the measurement issue');
+assert(service.includes('ph.SOURCE_TYPE IN (200,201)'), 'Manual and automated parcel-history measurements supplement scanner data');
 assert(service.includes("pr.conveyor_key='sth-floor' OR COALESCE(pm.has_dimensions,0)"), 'Floor-conveyor parcels do not require dimensions');
 assert(service.includes('COALESCE(pm.has_weight,0)'), 'Weight can be recovered from another automated pass');
+assert(service.includes('history_measurement'), 'Parcel history supplements scanner measurements from other depots');
+assert(service.includes('measurement_observation'), 'Measurements are combined before completeness is evaluated');
 assert(service.includes('for (var offset = -11; offset <= 0; offset++)'), 'A calculation-version change rebuilds all twelve months');
 assert(service.includes('now.Year, now.Month, now.Day, 11, 0, 0'), 'The daily calculation is scheduled for 11:00');
 
