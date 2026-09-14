@@ -27,7 +27,7 @@ sealed record ConveyorEfficiencySnapshot(
 
 sealed class ConveyorEfficiencyService
 {
-    private const int CurrentCalculationVersion = 3;
+    private const int CurrentCalculationVersion = 4;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private readonly DashboardConfig config;
     private readonly ILogger<ConveyorEfficiencyService> logger;
@@ -66,12 +66,24 @@ sealed class ConveyorEfficiencyService
         {
             var now = EdiForecastArchive.LocalNow;
             var currentMonth = new DateOnly(now.Year, now.Month, 1);
-            var current = await CalculateMonthAsync(currentMonth, currentMonth.AddMonths(1), true, cancellationToken);
-            var refreshedMonths = new List<ConveyorEfficiencyMonth> { current };
-            if (now.Day <= 8)
+            var fullRebuild = cached is null || cached.CalculationVersion != CurrentCalculationVersion;
+            var refreshedMonths = new List<ConveyorEfficiencyMonth>();
+            if (fullRebuild)
             {
-                var previousMonth = currentMonth.AddMonths(-1);
-                refreshedMonths.Add(await CalculateMonthAsync(previousMonth, currentMonth, false, cancellationToken));
+                for (var offset = -11; offset <= 0; offset++)
+                {
+                    var month = currentMonth.AddMonths(offset);
+                    refreshedMonths.Add(await CalculateMonthAsync(month, month.AddMonths(1), month == currentMonth, cancellationToken));
+                }
+            }
+            else
+            {
+                refreshedMonths.Add(await CalculateMonthAsync(currentMonth, currentMonth.AddMonths(1), true, cancellationToken));
+                if (now.Day <= 8)
+                {
+                    var previousMonth = currentMonth.AddMonths(-1);
+                    refreshedMonths.Add(await CalculateMonthAsync(previousMonth, currentMonth, false, cancellationToken));
+                }
             }
             var refreshedDates = refreshedMonths.Select(month => month.Month).ToHashSet();
             var months = (cached?.Months ?? [])
@@ -82,9 +94,11 @@ sealed class ConveyorEfficiencyService
                 .ToArray();
             cached = new ConveyorEfficiencySnapshot(currentMonth, CurrentCalculationVersion, months, now,
             [
-                "Postes automatisés seulement; les LINE_ID 201xx des scans manuels sont exclus.",
+                "Les résultats évalués proviennent des postes automatisés; les passages manuels ne sont pas ajoutés au dénominateur.",
                 "Un résultat est problématique s'il contient un non-lu caméra, une chute 16 ou 98, une recirculation, ou une mesure manquante requise pour la facturation.",
+                "Une mesure positive de poids ou de dimension obtenue au scan manuel régularise l'anomalie de mesure du colis.",
                 "Le poids et chacune des trois dimensions peuvent provenir de passages automatisés différents du même colis pendant le mois analysé et les sept jours qui l'entourent.",
+                "Les dimensions manquantes sur le convoyeur du sol de Saint-Hubert sont exclues; le poids demeure requis lorsque le colis est facturé au poids.",
                 "Une mesure est requise lorsqu'une ligne regul_weight_chg correspond au compte client et à la zone LOC_NAT_ZONE_ID du code postal de destination.",
                 "Un résultat cumulant plusieurs problèmes compte une seule fois. Gilmore ne produit pas de mesures et n'est pas pénalisé pour le poids ou les dimensions.",
             ]);
@@ -118,7 +132,7 @@ sealed class ConveyorEfficiencyService
 
     private async Task<ConveyorEfficiencyMonth> CalculateMonthAsync(DateOnly month, DateOnly nextMonth, bool partial, CancellationToken cancellationToken)
     {
-        const string sql = """
+        var sql = $"""
             WITH automated_scans AS (
                 SELECT psh.id, psh.depot_id, psh.line_id, psh.parcel_id, psh.chute, psh.camera_data,
                        psh.weight, psh.l, psh.w, psh.h, psh.date_insert,
@@ -157,15 +171,32 @@ sealed class ConveyorEfficiencyService
             ),
             measurement_resolution AS (
                 SELECT parcel_id,
-                       (MAX(weight>0) AND MAX(l>0) AND MAX(w>0) AND MAX(h>0)) has_complete_measurement
+                       MAX(weight>0) has_weight,
+                       (MAX(l>0) AND MAX(w>0) AND MAX(h>0)) has_dimensions
                 FROM automated_scans
                 WHERE parcel_id IS NOT NULL AND parcel_id<>0
                 GROUP BY parcel_id
             ),
+            manual_measurement AS (
+                SELECT ph.PARCEL_ID parcel_id,
+                       MAX(ph.WEIGHT>0 OR ph.LENGTH>0 OR ph.WIDTH>0 OR ph.HEIGHT>0) has_manual_measurement
+                FROM parcel_history PARTITION (p{month.Year}) ph
+                JOIN (SELECT DISTINCT parcel_id FROM ranked WHERE parcel_id IS NOT NULL AND parcel_id<>0) scope
+                  ON scope.parcel_id=ph.PARCEL_ID
+                WHERE ph.EXCEPTION=903
+                  AND ph.SOURCE_TYPE=201
+                  AND ph.PARCEL_ID IS NOT NULL
+                  AND ph.PARCEL_ID<>0
+                  AND COALESCE(ph.VOID,0)=0
+                  AND ph.DATE_INSERT>=@scanStart-INTERVAL 1 DAY
+                  AND ph.DATE_INSERT<@scanEnd+INTERVAL 1 DAY
+                  AND ph.DATE_LIV>=@scanStart
+                  AND ph.DATE_LIV<@scanEnd
+                GROUP BY ph.PARCEL_ID
+            ),
             parcel_rollup AS (
                 SELECT conveyor_key,supports_measurements,operational_date,parcel_id,
-                       MAX(chute IN (16,98) OR (chute IS NOT NULL AND chute<>98 AND same_chute_occurrence>1)) operational_issue,
-                       MAX(weight IS NULL OR weight<=0 OR l IS NULL OR l<=0 OR w IS NULL OR w<=0 OR h IS NULL OR h<=0) measurement_issue
+                       MAX(chute IN (16,98) OR (chute IS NOT NULL AND chute<>98 AND same_chute_occurrence>1)) operational_issue
                 FROM ranked
                 WHERE parcel_id IS NOT NULL AND parcel_id<>0
                 GROUP BY conveyor_key,supports_measurements,operational_date,parcel_id
@@ -191,12 +222,18 @@ sealed class ConveyorEfficiencyService
                 SELECT pr.*,
                        pz.zone_id,
                        wc.BILLING_ACCOUNT IS NOT NULL billed_by_weight,
-                       COALESCE(pm.has_complete_measurement,0) has_complete_measurement,
+                       COALESCE(mm.has_manual_measurement,0) has_manual_measurement,
+                       (COALESCE(mm.has_manual_measurement,0) OR
+                        (COALESCE(pm.has_weight,0) AND
+                         (pr.conveyor_key='sth-floor' OR COALESCE(pm.has_dimensions,0)))) measurement_resolved,
                        (pr.operational_issue OR
-                         (pr.supports_measurements AND wc.BILLING_ACCOUNT IS NOT NULL AND pr.measurement_issue
-                          AND NOT COALESCE(pm.has_complete_measurement,0))) is_problem
+                         (pr.supports_measurements AND wc.BILLING_ACCOUNT IS NOT NULL AND
+                          NOT (COALESCE(mm.has_manual_measurement,0) OR
+                               (COALESCE(pm.has_weight,0) AND
+                                (pr.conveyor_key='sth-floor' OR COALESCE(pm.has_dimensions,0)))))) is_problem
                 FROM parcel_rollup pr
                 LEFT JOIN measurement_resolution pm ON pm.parcel_id=pr.parcel_id
+                LEFT JOIN manual_measurement mm ON mm.parcel_id=pr.parcel_id
                 LEFT JOIN parcel_ref pref ON pref.PARCEL_ID=pr.parcel_id
                 LEFT JOIN shipment s ON s.SHIPPING_ID=pref.shipping_id AND s.EXP_DATE=pref.exp_date
                 LEFT JOIN customer c ON c.CUSTOMER_ID=COALESCE(NULLIF(s.CUSTOMER_ID,0),pref.customer_id)
@@ -210,8 +247,8 @@ sealed class ConveyorEfficiencyService
                        COALESCE(SUM(operational_issue),0) operational_problem_parcels,
                        COALESCE(SUM(supports_measurements AND billed_by_weight),0) weight_billed_parcels,
                        COALESCE(SUM(supports_measurements AND NOT billed_by_weight),0) parcel_billed_parcels,
-                       COALESCE(SUM(supports_measurements AND NOT billed_by_weight AND measurement_issue AND NOT has_complete_measurement),0) excluded_measurement_issues,
-                       COALESCE(SUM(supports_measurements AND billed_by_weight AND measurement_issue AND NOT has_complete_measurement),0) revenue_risk_parcels,
+                       COALESCE(SUM(supports_measurements AND NOT billed_by_weight AND NOT measurement_resolved),0) excluded_measurement_issues,
+                       COALESCE(SUM(supports_measurements AND billed_by_weight AND NOT measurement_resolved),0) revenue_risk_parcels,
                        COALESCE(SUM(supports_measurements AND zone_id IS NULL),0) unknown_zone_parcels,
                        COALESCE(SUM(is_problem),0) problem_readable_parcels,
                        COALESCE(SUM(NOT is_problem),0) successful_readable_parcels
