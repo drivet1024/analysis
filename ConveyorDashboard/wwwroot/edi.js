@@ -370,7 +370,7 @@ function renderForecast(forecast, archive) {
     row.innerHTML = `<td class="day-name">${escapeHtml(day.dayName)}${isPreviousDay ? '<br><small>Veille</small>' : ''}</td><td>${formatDate(day.date)}</td>
       <td><strong>${day.parcels == null ? 'Indisponible' : number.format(day.parcels)}</strong></td>
       <td><strong>${mlDay?.parcels == null ? '' : number.format(mlDay.parcels)}</strong></td>
-      <td>${comparison?.actual == null ? '' : number.format(comparison.actual)}</td>
+      <td class="${comparison?.actual == null ? '' : 'forecast-actual-value'}">${comparison?.actual == null ? '' : number.format(comparison.actual)}</td>
       <td>${comparison?.difference == null ? '—' : `${comparison.difference > 0 ? '+' : ''}${number.format(comparison.difference)}`}</td>
       <td>${comparison?.mlDifference == null ? '' : `${comparison.mlDifference > 0 ? '+' : ''}${number.format(comparison.mlDifference)}`}</td>
       <td>${day.historicalLow == null ? '—' : `${number.format(day.historicalLow)} – ${number.format(day.historicalHigh)}`}</td>
