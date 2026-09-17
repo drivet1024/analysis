@@ -10,12 +10,13 @@ sealed record EdiForecastComparison(string SnapshotId, DateTimeOffset SavedAt, s
     long? MlPredicted = null, long? MlDifference = null, double? MlErrorPercent = null);
 sealed record EdiForecastPriorDay(EdiForecastDay Day, EdiMlForecastDay? MlDay, EdiForecastComparison Comparison);
 sealed record EdiForecastArchiveView(EdiForecastSnapshot? Snapshot, DateTimeOffset NextRefresh,
-    string Mode, IReadOnlyList<EdiForecastComparison> Comparisons, bool RefreshPending, EdiForecastPriorDay? PreviousDay);
+    string Mode, IReadOnlyList<EdiForecastComparison> Comparisons, bool RefreshPending, EdiForecastPriorDay? PreviousDay,
+    DateTimeOffset ForecastNextRefresh);
 sealed record EdiForecastActuals(DateOnly AsOfDate, DateTimeOffset UpdatedAt, IReadOnlyList<EdiHistoryDay> Days);
 
 sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastService? mlForecast = null)
 {
-    public const string ModelVersion = "weekday-annual-v5-lightgbm-challenger";
+    public const string ModelVersion = "weekly-saturday-v6-lightgbm-challenger";
     private readonly string directory = Environment.GetEnvironmentVariable("EDI_FORECAST_PATH")
         ?? Path.Combine(environment.ContentRootPath, "App_Data", "edi-forecasts");
     private readonly SemaphoreSlim gate = new(1, 1);
@@ -25,10 +26,25 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastSe
     private static readonly TimeZoneInfo Zone = TimeZoneInfo.FindSystemTimeZoneById("America/Toronto");
     public static DateTime LocalNow => TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, Zone).DateTime;
     public static DateOnly DueDate(DateTime localNow) => DateOnly.FromDateTime(localNow.Hour < 6 ? localNow.AddDays(-1) : localNow);
+    public static DateOnly ForecastWeekStart(DateOnly date)
+        => date.AddDays(-((7 + (int)date.DayOfWeek - (int)DayOfWeek.Saturday) % 7));
+    public static DateOnly ForecastDueDate(DateTime localNow)
+    {
+        var date = DateOnly.FromDateTime(localNow);
+        var saturday = ForecastWeekStart(date);
+        return date.DayOfWeek == DayOfWeek.Saturday && localNow.Hour < 6 ? saturday.AddDays(-7) : saturday;
+    }
     public static DateTimeOffset NextRefresh(DateTime localNow)
     {
         var next = localNow.Date.AddHours(6);
         if (next <= localNow) next = next.AddDays(1);
+        return new(next, Zone.GetUtcOffset(next));
+    }
+    public static DateTimeOffset NextForecastRefresh(DateTime localNow)
+    {
+        var daysUntilSaturday = ((int)DayOfWeek.Saturday - (int)localNow.DayOfWeek + 7) % 7;
+        var next = localNow.Date.AddDays(daysUntilSaturday).AddHours(6);
+        if (next <= localNow) next = next.AddDays(7);
         return new(next, Zone.GetUtcOffset(next));
     }
 
@@ -85,18 +101,18 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastSe
         try
         {
             var now = LocalNow;
-            var due = DueDate(now);
-            var id = $"{due:yyyy-MM-dd}-v5";
+            var due = ForecastDueDate(now);
+            var id = $"{due:yyyy-MM-dd}-v6";
             var existing = Read().FirstOrDefault(s => s.Id == id);
             if (existing != null) return existing;
-            // Do not invent a 6 am snapshot if the service starts later: save the actual timestamp.
+            // A late start may rebuild the current week, but the historical cutoff remains Saturday.
             var historyDays = mlForecast?.RequiredHistoryDays(due) ?? EdiForecast.HistoryDays;
             var history = await data.GetEdiHistoryAsync(due.AddDays(-historyDays), due);
             if (history.Count == 0) throw new InvalidOperationException("Historique EDI vide; prévision précédente conservée.");
             var forecast = EdiForecast.Build(due, history);
             var ml = mlForecast == null ? null : await mlForecast.BuildAsync(due, history);
             var snapshot = new EdiForecastSnapshot(id, DateTimeOffset.UtcNow, due, ModelVersion,
-                "Renouvellement quotidien à 6 h (ou rattrapage au démarrage)", forecast, ml);
+                "Prévision hebdomadaire du samedi à 6 h, figée jusqu'au vendredi (ou rattrapage au démarrage)", forecast, ml);
             Directory.CreateDirectory(directory);
             var path = Path.Combine(directory, id + ".json");
             var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
@@ -116,19 +132,24 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastSe
         var now = LocalNow;
         var snapshots = Read();
         var operationalDate = DateOnly.FromDateTime(now.Hour < 4 ? now.AddDays(-1) : now);
-        var selected = analysisDate == operationalDate ? snapshots.FirstOrDefault(s => s.ModelVersion == ModelVersion) ?? snapshots.FirstOrDefault()
-            : snapshots.FirstOrDefault(s => s.ScheduledDate == analysisDate);
+        var weekStart = analysisDate == operationalDate ? ForecastDueDate(now) : ForecastWeekStart(analysisDate);
+        var selected = snapshots.FirstOrDefault(s => s.ModelVersion == ModelVersion && s.ScheduledDate == weekStart)
+            ?? (analysisDate == operationalDate ? null : snapshots.FirstOrDefault(s => s.ScheduledDate == analysisDate));
         var byDate = actuals.ToDictionary(d => d.Date);
         var rows = snapshots.Take(30).SelectMany(snapshot => snapshot.Forecast.Days.Select(day =>
         {
-            // V4 deliberately forecasts day zero at 6am using only prior completed days.
+            // Weekly V6 forecasts Saturday-Friday using only data prior to Saturday.
+            // V4/V5 deliberately forecast day zero at 6am using only prior completed days.
             // Legacy versions retain their original pre-day eligibility rule.
             var savedLocal = TimeZoneInfo.ConvertTime(snapshot.SavedAt, Zone).DateTime;
-            var sameDayForecast = snapshot.ModelVersion == ModelVersion && snapshot.ScheduledDate == day.Date
+            var weeklyForecast = snapshot.ModelVersion == ModelVersion && snapshot.ScheduledDate == ForecastWeekStart(day.Date)
+                && snapshot.Forecast.AsOfDate == snapshot.ScheduledDate;
+            var dailyDayZeroModel = snapshot.ModelVersion is "weekday-annual-v5-lightgbm-challenger" or "weekday-annual-v4-today-cyber-monday";
+            var sameDayForecast = dailyDayZeroModel && snapshot.ScheduledDate == day.Date
                 && snapshot.Forecast.AsOfDate == day.Date
                 && savedLocal >= day.Date.ToDateTime(new TimeOnly(6, 0))
                 && savedLocal < day.Date.AddDays(1).ToDateTime(new TimeOnly(4, 0));
-            long? actual = day.Date < operationalDate && (savedLocal < day.Date.ToDateTime(new TimeOnly(4, 0)) || sameDayForecast)
+            long? actual = day.Date < operationalDate && (weeklyForecast || savedLocal < day.Date.ToDateTime(new TimeOnly(4, 0)) || sameDayForecast)
                 && byDate.TryGetValue(day.Date, out var observed) ? observed.Parcels : null;
             long? difference = actual.HasValue && day.Parcels.HasValue ? actual.Value - day.Parcels.Value : null;
             var mlPredicted = snapshot.MlForecast?.Days.FirstOrDefault(candidate => candidate.Date == day.Date)?.Parcels;
@@ -147,7 +168,8 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastSe
         var previous = previousComparison == null || previousDay == null ? null : new EdiForecastPriorDay(previousDay,
             previousSnapshot?.MlForecast?.Days.FirstOrDefault(day => day.Date == previousDate), previousComparison);
         return new(selected, NextRefresh(now), selected == null ? "Reconstitution non archivée" : "Prévision sauvegardée", rows,
-            analysisDate == operationalDate && (selected == null || selected.ScheduledDate < DueDate(now) || selected.ModelVersion != ModelVersion), previous);
+            analysisDate == operationalDate && (selected == null || selected.ScheduledDate != ForecastDueDate(now) || selected.ModelVersion != ModelVersion),
+            previous, NextForecastRefresh(now));
     }
 }
 

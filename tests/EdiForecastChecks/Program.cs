@@ -102,6 +102,13 @@ var holidayFuture = EdiForecast.Build(new DateOnly(2026, 9, 6), history);
 Check(holidayFuture.Days[1].Holiday != null && holidayFuture.Days[1].Parcels == null && holidayFuture.Total == null, "Future holiday must not receive an ordinary estimate");
 Check(EdiForecastArchive.DueDate(new DateTime(2026, 9, 12, 5, 59, 59)) == asOf.AddDays(-1)
     && EdiForecastArchive.DueDate(new DateTime(2026, 9, 12, 6, 0, 0)) == asOf, "6 am boundary");
+Check(EdiForecastArchive.ForecastDueDate(new DateTime(2026, 9, 17, 12, 0, 0)) == asOf
+    && EdiForecastArchive.ForecastDueDate(new DateTime(2026, 9, 12, 5, 59, 59)) == asOf.AddDays(-7)
+    && EdiForecastArchive.ForecastDueDate(new DateTime(2026, 9, 12, 6, 0, 0)) == asOf,
+    "Saturday-Friday forecast window and Saturday 6 am boundary");
+Check(EdiForecastArchive.NextForecastRefresh(new DateTime(2026, 9, 17, 12, 0, 0)).DateTime == new DateTime(2026, 9, 19, 6, 0, 0)
+    && EdiForecastArchive.NextForecastRefresh(new DateTime(2026, 9, 19, 5, 59, 59)).DateTime == new DateTime(2026, 9, 19, 6, 0, 0),
+    "Next weekly forecast refresh is Saturday at 6 am");
 Check(EdiForecastArchive.NextRefresh(new DateTime(2026, 3, 7, 12, 0, 0)).Offset == TimeSpan.FromHours(-4)
     && EdiForecastArchive.NextRefresh(new DateTime(2026, 10, 31, 12, 0, 0)).Offset == TimeSpan.FromHours(-5), "DST-aware next refresh");
 
@@ -228,6 +235,17 @@ try
     var archive = new EdiForecastArchive(new TestEnvironment());
     var source = new ConveyorDataService();
     var first = await archive.EnsureCurrentAsync(source);
+    var expectedWeekStart = EdiForecastArchive.ForecastDueDate(EdiForecastArchive.LocalNow);
+    Check(first.ScheduledDate == expectedWeekStart && first.Forecast.AsOfDate == expectedWeekStart
+        && first.Forecast.Days.Count == 7 && first.Forecast.Days[0].Date == expectedWeekStart
+        && first.Forecast.Days[6].Date == expectedWeekStart.AddDays(6),
+        "Current national forecast remains fixed from Saturday through Friday");
+    var currentLocal = EdiForecastArchive.LocalNow;
+    var currentOperational = DateOnly.FromDateTime(currentLocal.Hour < 4 ? currentLocal.AddDays(-1) : currentLocal);
+    var weeklyView = archive.View(currentOperational, first.Forecast.Days.Select(day => new EdiHistoryDay(day.Date, 777)).ToArray());
+    var weeklyRows = weeklyView.Comparisons.Where(row => row.SnapshotId == first.Id).ToArray();
+    Check(weeklyRows.All(row => row.Date < currentOperational ? row.Actual == 777 : row.Actual == null),
+        "Weekly view shows actuals from Saturday through the previous completed day only");
     var path = Path.Combine(temp, first.Id + ".json");
     var bytes = File.ReadAllBytes(path);
     var results = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => archive.EnsureCurrentAsync(source)));
@@ -257,7 +275,7 @@ try
     var targetStart = target.ToDateTime(new TimeOnly(6, 0));
     var targetSaved = new DateTimeOffset(targetStart, TimeZoneInfo.FindSystemTimeZoneById("America/Toronto").GetUtcOffset(targetStart));
     var sameDay = old with { Id = "same-day-v4", ScheduledDate = target, SavedAt = targetSaved,
-        Forecast = old.Forecast with { AsOfDate = target } };
+        ModelVersion = "weekday-annual-v5-lightgbm-challenger", Forecast = old.Forecast with { AsOfDate = target } };
     var legacySameDay = sameDay with { Id = "same-day-v3", ModelVersion = "weekday-annual-v3-cyber-monday" };
     var afterDay = sameDay with { Id = "after-day-v4", SavedAt = targetSaved.AddHours(22) };
     foreach (var snapshot in new[] { sameDay, legacySameDay, afterDay })
@@ -278,10 +296,9 @@ try
     File.WriteAllText(Path.Combine(temp, priorSnapshot.Id + ".json"), System.Text.Json.JsonSerializer.Serialize(priorSnapshot, json));
     var previousDayView = restarted.View(today, new[] { new EdiHistoryDay(yesterday, 321) });
     Check(previousDayView.PreviousDay?.Day.Date == yesterday
-        && previousDayView.PreviousDay.Comparison.Predicted == 300
         && previousDayView.PreviousDay.Comparison.Actual == 321
-        && previousDayView.PreviousDay.MlDay?.Parcels == 310,
-        "Current forecast view includes yesterday from its latest eligible archived prediction");
+        && previousDayView.Comparisons.Any(row => row.SnapshotId == priorSnapshot.Id && row.Predicted == 300 && row.Actual == 321),
+        "Current forecast view includes yesterday and preserves eligible archived comparisons");
     Check(bytes.SequenceEqual(File.ReadAllBytes(path)), "Comparison never rewrites prediction");
     var readsBeforeActuals = source.Reads;
     await Task.WhenAll(Enumerable.Range(0, 3).Select(_ => archive.EnsureActualsAsync(source)));

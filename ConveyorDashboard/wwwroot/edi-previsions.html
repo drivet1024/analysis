@@ -49,7 +49,7 @@
     <section class="context-strip" aria-label="Contexte des données">
       <div><span>Semaine analysée</span><strong id="week-range">—</strong></div>
       <div><span>Dernière lecture</span><strong id="database-time">—</strong></div>
-      <div><span>Prochain calcul quotidien</span><strong id="forecast-next-refresh">Chaque matin à 6 h</strong></div>
+      <div><span>Prochain calcul hebdomadaire</span><strong id="forecast-next-refresh">Samedi à 6 h</strong></div>
       <div><span>Périmètre EDI</span><strong>Tous les clients et dépôts</strong></div>
     </section>
 
@@ -57,11 +57,11 @@
 
     <section class="data-section" aria-labelledby="forecast-title">
       <div class="section-heading">
-        <div><p>Estimation à partir du passé</p><h2 id="forecast-title">Réel d’hier et prévision des 7 prochains jours</h2></div>
+        <div><p>Estimation à partir du passé</p><h2 id="forecast-title">Prévision figée et réel de la semaine</h2></div>
         <div><span id="forecast-context">Chargement des archives…</span><label>Version <select id="forecast-archive-select"></select></label></div>
       </div>
       <p class="method-note" id="forecast-schedule" aria-live="polite"></p>
-      <p class="method-note" id="forecast-summary"></p><p class="method-note" id="forecast-comparison-summary">Écart = réel − prévu. Le réel est disponible après la fin de la journée (4 h), La nouvelle version inclut la prévision de la journée courante enregistrée à 6 h; les anciennes versions conservent leur règle de comparaison.</p>
+      <p class="method-note" id="forecast-summary"></p><p class="method-note" id="forecast-comparison-summary">Écart = réel − prévu. La semaine affichée reste fixe du samedi au vendredi. Le réel est disponible pour chaque journée terminée, jusqu’à la veille; les jours courants et futurs restent en attente.</p>
       <p class="method-note forecast-ml-summary" id="forecast-ml-summary"></p>
       <p class="method-note" id="forecast-holidays"></p>
       <div id="forecast-seasonality" class="forecast-seasonality" hidden>
@@ -83,12 +83,12 @@
       </div>
       <details class="forecast-method">
         <summary>Comment la prévision est-elle calculée ?</summary>
-        <p>Chaque matin à 6 h, heure de Montréal, une nouvelle version est enregistrée pour la journée courante et les six jours suivants, de J à J+6. Elle reste figée jusqu’au prochain renouvellement, même si la page est actualisée. Les versions précédentes sont conservées sur disque. Le serveur doit rester démarré; après une interruption, il enregistre une version de rattrapage avec l’heure réelle de création, sans inventer les versions manquées.</p>
+        <p>Chaque samedi à 6 h, heure de Montréal, une nouvelle version est enregistrée pour la semaine complète du samedi au vendredi suivant. Les sept dates et leurs prévisions restent figées pendant toute cette période, même si la page est actualisée. Le réel est ajouté quotidiennement pour les journées terminées, du samedi jusqu’à la veille. Les versions précédentes sont conservées sur disque. Après une interruption, le serveur peut enregistrer la version de la semaine courante avec l’heure réelle de création, en utilisant uniquement l’historique antérieur au samedi.</p>
         <p>Pour chaque jour, on compare le même jour de semaine sur les 8 semaines précédant la date de référence. Les jours fériés du Québec sont exclus, ainsi que le Vendredi saint et le lundi de Pâques par prudence, et les fermetures supplémentaires configurées. Les observations restantes reçoivent un poids de 1 à N, de la plus ancienne à la plus récente. Tendance récente = somme des volumes × leurs poids, divisée par la somme des poids, puis arrondie au colis. Un jour férié futur est signalé sans estimation ordinaire.</p>
         <p>Le modèle saisonnier consulte 455 jours. Pour une journée ordinaire, la prévision combine à parts égales la tendance récente et la moyenne d’au moins deux jours comparables de l’an dernier : 52 semaines auparavant, avec le même jour de semaine une semaine avant et après. La référence annuelle est multipliée par le rapport des volumes récents aux volumes N−1 sur les mêmes jours appariés des 8 dernières semaines (minimum 21 paires). Le partage 50/50 est une règle fixe, pas un poids optimisé sur le test affiché.</p>
         <p>Du lundi précédant le Cyber Monday jusqu’au deuxième dimanche suivant, on utilise exclusivement le même décalage par rapport au Cyber Monday de l’an dernier, ajusté par ce facteur d’activité. Le Cyber Monday est le lundi suivant le quatrième jeudi de novembre : le 30 novembre en 2026 correspond ainsi au 1er décembre 2025. Cette période commerciale est exclue des références ordinaires et du facteur d’activité, mais conservée pour prévoir son propre pic. Une référence manquante rend la prévision événementielle indisponible. Une seule édition passée ne garantit pas l’amplitude du prochain pic.</p>
-        <p>Source : total des lignes de la table parcel, selon INSERT_DATE, hors statuts 500 et 501, comme le total quotidien EDI. Tous les clients et dépôts sont inclus. Journée opérationnelle : de 4 h à 4 h, selon l’horloge de l’application. La date de référence de la prévision est exclue de l’apprentissage, même lorsqu’elle est passée. La prévision couvre cette date et les six jours suivants. Les colis déjà créés ce matin ne sont pas inclus dans l’apprentissage.</p>
-        <p>La colonne ML.NET est un modèle LightGBM local entraîné sur les journées complètes. Elle utilise seulement des renseignements disponibles avant la journée prévue : jour de semaine, position dans l’année, volumes à J−7, J−14, J−21, J−28, moyennes récentes, tendance, référence annuelle, évolution annuelle et position autour du Cyber Monday. Les jours fériés sont exclus de l’apprentissage. Le modèle est réentraîné le samedi; le reste de la semaine, les prévisions quotidiennes utilisent le dernier modèle valide. Le modèle statistique demeure affiché comme référence.</p>
+        <p>Source : total des lignes de la table parcel, selon INSERT_DATE, hors statuts 500 et 501, comme le total quotidien EDI. Tous les clients et dépôts sont inclus. Journée opérationnelle : de 4 h à 4 h, selon l’horloge de l’application. Le samedi de référence et toutes les dates suivantes sont exclus de l’apprentissage. La prévision couvre ce samedi et les six jours suivants.</p>
+        <p>La colonne ML.NET est un modèle LightGBM local entraîné sur les journées complètes. Elle utilise seulement des renseignements disponibles avant la semaine prévue : jour de semaine, position dans l’année, volumes à J−7, J−14, J−21, J−28, moyennes récentes, tendance, référence annuelle, évolution annuelle et position autour du Cyber Monday. Les jours fériés sont exclus de l’apprentissage. Le modèle est réentraîné le samedi et ses sept prévisions restent figées jusqu’au vendredi. Le modèle statistique demeure affiché comme référence.</p>
         <p>La validation ML.NET est chronologique : les 56 dernières journées utilisables sont gardées hors entraînement, puis prédites par un modèle appris uniquement sur les journées antérieures. Après cette mesure, le modèle de production est réentraîné sur tout l’historique disponible. Les modèles et métadonnées sont conservés dans App_Data et ne sont pas effacés par un déploiement.</p>
         <p>Au moins 4 observations du même jour de semaine sont nécessaires. Une journée sans aucune ligne source est considérée comme inconnue, pas comme un zéro. Les journées partiellement chargées ne sont pas détectables avec ces seuls agrégats. Le min.–max. décrit les volumes historiques utilisés : ce n’est pas un intervalle de confiance et le volume futur peut en sortir.</p>
         <p id="forecast-validation"></p>
@@ -107,7 +107,7 @@
     <p id="forecast-chart-readout" aria-live="polite"></p><p id="forecast-chart-note"></p>
   </dialog>
   <script src="/edi-forecast-chart.js?v=20260914-1" defer></script>
-  <script src="/edi.js?v=20260914-3" defer></script>
+  <script src="/edi.js?v=20260917-1" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>

@@ -300,7 +300,7 @@ function renderForecast(forecast, archive) {
   $('forecast-foot').replaceChildren();
   if (!forecast) {
     $('forecast-context').textContent = 'Prévision indisponible';
-    $('forecast-summary').textContent = 'Aucune prévision sauvegardée pour cette date. Le calcul quotidien est effectué en arrière-plan à 6 h.';
+    $('forecast-summary').textContent = 'Aucune prévision sauvegardée pour cette semaine. Le calcul hebdomadaire est effectué le samedi à 6 h.';
     $('forecast-ml-summary').textContent = '';
     $('forecast-schedule').textContent = '';
     $('forecast-holidays').textContent = '';
@@ -313,7 +313,7 @@ function renderForecast(forecast, archive) {
   const mlForecast = saved?.mlForecast;
   const mlByDate = new Map((mlForecast?.days || []).map(day => [day.date, day]));
   $('forecast-schedule').textContent = saved
-    ? `Prévision sauvegardée le ${new Date(saved.savedAt).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })} (Montréal) · référence ${formatDate(forecast.asOfDate)} · prochain renouvellement à ${new Date(archive.nextRefresh).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })}.`
+    ? `Prévision figée du samedi au vendredi, sauvegardée le ${new Date(saved.savedAt).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })} (Montréal) · référence ${formatDate(forecast.asOfDate)} · prochain renouvellement le ${new Date(archive.forecastNextRefresh || archive.nextRefresh).toLocaleString('fr-CA', { timeZone: 'America/Toronto' })}.`
     : 'Reconstitution non archivée : aucune prévision sauvegardée ne correspond à cette date.';
   if (archive?.refreshPending) $('forecast-schedule').textContent += ' Renouvellement en attente : la dernière version disponible reste affichée.';
   $('forecast-summary').textContent = `Historique consulté : ${formatDate(forecast.historyStart)} au ${formatDate(forecast.historyEnd)} · ${number.format(forecast.observedDays)} jours observés sur ${number.format(forecast.observedDays + forecast.missingDays)}${forecast.missingDays ? ` · ${number.format(forecast.missingDays)} jours sans données, exclus du calcul` : ''}. Estimations, non garanties.`;
@@ -526,7 +526,7 @@ function render(data) {
     $('week-range').textContent = `${formatDate(data.weekStart)} au ${formatDate(data.weekEnd)}`;
     $('database-time').textContent = formatTime(data.databaseNow);
     $('last-refresh').textContent = `Actualisé à ${formatTime(data.databaseNow)}`;
-    $('forecast-next-refresh').textContent = new Date(data.forecastArchive.nextRefresh).toLocaleString('fr-CA', {
+    $('forecast-next-refresh').textContent = new Date(data.forecastArchive.forecastNextRefresh || data.forecastArchive.nextRefresh).toLocaleString('fr-CA', {
       timeZone: 'America/Toronto', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
     clearTimeout(forecastRefreshTimer);
