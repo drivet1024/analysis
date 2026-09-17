@@ -41,7 +41,7 @@ selector.value = payload.forecastArchive.snapshot.id;
 selector.onchange();
 assert.equal(context.requestedVersion, payload.forecastArchive.snapshot.id);
 assert(!html.includes('id="forecast-comparison-body"'));
-assert.equal((elements.get('forecast-body').children[0].innerHTML.match(/<td/g)||[]).length, 9);
+assert.equal((elements.get('forecast-body').children[0].innerHTML.match(/<td/g)||[]).length, 10);
 assert.match(elements.get('forecast-body').children[0].innerHTML, /1[\s ]?000/);
 const firstDate = payload.forecast.days[0].date;
 const matched = { snapshotId: payload.forecastArchive.snapshot.id, date: firstDate, actual: 0, difference: -10, mlDifference: -1000 };
@@ -51,6 +51,9 @@ assert(elements.get('forecast-body').children[0].innerHTML.includes('<td>-10</td
 assert.match(elements.get('forecast-body').children[0].innerHTML, /<td>-1[\s ]?000<\/td>/);
 assert(!elements.get('forecast-body').children[0].innerHTML.includes('99999'));
 assert(elements.get('forecast-foot').innerHTML.includes('Incomplet'));
+const matchedPercent = { ...matched, actual: 1000, mlDifference: -100, mlErrorPercent: 10 };
+context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [matchedPercent] });
+assert(elements.get('forecast-body').children[0].innerHTML.includes('<td>10 %</td>'));
 context.renderForecast({ ...payload.forecast, seasonality: null }, payload.forecastArchive);
 assert.equal(elements.get('forecast-seasonality').hidden, true);
 console.log('Seasonality rendering and archive-filter checks passed.');

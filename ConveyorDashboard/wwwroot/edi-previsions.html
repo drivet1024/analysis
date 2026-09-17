@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI PRÉVISION</title>
-  <link rel="stylesheet" href="/edi.css?v=20260914-2">
+  <link rel="stylesheet" href="/edi.css?v=20260917-1">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body data-edi-page="forecasts">
@@ -61,7 +61,7 @@
         <div><span id="forecast-context">Chargement des archives…</span><label>Version <select id="forecast-archive-select"></select></label></div>
       </div>
       <p class="method-note" id="forecast-schedule" aria-live="polite"></p>
-      <p class="method-note" id="forecast-summary"></p><p class="method-note" id="forecast-comparison-summary">Écart = réel − prévu. La semaine affichée reste fixe du samedi au vendredi. Le réel est disponible pour chaque journée terminée, jusqu’à la veille; les jours courants et futurs restent en attente.</p>
+      <p class="method-note" id="forecast-summary"></p><p class="method-note" id="forecast-comparison-summary">Écart = réel − prévu. Écart ML.NET % = |réel − prévu ML.NET| ÷ réel × 100; il reste vide lorsque le réel est nul ou indisponible. La semaine affichée reste fixe du samedi au vendredi. Le réel est disponible pour chaque journée terminée, jusqu’à la veille; les jours courants et futurs restent en attente.</p>
       <p class="method-note forecast-ml-summary" id="forecast-ml-summary"></p>
       <p class="method-note" id="forecast-holidays"></p>
       <div id="forecast-seasonality" class="forecast-seasonality" hidden>
@@ -76,8 +76,8 @@
       <div class="forecast-chart-actions"><button id="forecast-chart-open" class="app-button" type="button" disabled>Afficher le graphique</button></div>
       <div class="table-wrap forecast-wrap">
         <table class="forecast-table">
-          <thead><tr><th>Jour</th><th>Date</th><th>Prévu statistique</th><th>Prévu ML.NET</th><th>Réel</th><th>Écart statistique</th><th>Écart ML.NET</th><th>Min.–max. récent</th><th>Explication du chiffre</th></tr></thead>
-          <tbody id="forecast-body"><tr><td colspan="9" class="empty-cell">Chargement des prévisions sauvegardées…</td></tr></tbody>
+          <thead><tr><th>Jour</th><th>Date</th><th>Prévu statistique</th><th>Prévu ML.NET</th><th>Réel</th><th>Écart statistique</th><th>Écart ML.NET</th><th>Écart ML.NET %</th><th>Min.–max. récent</th><th>Explication du chiffre</th></tr></thead>
+          <tbody id="forecast-body"><tr><td colspan="10" class="empty-cell">Chargement des prévisions sauvegardées…</td></tr></tbody>
           <tfoot id="forecast-foot"></tfoot>
         </table>
       </div>

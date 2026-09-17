@@ -189,7 +189,7 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
 .day-column small { align-self: end; color: var(--muted); font-size: .61rem; text-transform: capitalize; white-space: nowrap; }
 .method-note { margin: 13px 2px 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
 .forecast-wrap { margin-top: 12px; }
-.forecast-table { min-width: 1120px; }
+.forecast-table { min-width: 1200px; }
 .forecast-table td:last-child { width: 36%; min-width: 360px; text-align: left; line-height: 1.5; }
 .forecast-table summary, .forecast-method summary { cursor: pointer; color: var(--blue); }
 .forecast-table details { margin-top: 6px; color: var(--muted); }
