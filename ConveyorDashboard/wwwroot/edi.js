@@ -352,19 +352,7 @@ function renderForecast(forecast, archive) {
   displayDays.forEach((day) => {
     const comparison = byDate.get(day.date);
     const mlDay = mlByDisplayDate.get(day.date);
-    const samples = day.samples || [];
-    const weightSum = samples.reduce((sum, sample) => sum + sample.weight, 0);
     const row = document.createElement('tr');
-    const annual = day.annual;
-    const annualUsed = annual?.adjustedParcels != null && day.parcels != null;
-    const explanation = day.holiday ? `${escapeHtml(day.holiday)} : prévision suspendue, faute d’historique de jours fériés comparables.` : annual?.event && day.parcels == null
-      ? `${escapeHtml(annual.event)} : référence annuelle insuffisante, aucune estimation ordinaire substituée.` : day.parcels == null
-      ? `Historique insuffisant : ${samples.length} observation(s), minimum 4.`
-      : annualUsed ? annual.event ? `${escapeHtml(annual.event)} : volume du ${formatDate(annual.referenceDate)}, ajusté à l’évolution de l’activité.`
-        : '50 % de tendance récente + 50 % de référence annuelle ajustée.'
-      : `Moyenne pondérée des ${samples.length} derniers ${escapeHtml(day.dayName)}s disponibles. Poids de 1 à ${samples.length}, somme des poids : ${weightSum}.${annual ? ' Référence annuelle insuffisante.' : ''}`;
-    const recentEstimate = annual ? day.recentEstimate : day.parcels;
-    const annualDetails = annual ? `<br>${escapeHtml(annual.note)}${annual.references.length ? `<br>Références annuelles : ${annual.references.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis`).join(' · ')}` : ''}${annualUsed ? `<br>Référence annuelle ajustée : ${number.format(annual.adjustedParcels)} colis (facteur ${Number(annual.growthFactor).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}, ${annual.growthPairs} paires).<br>${annual.event ? '100 % de la référence événementielle ajustée' : `50 % × ${number.format(recentEstimate)} + 50 % × ${number.format(annual.adjustedParcels)}`} ≈ <strong>${number.format(day.parcels)} colis</strong>.` : ''}` : '';
     const isPreviousDay = previousDay?.day?.date === day.date;
     if (isPreviousDay) row.classList.add('forecast-previous-day');
     row.innerHTML = `<td class="day-name">${escapeHtml(day.dayName)}${isPreviousDay ? '<br><small>Veille</small>' : ''}</td><td>${formatDate(day.date)}</td>
@@ -374,8 +362,7 @@ function renderForecast(forecast, archive) {
       <td>${comparison?.difference == null ? '—' : `${comparison.difference > 0 ? '+' : ''}${number.format(comparison.difference)}`}</td>
       <td>${comparison?.mlDifference == null ? '' : `${comparison.mlDifference > 0 ? '+' : ''}${number.format(comparison.mlDifference)}`}</td>
       <td>${comparison?.mlErrorPercent == null ? '' : `${decimal.format(comparison.mlErrorPercent)} %`}</td>
-      <td>${day.historicalLow == null ? '—' : `${number.format(day.historicalLow)} – ${number.format(day.historicalHigh)}`}</td>
-      <td>${explanation}${mlDay?.parcels == null ? '' : `<br><span class="ml-explanation">ML.NET : ${escapeHtml(mlDay.status)}.</span>`}<details><summary>Voir les volumes et le calcul</summary>${samples.map(sample => `${formatDate(sample.date)} : ${number.format(sample.parcels)} colis × ${sample.weight}`).join('<br>')}${recentEstimate == null ? '' : `<br>Tendance récente : somme pondérée ÷ ${weightSum} ≈ ${number.format(recentEstimate)} colis.`}${annualDetails}</details></td>`;
+      <td>${day.historicalLow == null ? '—' : `${number.format(day.historicalLow)} – ${number.format(day.historicalHigh)}`}</td>`;
     body.append(row);
   });
   const allActuals = forecast.days.length > 0 && forecast.days.every(day => byDate.get(day.date)?.actual != null);
@@ -386,7 +373,7 @@ function renderForecast(forecast, archive) {
   const allMlDifferences = forecast.days.length > 0 && forecast.days.every(day => byDate.get(day.date)?.mlDifference != null);
   const mlDifferenceTotal = allMlDifferences ? forecast.days.reduce((sum, day) => sum + byDate.get(day.date).mlDifference, 0) : null;
   const mlErrorPercentTotal = actualTotal > 0 && mlTotal != null ? Math.abs(actualTotal - mlTotal) / actualTotal * 100 : null;
-  $('forecast-foot').innerHTML = `<tr><td colspan="2">Total sur 7 jours</td><td>${forecast.total == null ? 'Incomplet' : number.format(forecast.total)}</td><td>${mlTotal == null ? '' : number.format(mlTotal)}</td><td>${actualTotal == null ? 'Incomplet' : number.format(actualTotal)}</td><td>${differenceTotal == null ? '—' : (differenceTotal > 0 ? '+' : '') + number.format(differenceTotal)}</td><td>${mlDifferenceTotal == null ? '' : (mlDifferenceTotal > 0 ? '+' : '') + number.format(mlDifferenceTotal)}</td><td>${mlErrorPercentTotal == null ? '' : `${decimal.format(mlErrorPercentTotal)} %`}</td><td colspan="2">Les totaux réels et les écarts attendent les sept journées évaluables.</td></tr>`;
+  $('forecast-foot').innerHTML = `<tr><td colspan="2">Total sur 7 jours</td><td>${forecast.total == null ? 'Incomplet' : number.format(forecast.total)}</td><td>${mlTotal == null ? '' : number.format(mlTotal)}</td><td>${actualTotal == null ? 'Incomplet' : number.format(actualTotal)}</td><td>${differenceTotal == null ? '—' : (differenceTotal > 0 ? '+' : '') + number.format(differenceTotal)}</td><td>${mlDifferenceTotal == null ? '' : (mlDifferenceTotal > 0 ? '+' : '') + number.format(mlDifferenceTotal)}</td><td>${mlErrorPercentTotal == null ? '' : `${decimal.format(mlErrorPercentTotal)} %`}</td><td>Les totaux réels et les écarts attendent les sept journées évaluables.</td></tr>`;
   $('forecast-validation').textContent = forecast.backtestDays
     ? `Test rétrospectif : quatre horizons de 7 jours, sans utiliser les volumes postérieurs à chaque date de calcul, sur ${forecast.backtestDays} jours évaluables sur 28${forecast.excludedHolidays ? ' (jours fériés exclus)' : ''}. Erreur absolue moyenne : ${number.format(forecast.backtestMae)} colis par jour. ${forecast.backtestWape == null ? 'Erreur relative non calculable (volume réel nul).' : `Erreur absolue cumulée / volume réel cumulé : ${decimal.format(forecast.backtestWape)} %.`} Ces erreurs passées ne garantissent pas la précision future.`
     : 'Test rétrospectif indisponible : historique insuffisant pour évaluer les prévisions passées.';
@@ -651,6 +638,15 @@ async function load(snapshotId) {
     if (version === requestVersion) $('refresh-button').disabled = false;
   }
 }
+
+const forecastExplanationsDialog = $('forecast-explanations-dialog');
+$('forecast-explanations-open')?.addEventListener('click', () => forecastExplanationsDialog.showModal());
+$('forecast-explanations-close')?.addEventListener('click', () => forecastExplanationsDialog.close());
+forecastExplanationsDialog?.addEventListener('click', (event) => {
+  if (event.target !== forecastExplanationsDialog) return;
+  const bounds = forecastExplanationsDialog.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) forecastExplanationsDialog.close();
+});
 
 $('refresh-button').addEventListener('click', () => { countdown = REFRESH_SECONDS; load(); });
 $('previous-date').addEventListener('click', () => moveAnalysisDate(-1));

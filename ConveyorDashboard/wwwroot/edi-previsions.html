@@ -36,7 +36,7 @@
         <a class="dashboard-tab active" href="/edi-previsions.html" data-edi-navigation aria-current="page">EDI PRÉVISION</a>
         <a class="dashboard-tab" href="/livraison-previsions.html" data-edi-navigation>LIVRAISON PRÉVISION</a>
       </nav>
-      <div class="analysis-date-context">
+      <div class="analysis-date-context" hidden>
         <span>Date analysée</span>
         <span class="date-navigation">
           <button id="previous-date" type="button" aria-label="Afficher la journée précédente">‹</button>
@@ -60,6 +60,21 @@
         <div><p>Estimation à partir du passé</p><h2 id="forecast-title">Prévision figée et réel de la semaine</h2></div>
         <div><span id="forecast-context">Chargement des archives…</span><label>Version <select id="forecast-archive-select"></select></label></div>
       </div>
+      <div class="forecast-chart-actions"><button id="forecast-explanations-open" class="app-button" type="button" aria-haspopup="dialog" aria-controls="forecast-explanations-dialog">Explications des prévisions</button><button id="forecast-chart-open" class="app-button" type="button" disabled>Afficher le graphique</button></div>
+      <div class="table-wrap forecast-wrap">
+        <table class="forecast-table">
+          <thead><tr><th>Jour</th><th>Date</th><th>Prévu statistique</th><th>Prévu ML.NET</th><th>Réel</th><th>Écart statistique</th><th>Écart ML.NET</th><th>Écart ML.NET %</th><th>Min.–max. récent</th></tr></thead>
+          <tbody id="forecast-body"><tr><td colspan="9" class="empty-cell">Chargement des prévisions sauvegardées…</td></tr></tbody>
+          <tfoot id="forecast-foot"></tfoot>
+        </table>
+      </div>
+
+    </section>
+
+
+  </main>
+  <dialog id="forecast-explanations-dialog" aria-labelledby="forecast-explanations-title">
+    <header class="forecast-chart-header"><h2 id="forecast-explanations-title">Explications des prévisions</h2><button id="forecast-explanations-close" class="app-button" type="button" autofocus>Fermer ✕</button></header>
       <p class="method-note" id="forecast-schedule" aria-live="polite"></p>
       <p class="method-note" id="forecast-summary"></p><p class="method-note" id="forecast-comparison-summary">Écart = réel − prévu. Écart ML.NET % = |réel − prévu ML.NET| ÷ réel × 100; il reste vide lorsque le réel est nul ou indisponible. La semaine affichée reste fixe du samedi au vendredi. Le réel est disponible pour chaque journée terminée, jusqu’à la veille; les jours courants et futurs restent en attente.</p>
       <p class="method-note forecast-ml-summary" id="forecast-ml-summary"></p>
@@ -72,14 +87,6 @@
         <details><summary>Voir les journées utilisées pour ajuster le niveau d’activité</summary>
           <div class="table-wrap forecast-comparison-wrap"><table><thead><tr><th>Jour récent</th><th>Colis</th><th>Jour comparable N−1</th><th>Colis N−1</th></tr></thead><tbody id="forecast-growth-pairs"></tbody></table></div>
         </details>
-      </div>
-      <div class="forecast-chart-actions"><button id="forecast-chart-open" class="app-button" type="button" disabled>Afficher le graphique</button></div>
-      <div class="table-wrap forecast-wrap">
-        <table class="forecast-table">
-          <thead><tr><th>Jour</th><th>Date</th><th>Prévu statistique</th><th>Prévu ML.NET</th><th>Réel</th><th>Écart statistique</th><th>Écart ML.NET</th><th>Écart ML.NET %</th><th>Min.–max. récent</th><th>Explication du chiffre</th></tr></thead>
-          <tbody id="forecast-body"><tr><td colspan="10" class="empty-cell">Chargement des prévisions sauvegardées…</td></tr></tbody>
-          <tfoot id="forecast-foot"></tfoot>
-        </table>
       </div>
       <details class="forecast-method">
         <summary>Comment la prévision est-elle calculée ?</summary>
@@ -94,10 +101,7 @@
         <p id="forecast-validation"></p>
         <p>Calendrier de base : <a href="https://www.cnesst.gouv.qc.ca/fr/conditions-travail/conges/jours-feries/liste-jours-feries" target="_blank" rel="noopener noreferrer">jours fériés du Québec (CNESST)</a>. Les fermetures particulières à l’entreprise doivent être ajoutées au calendrier. Les promotions et changements de clients ne sont pas ajustés explicitement. Les corrections tardives peuvent modifier le réel; elles ne modifient jamais les prévisions sauvegardées. Le test rétrospectif ci-dessus est distinct de la comparaison des véritables archives du tableau.</p>
       </details>
-    </section>
-
-
-  </main>
+  </dialog>
   <dialog id="forecast-chart-dialog" aria-labelledby="forecast-chart-title">
     <header class="forecast-chart-header"><div><h2 id="forecast-chart-title">Prévisions et réel</h2><p id="forecast-chart-version"></p></div><button id="forecast-chart-close" class="app-button" type="button" aria-label="Fermer le graphique">Fermer ✕</button></header>
     <div class="forecast-chart-legend" aria-label="Légende">
