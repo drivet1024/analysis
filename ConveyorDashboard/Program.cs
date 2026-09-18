@@ -2700,6 +2700,10 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                   AND chute<>98
                 GROUP BY parcel_id,line_id,chute
                 HAVING COUNT(*)>=2
+            ), valid_chute98 AS (
+                SELECT s.* FROM scope s
+                WHERE s.chute=98 AND s.parcel_id IS NOT NULL AND s.parcel_id<>0
+                  AND EXISTS(SELECT 1 FROM parcel p WHERE p.PARCEL_ID=s.parcel_id)
             )
             """ + "\n";
 
@@ -2832,7 +2836,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
     {
         const string sql = ConveyorRecirculationCte + """
             , chute98 AS (
-                SELECT * FROM scope WHERE chute=98
+                SELECT * FROM valid_chute98
             ), parcel_customers AS (
                 SELECT p.PARCEL_ID parcel_id,MAX(NULLIF(p.CUSTOMER_ID,0)) customer_id
                 FROM parcel p
@@ -2871,7 +2875,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         const string sql = ConveyorRecirculationCte + "," + """
             quality_summary AS (
                 SELECT COUNT(*) total_conveyed,
-                       COALESCE(SUM(chute=98),0) chute_98,
+                       (SELECT COUNT(*) FROM valid_chute98) chute_98,
                        COALESCE(SUM(chute=16 AND NOT ((parcel_id IS NULL OR parcel_id=0) AND COALESCE(camera_data,'') LIKE '?%')),0) chute_16,
                        COALESCE(SUM((parcel_id IS NULL OR parcel_id=0) AND camera_data LIKE '?%'),0) no_read
                 FROM scope
