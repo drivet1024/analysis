@@ -1,0 +1,35 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const script = fs.readFileSync('ConveyorDashboard/wwwroot/live-routes.js', 'utf8');
+const nodes = new Map();
+const $ = id => { if (!nodes.has(id)) nodes.set(id, { open: false, showModal() { this.open = true; } }); return nodes.get(id); };
+const data = { date: '2026-09-17', depot: 'Saint-Hubert', parcels: [{ parcelId: '9007199254740993', minimumWeight: 1.25, length: 12, height: 3, width: 8, passages: 2, firstScan: '16:00', lastScan: '17:00' }] };
+let requestedUrl;
+let response = data;
+let fail = false;
+const context = { $, number: new Intl.NumberFormat('fr-CA'), fullDate: new Intl.DateTimeFormat('fr-CA'), escapeHtml: s => s.replaceAll('<','&lt;'), formatTime: s => s, URLSearchParams,
+  fetch: async url => { requestedUrl = url; return { ok: !fail, status: fail ? 500 : 200, json: async () => response }; } };
+vm.createContext(context);
+vm.runInContext("let underTwoClientsContext = { depot: 'st-hubert', date: '2026-09-17' }; let underTwoParcelRequest = 0;", context);
+vm.runInContext(script.slice(script.indexOf('function renderUnderTwoPoundsParcels('), script.indexOf('async function loadConveyorData(')), context);
+(async () => {
+  const button = { textContent: 'Client A', dataset: { under2Client: '302545' } };
+  await context.openUnderTwoPoundsParcels(button);
+  assert(requestedUrl.includes('/clients/302545/parcels?depot=st-hubert&date=2026-09-17'));
+  assert($('under2-parcels-dialog').open);
+  assert.equal($('under2-parcels-title').textContent, 'Client A');
+  assert($('under2-parcels-body').innerHTML.includes('9007199254740993'));
+  assert($('under2-parcels-body').innerHTML.includes('12 × 3 × 8'));
+  assert($('under2-parcels-body').innerHTML.includes('1,25'));
+  response = { ...data, parcels: [] };
+  await context.openUnderTwoPoundsParcels(button);
+  assert($('under2-parcels-body').innerHTML.includes('Aucun colis'));
+  fail = true;
+  await context.openUnderTwoPoundsParcels(button);
+  assert($('under2-parcels-body').innerHTML.includes('Colis indisponibles'));
+  context.fetch = async () => ({ ok: true, json: async () => { $('under2-parcels-dialog').open = false; return data; } });
+  await context.openUnderTwoPoundsParcels(button);
+  assert(!$('under2-parcels-body').innerHTML.includes('9007199254740993'));
+  console.log('Client drill-down rendering, request scope, empty/error states and closed-dialog response checks passed.');
+})().catch(error => { console.error(error); process.exitCode = 1; });

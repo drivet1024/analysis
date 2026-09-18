@@ -305,6 +305,18 @@ app.MapGet("/api/conveyor-under-two-pounds/clients", async (string? date, string
     catch (Exception ex) { return Results.Problem($"Les clients ayant des colis sous 2 lb n'ont pas pu être calculés : {ex.Message}"); }
 });
 
+app.MapGet("/api/conveyor-under-two-pounds/clients/{customerId:long}/parcels", async (long customerId, string? date, string? depot, ConveyorDataService data) =>
+{
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetConveyorUnderTwoPoundsParcelsAsync(
+            ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot, customerId));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Les colis du client n'ont pas pu être chargés : {ex.Message}"); }
+});
+
 app.MapGet("/api/conveyor-efficiency", (ConveyorEfficiencyService efficiency) =>
 {
     var snapshot = efficiency.Current;
@@ -818,6 +830,10 @@ sealed record ConveyorQualityResponse(
     public double SameChuteRecirculatedPercent => Rate(SameChuteRecirculated);
     public double UnderTwoPoundsPercent => HighConveyorParcels == 0 ? 0 : 100d * UnderTwoPounds / HighConveyorParcels;
 }
+sealed record ConveyorUnderTwoPoundsParcelRow(string ParcelId, decimal? MinimumWeight,
+    decimal? Length, decimal? Height, decimal? Width, long Passages, DateTime FirstScan, DateTime LastScan);
+sealed record ConveyorUnderTwoPoundsParcelsResponse(DateOnly Date, string Depot, long CustomerId,
+    IReadOnlyList<ConveyorUnderTwoPoundsParcelRow> Parcels);
 sealed record ConveyorUnderTwoPoundsClientRow(
     long CustomerId,
     string CustomerName,
@@ -2704,21 +2720,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             DateTimeOffset.Now);
     }
 
-    public async Task<ConveyorUnderTwoPoundsClientsResponse> GetConveyorUnderTwoPoundsClientsAsync(DateOnly date, DepotDefinition depot)
-    {
-        if (!depot.SupportsMeasurements)
-        {
-            return new ConveyorUnderTwoPoundsClientsResponse(
-                date,
-                depot.Name,
-                0,
-                0,
-                [],
-                ["Ce dépôt ne fournit pas de mesure de poids exploitable."],
-                DateTimeOffset.Now);
-        }
-
-        const string sql = """
+    private const string UnderTwoPoundsCte = """
             WITH parcel_weights AS (
                 SELECT ph.PARCEL_ID parcel_id,
                        ph.WEIGHT weight,
@@ -2743,7 +2745,9 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 SELECT parcel_id,
                        MAX(customer_id) customer_id,
                        MIN(scan_time) first_scan,
-                       MAX(scan_time) last_scan
+                       MAX(scan_time) last_scan,
+                       COUNT(*) passages,
+                       MIN(weight) minimum_weight
                 FROM parcel_weights
                 GROUP BY parcel_id
                 HAVING MAX(weight IS NOT NULL AND weight<2)=1
@@ -2767,11 +2771,29 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                        COALESCE(u.customer_id,pc.customer_id,0) customer_id,
                        u.first_scan,
                        u.last_scan,
+                       u.passages,u.minimum_weight,
                        d.length_value,d.height_value,d.width_value
                 FROM under_two u
                 LEFT JOIN parcel_customer pc ON pc.parcel_id=u.parcel_id
                 LEFT JOIN ranked_dimensions d ON d.parcel_id=u.parcel_id AND d.dimension_rank=1
             )
+            """ + "\n";
+
+    public async Task<ConveyorUnderTwoPoundsClientsResponse> GetConveyorUnderTwoPoundsClientsAsync(DateOnly date, DepotDefinition depot)
+    {
+        if (!depot.SupportsMeasurements)
+        {
+            return new ConveyorUnderTwoPoundsClientsResponse(
+                date,
+                depot.Name,
+                0,
+                0,
+                [],
+                ["Ce dépôt ne fournit pas de mesure de poids exploitable."],
+                DateTimeOffset.Now);
+        }
+
+        const string sql = UnderTwoPoundsCte + """
             SELECT r.customer_id,
                    CASE WHEN r.customer_id=0 THEN 'Client non identifié'
                         ELSE COALESCE(NULLIF(TRIM(c.NAME),''),CONCAT('Client ',r.customer_id)) END customer_name,
@@ -2832,6 +2854,34 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 "Dimensions moyennes en pouces : longueur × hauteur × largeur. Une seule lecture automatisée complète et strictement positive par colis, la plus récente du quart. Les colis sans dimensions complètes sont exclus de la moyenne."
             ],
             DateTimeOffset.Now);
+    }
+
+    public async Task<ConveyorUnderTwoPoundsParcelsResponse> GetConveyorUnderTwoPoundsParcelsAsync(DateOnly date, DepotDefinition depot, long customerId)
+    {
+        if (customerId < 0) throw new ArgumentException("Numéro de client invalide.");
+        var rows = new List<ConveyorUnderTwoPoundsParcelRow>();
+        if (!depot.SupportsMeasurements) return new(date, depot.Name, customerId, rows);
+        const string sql = UnderTwoPoundsCte + """
+            SELECT r.parcel_id,r.minimum_weight,r.length_value,r.height_value,r.width_value,
+                   r.passages,r.first_scan,r.last_scan
+            FROM resolved r
+            WHERE r.customer_id=@customerId
+            ORDER BY r.first_scan,r.parcel_id
+            """;
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        command.Parameters.AddWithValue("@shiftStart", depot.ShiftStart(date));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
+        command.Parameters.AddWithValue("@customerId", customerId);
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+            rows.Add(new(reader.GetInt64("parcel_id").ToString(CultureInfo.InvariantCulture),
+                NullableDecimal(reader, "minimum_weight"), NullableDecimal(reader, "length_value"),
+                NullableDecimal(reader, "height_value"), NullableDecimal(reader, "width_value"),
+                Int64OrZero(reader, "passages"), reader.GetDateTime("first_scan"), reader.GetDateTime("last_scan")));
+        return new(date, depot.Name, customerId, rows);
     }
 
     public async Task<HighConveyorCapacityResponse> GetHighConveyorCapacityAsync(DateOnly date, DepotDefinition depot)

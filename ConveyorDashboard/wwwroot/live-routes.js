@@ -653,6 +653,9 @@ async function openConveyorEfficiencyDialog() {
   } catch { /* La pastille affiche déjà l'état d'erreur. */ }
 }
 
+let underTwoClientsContext = null;
+let underTwoParcelRequest = 0;
+
 function renderUnderTwoPoundsClients(data) {
   const dateLabel = fullDate.format(new Date(`${data.date}T12:00:00`));
   $('under2-clients-title').textContent = `${data.depot} · ${dateLabel}`;
@@ -672,7 +675,7 @@ function renderUnderTwoPoundsClients(data) {
       const dimensionLabel = dimensions.every(value => Number.isFinite(value) && value > 0)
         ? dimensions.map(value => value.toLocaleString('fr-CA', { maximumFractionDigits: 1 })).join(' × ') + ' po' : '—';
       row.innerHTML = `
-        <td data-label="Client" class="client-name">${escapeHtml(client.customerName)}</td>
+        <td data-label="Client" class="client-name"><button type="button" class="under2-client-link" data-under2-client="${client.customerId}" aria-haspopup="dialog" aria-controls="under2-parcels-dialog">${escapeHtml(client.customerName)}</button></td>
         <td data-label="Nº client">${client.customerId ? number.format(client.customerId) : '—'}</td>
         <td data-label="Colis sous 2 lb"><strong>${number.format(client.parcels)}</strong></td>
         <td data-label="Part du total">${Number(client.sharePercent || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %</td>
@@ -687,6 +690,7 @@ function renderUnderTwoPoundsClients(data) {
 
 async function openUnderTwoPoundsClientsDialog() {
   if (!DEPOTS[selectedDepotKey].supportsMeasurements) return;
+  underTwoClientsContext = null;
   const requestedDepot = selectedDepotKey;
   const requestedDate = selectedConveyorDate;
   const dialog = $('under2-clients-dialog');
@@ -699,11 +703,49 @@ async function openUnderTwoPoundsClientsDialog() {
     const query = new URLSearchParams({ date: requestedDate, depot: requestedDepot, t: String(Date.now()) });
     const response = await fetch(`/api/conveyor-under-two-pounds/clients?${query}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Réponse ${response.status}`);
-    if (requestedDepot !== selectedDepotKey || requestedDate !== selectedConveyorDate) return;
-    renderUnderTwoPoundsClients(await response.json());
+    const data = await response.json();
+    if (requestedDepot !== selectedDepotKey || requestedDate !== selectedConveyorDate || !dialog.open) return;
+    underTwoClientsContext = { depot: requestedDepot, date: requestedDate };
+    renderUnderTwoPoundsClients(data);
   } catch (error) {
     $('under2-clients-summary').innerHTML = '<article><span>Analyse</span><strong>Indisponible</strong></article>';
     $('under2-clients-body').innerHTML = '<tr><td colspan="7" class="empty-cell">Impossible de charger les clients pour ce quart.</td></tr>';
+  }
+}
+
+function renderUnderTwoPoundsParcels(data) {
+  $('under2-parcels-summary').textContent = `${data.depot} · ${fullDate.format(new Date(`${data.date}T12:00:00`))} · ${number.format(data.parcels.length)} colis`;
+  $('under2-parcels-body').innerHTML = data.parcels.map(parcel => {
+    const dimensions = [parcel.length, parcel.height, parcel.width];
+    const size = dimensions.every(value => Number.isFinite(value) && value > 0)
+      ? dimensions.map(value => value.toLocaleString('fr-CA', { maximumFractionDigits: 1 })).join(' × ') : '—';
+    return `<tr><td data-label="Nº colis">${escapeHtml(String(parcel.parcelId))}</td>
+      <td data-label="Poids min. (lb)">${parcel.minimumWeight == null ? '—' : Number(parcel.minimumWeight).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}</td>
+      <td data-label="Dimensions L × H × l (po)">${size}</td><td data-label="Passages">${number.format(parcel.passages)}</td>
+      <td data-label="Premier passage">${formatTime(parcel.firstScan)}</td><td data-label="Dernier passage">${formatTime(parcel.lastScan)}</td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty-cell">Aucun colis sous 2 lb pour ce client et ce quart.</td></tr>';
+}
+
+async function openUnderTwoPoundsParcels(button) {
+  if (!underTwoClientsContext) return;
+  const requested = { ...underTwoClientsContext };
+  const request = ++underTwoParcelRequest;
+  const dialog = $('under2-parcels-dialog');
+  $('under2-parcels-title').textContent = button.textContent;
+  $('under2-parcels-summary').textContent = 'Chargement des colis…';
+  $('under2-parcels-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Chargement…</td></tr>';
+  if (!dialog.open) dialog.showModal();
+  try {
+    const query = new URLSearchParams(requested);
+    const response = await fetch(`/api/conveyor-under-two-pounds/clients/${encodeURIComponent(button.dataset.under2Client)}/parcels?${query}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Réponse ${response.status}`);
+    const data = await response.json();
+    if (request !== underTwoParcelRequest || !dialog.open) return;
+    renderUnderTwoPoundsParcels(data);
+  } catch {
+    if (request !== underTwoParcelRequest || !dialog.open) return;
+    $('under2-parcels-summary').textContent = 'Chargement impossible. Revenez aux clients et réessayez.';
+    $('under2-parcels-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Colis indisponibles.</td></tr>';
   }
 }
 
@@ -833,3 +875,16 @@ function activateTab(tabId) {
   });
   if (tabId === 'conveyor-tab') loadConveyorEfficiency().catch(() => {});
 }
+
+$('under2-clients-body').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-under2-client]');
+  if (button) openUnderTwoPoundsParcels(button);
+});
+$('under2-parcels-close').addEventListener('click', () => $('under2-parcels-dialog').close());
+$('under2-parcels-dialog').addEventListener('close', () => { underTwoParcelRequest++; });
+$('under2-parcels-dialog').addEventListener('click', (event) => {
+  const dialog = $('under2-parcels-dialog');
+  if (event.target !== dialog) return;
+  const bounds = dialog.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+});

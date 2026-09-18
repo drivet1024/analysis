@@ -347,3 +347,7 @@ dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); 
   tbody td.empty-cell::before { content: none; }
   .mini-progress { width: min(150px, 55%); }
 }
+
+.under2-client-link { padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 800; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.under2-client-link:hover { color: #62d9d0; }
+.under2-client-link:focus-visible { outline: 2px solid #62d9d0; outline-offset: 4px; }
