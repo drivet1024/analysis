@@ -143,12 +143,11 @@
   <dialog id="depot-chutes-dialog" aria-labelledby="depot-chutes-title">
     <div class="section-heading"><div><p>Passages réels sur le convoyeur</p><h2 id="depot-chutes-title">Colis par chute</h2></div><button id="depot-chutes-close" class="app-button" type="button" autofocus>Fermer ✕</button></div>
     <p id="depot-chutes-period" class="method-note"></p>
-    <label>Configuration de tri <select id="depot-chutes-configuration" aria-label="Configuration de tri"></select></label>
     <p id="depot-chutes-status" role="status"></p>
-    <div class="table-wrap"><table><thead><tr><th>Convoyeur</th><th>Chute</th><th>Destination</th><th>FSA des routes locales</th><th>Colis uniques</th><th>Passages</th><th>Non identifiés</th></tr></thead><tbody id="depot-chutes-body"></tbody><tfoot id="depot-chutes-foot"></tfoot></table></div>
-    <p class="method-note">Scans réels du dépôt pendant la journée affichée, de 4 h au relevé. Un colis est compté une fois par chute, mais peut apparaître dans plusieurs chutes. Le total des colis uniques est dédupliqué sur l’ensemble des chutes. Les passages sans numéro de colis sont comptés séparément. Les convoyeurs sont affichés séparément lorsque leur correspondance est connue. La destination est celle des configurations actives ou de la configuration actuelle sélectionnée; les FSA sont les préfixes des codes postaux actifs des routes locales appartenant à ce dépôt. Cette configuration ne reconstitue pas un ancien plan de tri.</p>
+    <div class="table-wrap"><table><thead><tr><th>Convoyeur</th><th>Chute</th><th>Destination</th><th>Nº secteur</th><th>FSA des colis</th><th>Colis uniques</th><th>Passages</th></tr></thead><tbody id="depot-chutes-body"></tbody><tfoot id="depot-chutes-foot"></tfoot></table></div>
+    <p class="method-note">Passages réels sur le convoyeur du haut de Saint-Hubert (lignes 0 et 1), de 4 h au relevé, uniquement pour les colis présents dans parcel et destinés au dépôt cliqué. Destination déterminée par le code postal actuel, puis la route ou le secteur de l’expédition. Les destinations inconnues ou contradictoires sont exclues. Une ligne par chute et secteur de destination de l’expédition ; les FSA proviennent des colis retenus. Le total des colis uniques est dédupliqué entre les chutes.</p>
   </dialog>
-  <script src="/edi-depot-chutes.js?v=20260917-1" defer></script>
+  <script src="/edi-depot-chutes.js?v=20260917-2" defer></script>
   <script src="/edi-depot-clients.js?v=20260917-1" defer></script>
   <script src="/edi-history.js?v=20260913-5" defer></script>
   <script src="/edi.js?v=20260917-9" defer></script>

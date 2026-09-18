@@ -1,29 +1,32 @@
 from pathlib import Path
 import re,sqlite3
-source=Path('ConveyorDashboard/EdiDepotChuteService.cs').read_text(encoding='utf-8')
-queries=re.findall(r'new MySqlCommand\("""(.*?)"""',source,re.S)
+source=Path('ConveyorDashboard/EdiDepotChuteService.cs').read_text(encoding='utf-8-sig')
+query=re.search(r'new MySqlCommand\("""(.*?)"""',source,re.S)[1]
+query=query.replace("LEFT(REPLACE(UPPER(TRIM(s.DEST_POSTAL_CODE)),' ',''),3)","substr(REPLACE(UPPER(TRIM(s.DEST_POSTAL_CODE)),' ',''),1,3)")
 c=sqlite3.connect(':memory:')
-c.executescript('CREATE TABLE parcel_scan_history(chute,parcel_id,depot_id,line_id,date_insert);')
-for chute,pid,depot,line in [(1,10,1,0),(1,10,1,0),(2,10,1,1),(2,11,1,1),(2,0,1,1),(None,None,1,0),(1,12,1,3),(1,13,2,0)]:
+c.executescript('''
+CREATE TABLE parcel_scan_history(chute,parcel_id,depot_id,line_id,date_insert);
+CREATE TABLE parcel(PARCEL_ID,SHIPMENT_INTERNAL_ID,SHIPPING_ID,EXP_DATE);
+CREATE TABLE shipment(ID,SHIPPING_ID,EXP_DATE,DEST_POSTAL_CODE,DEST_ROUTE_ID,DEST_SECTOR_ID);
+CREATE TABLE location(LOC_POSTAL_CODE,DEPOTNUMBER);
+CREATE TABLE route(ROUTE_ID,END_DEPOT_ID);
+CREATE TABLE sector_info(SECTOR_ID,DEPOTNUMBER);
+INSERT INTO parcel VALUES (10,100,'a','2026-09-17'),(10,100,'a','2026-09-17'),(11,101,'b','2026-09-17'),(12,102,'c','2026-09-17'),(13,NULL,'legacy','2026-09-17'),(14,104,'d','2026-09-17'),(15,105,'e','2026-09-17'),(15,106,'f','2026-09-17');
+INSERT INTO shipment VALUES (100,'a','2026-09-17','J3V 1A1',1,123),(101,'b','2026-09-17','G1A1A1',2,234),(102,'c','2026-09-17',NULL,NULL,NULL),(103,'legacy','2026-09-17',NULL,1,345),(104,'d','2026-09-17',NULL,NULL,123),(105,'e','2026-09-17',NULL,1,123),(106,'f','2026-09-17',NULL,2,234);
+INSERT INTO location VALUES ('J3V1A1',1),('G1A1A1',2);
+INSERT INTO route VALUES (1,1),(2,2);
+INSERT INTO sector_info VALUES (123,1),(234,2),(345,1);
+''')
+for chute,pid,depot,line in [(1,10,1,0),(1,10,1,0),(2,10,1,1),(1,11,1,1),(1,12,1,0),(1,13,1,1),(1,14,1,0),(1,15,1,0),(1,999,1,0),(1,0,1,0),(1,None,1,0),(1,10,1,3),(1,10,2,0)]:
  c.execute('INSERT INTO parcel_scan_history VALUES(?,?,?,?,?)',(chute,pid,depot,line,'2026-09-17 18:00:00'))
-params=dict(depot=1,conveyor=1,otherConveyor=0,start='2026-09-17 04:00:00',end='2026-09-18 04:00:00')
-rows=c.execute(queries[2],params).fetchall()
-assert sum(r[2] for r in rows)==6
-assert all(r[4]==2 and r[5]==6 for r in rows)
-assert sum(r[1] for r in rows)==3 # same parcel can visit more than one chute
-assert sum(r[3] for r in rows)==2
-assert c.execute(queries[2],dict(params,conveyor=2)).fetchone()[1:3]==(1,1)
-assert not c.execute(queries[2],dict(params,start='2026-09-18 04:00:00',end='2026-09-19 04:00:00')).fetchall()
-c.create_function('CONCAT',-1,lambda *a: ''.join(map(str,a)))
-c.executescript('CREATE TABLE conveyor_shift(id,conveyor_id,name); CREATE TABLE conveyor_list(CONVEYOR_ID,CONVEYOR_NAME,DEPOT_ID); CREATE TABLE conveyor(DEPOT_ID,ENABLED,SHIFT_ID); CREATE TABLE conveyor_shift_route(route_id,chute_no,shift_id,conveyor_id); CREATE TABLE route(ROUTE_ID,END_DEPOT_ID); CREATE TABLE depot(DEPOTNUMBER,DEPOTNAME); CREATE TABLE location(ROUTE_ID,DEPOTNUMBER,ENABLED,LOC_POSTAL_CODE); INSERT INTO conveyor_list VALUES(1,"Haut",1),(3,"QC",2); INSERT INTO conveyor_shift VALUES(3,1,"Soir"),(20,3,"Jour"); INSERT INTO conveyor VALUES(1,1,3); INSERT INTO conveyor_shift_route VALUES(100,4,3,1),(101,5,3,1),(102,6,20,3); INSERT INTO route VALUES(100,1),(101,2),(102,2); INSERT INTO depot VALUES(1,"STH"),(2,"QC"); INSERT INTO location VALUES(100,1,1,"J3V1A1"),(100,1,1,"J3V1A2"),(100,1,1,"J3T1A1"),(100,1,0,"H1A1A1"),(100,2,1,"H2A1A1");')
-configs=c.execute(queries[0],dict(depot=1)).fetchall()
-assert len(configs)==1 and configs[0][0]==3 and configs[0][3]==1
-mapping=c.execute(queries[1].replace('LEFT(l.LOC_POSTAL_CODE,3)','substr(l.LOC_POSTAL_CODE,1,3)'),dict(depot=1,configuration=3)).fetchall()
-assert {r[5] for r in mapping if r[0]==100}=={'J3V','J3T'}
-assert next(r for r in mapping if r[0]==101)[4]=='QC'
-assert not c.execute(queries[1].replace('LEFT(l.LOC_POSTAL_CODE,3)','substr(l.LOC_POSTAL_CODE,1,3)'),dict(depot=1,configuration=20)).fetchall()
-print('Real scan counts, cross-chute deduplication, line/depot scope, configuration isolation and active local FSA mapping passed.')
-
-all_rows=c.execute(queries[2],dict(params,conveyor=None)).fetchall()
-assert sum(r[2] for r in all_rows)==7
-assert {r[6] for r in all_rows}=={1,2}
+params=dict(depot=1,start='2026-09-17 04:00:00',end='2026-09-18 04:00:00')
+rows=c.execute(query,params).fetchall()
+assert sum(r[3] for r in rows)==5,rows
+assert all(r[5:]==(3,5) for r in rows),rows
+assert {r[1] for r in rows}=={123,345},rows
+assert sum(r[2] for r in rows)==4 # unique total is deduplicated across chutes
+assert 'J3V' in {r[4] for r in rows}
+qc=c.execute(query,dict(params,depot=2)).fetchall()
+assert len(qc)==1 and qc[0][1:4]==(234,1,1),qc
+assert not c.execute(query,dict(params,start='2026-09-18 04:00:00',end='2026-09-19 04:00:00')).fetchall()
+print('High conveyor destination filter, actual sectors/FSA, legacy shipments, real parcels, repeated scans, ambiguous destinations and totals passed.')
