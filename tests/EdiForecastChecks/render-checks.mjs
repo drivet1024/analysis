@@ -56,20 +56,29 @@ context.renderForecast(payload.forecast, { ...payload.forecastArchive, compariso
 assert(elements.get('forecast-body').children[0].innerHTML.includes('<td>10 %</td>'));
 context.renderForecast({ ...payload.forecast, seasonality: null }, payload.forecastArchive);
 assert.equal(elements.get('forecast-seasonality').hidden, true);
+const weekdays = payload.forecast.days.filter(day => {
+  const weekday = new Date(`${day.date}T00:00:00Z`).getUTCDay();
+  return weekday >= 1 && weekday <= 5;
+});
+const weekends = payload.forecast.days.filter(day => !weekdays.includes(day));
+assert.equal(weekends.length, 2);
 const errorRows = [
-  { ...matched, actual: 1000, mlDifference: 2 },
-  { ...matched, date: payload.forecast.days[1].date, actual: 2000, mlDifference: -8 },
-  { ...matched, date: payload.forecast.days[2].date, actual: 0, mlDifference: 100 },
-  { ...matched, date: payload.forecast.days[3].date, actual: null, mlDifference: 100 },
-  { ...matched, date: payload.forecast.days[4].date, actual: 1000, mlDifference: null },
-  { ...matched, snapshotId: 'different-version', actual: 1, mlDifference: 100 },
-  { ...matched, date: '1900-01-01', actual: 1, mlDifference: 100 }
+  { ...matched, date: weekdays[0].date, actual: 1000, mlDifference: 2 },
+  { ...matched, date: weekdays[1].date, actual: 2000, mlDifference: -8 },
+  { ...matched, date: weekdays[2].date, actual: 0, mlDifference: 100 },
+  { ...matched, date: weekdays[3].date, actual: null, mlDifference: 100 },
+  { ...matched, date: weekdays[4].date, actual: 1000, mlDifference: null },
+  { ...matched, date: weekdays[0].date, snapshotId: 'different-version', actual: 1, mlDifference: 100 },
+  { ...matched, date: '1900-01-01', actual: 1, mlDifference: 100 },
+  ...weekends.map(day => ({ ...matched, date: day.date, actual: 100, mlDifference: 100 }))
 ];
 context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: errorRows });
 assert.equal(elements.get('forecast-average-ml').textContent, '0,3 %');
-assert.match(elements.get('forecast-average-note').textContent, /2 jour/);
-context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [{ ...matched, actual: 1000, mlDifference: 0 }] });
+assert.match(elements.get('forecast-average-note').textContent, /lundi au vendredi · 2 jour/);
+context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [{ ...matched, date: weekdays[0].date, actual: 1000, mlDifference: 0 }] });
 assert.equal(elements.get('forecast-average-ml').textContent, '0 %');
+context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: errorRows.slice(-2) });
+assert.equal(elements.get('forecast-average-ml').textContent, '—');
 context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [matched] });
 assert.equal(elements.get('forecast-average-ml').textContent, '—');
 context.renderForecast(null, null);
