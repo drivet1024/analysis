@@ -56,11 +56,22 @@ context.renderForecast(payload.forecast, { ...payload.forecastArchive, compariso
 assert(elements.get('forecast-body').children[0].innerHTML.includes('<td>10 %</td>'));
 context.renderForecast({ ...payload.forecast, seasonality: null }, payload.forecastArchive);
 assert.equal(elements.get('forecast-seasonality').hidden, true);
-assert.equal(elements.get('forecast-average-ml').textContent, new Intl.NumberFormat('fr-CA').format(1003));
-const averageDays = payload.forecast.days.map((day, index) => ({ ...day, parcels: index === 0 ? 0 : index === 1 ? 100 : null }));
-context.renderForecast(payload.forecast, { ...payload.forecastArchive, snapshot: { ...payload.forecastArchive.snapshot, mlForecast: { ...payload.forecastArchive.snapshot.mlForecast, days: averageDays } } });
-assert.equal(elements.get('forecast-average-ml').textContent, '50');
+const errorRows = [
+  { ...matched, actual: 1000, mlDifference: 2 },
+  { ...matched, date: payload.forecast.days[1].date, actual: 2000, mlDifference: -8 },
+  { ...matched, date: payload.forecast.days[2].date, actual: 0, mlDifference: 100 },
+  { ...matched, date: payload.forecast.days[3].date, actual: null, mlDifference: 100 },
+  { ...matched, date: payload.forecast.days[4].date, actual: 1000, mlDifference: null },
+  { ...matched, snapshotId: 'different-version', actual: 1, mlDifference: 100 },
+  { ...matched, date: '1900-01-01', actual: 1, mlDifference: 100 }
+];
+context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: errorRows });
+assert.equal(elements.get('forecast-average-ml').textContent, '0,3 %');
 assert.match(elements.get('forecast-average-note').textContent, /2 jour/);
+context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [{ ...matched, actual: 1000, mlDifference: 0 }] });
+assert.equal(elements.get('forecast-average-ml').textContent, '0 %');
+context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [matched] });
+assert.equal(elements.get('forecast-average-ml').textContent, '—');
 context.renderForecast(null, null);
 assert.equal(elements.get('forecast-average-ml').textContent, '—');
 console.log('Seasonality rendering and archive-filter checks passed.');

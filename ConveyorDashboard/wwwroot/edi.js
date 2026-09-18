@@ -298,14 +298,14 @@ function renderForecast(forecast, archive) {
   const body = $('forecast-body');
   body.replaceChildren();
   $('forecast-foot').replaceChildren();
-  const averageVolume = (days) => {
-    const values = (days || []).map(day => day.parcels).filter(value => Number.isFinite(value) && value >= 0);
-    return { count: values.length, value: values.length ? number.format(Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)) : '—' };
-  };
   const forecastDates = new Set((forecast?.days || []).map(day => day.date));
-  const mlAverage = averageVolume((archive?.snapshot?.mlForecast?.days || []).filter(day => forecastDates.has(day.date)));
-  $('forecast-average-ml').textContent = mlAverage.value;
-  $('forecast-average-note').textContent = `Semaine affichée · colis par jour · ${mlAverage.count} jour(s) avec une prévision ML.NET. Valeurs indisponibles exclues.`;
+  const mlErrors = (archive?.comparisons || [])
+    .filter(row => archive?.snapshot?.id && row.snapshotId === archive.snapshot.id && forecastDates.has(row.date)
+      && Number.isFinite(row.actual) && row.actual > 0 && Number.isFinite(row.mlDifference))
+    .map(row => Math.abs(row.mlDifference) / row.actual * 100);
+  const averageMlError = mlErrors.length ? mlErrors.reduce((sum, error) => sum + error, 0) / mlErrors.length : null;
+  $('forecast-average-ml').textContent = averageMlError == null ? '—' : `${decimal.format(averageMlError)} %`;
+  $('forecast-average-note').textContent = `Semaine affichée · ${mlErrors.length} jour(s) évalué(s). Moyenne de |ML.NET − réel| ÷ réel × 100. Réel nul ou données indisponibles exclus.`;
   if (!forecast) {
     $('forecast-context').textContent = 'Prévision indisponible';
     $('forecast-summary').textContent = 'Aucune prévision sauvegardée pour cette semaine. Le calcul hebdomadaire est effectué le samedi à 6 h.';
