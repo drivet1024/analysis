@@ -787,6 +787,43 @@ async function openRecirculationDialog() {
   }
 }
 
+let chute16Request = 0;
+function renderChute16(data) {
+  $('chute16-title').textContent = `${data.depot} · ${fullDate.format(new Date(`${data.date}T12:00:00`))}`;
+  const identified = new Set(data.rows.filter(row => row.parcelId != null).map(row => row.parcelId)).size;
+  $('chute16-summary').textContent = `${number.format(data.rows.length)} passages · ${number.format(identified)} colis uniques identifiés`;
+  $('chute16-body').innerHTML = data.rows.map(row => `<tr>
+    <td data-label="Nº colis">${row.parcelId == null ? 'Non identifié' : escapeHtml(String(row.parcelId))}</td>
+    <td data-label="Client">${escapeHtml(row.customerName)}${row.customerId ? `<br><small>Nº ${number.format(row.customerId)}</small>` : ''}</td>
+    <td data-label="Ligne">${row.line == null ? '—' : number.format(row.line)}</td>
+    <td data-label="Chute">${number.format(row.chute)}</td>
+    <td data-label="Heure de passage">${escapeHtml(new Date(row.passageTime).toLocaleString('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }))}</td>
+  </tr>`).join('') || '<tr><td colspan="5" class="empty-cell">Aucun passage en chute 16 hors non-lus pour ce quart.</td></tr>';
+}
+
+async function openChute16Dialog() {
+  const request = ++chute16Request;
+  const requestedDepot = selectedDepotKey;
+  const requestedDate = selectedConveyorDate;
+  const dialog = $('chute16-dialog');
+  $('chute16-title').textContent = `${DEPOTS[requestedDepot].name} · ${requestedDate}`;
+  $('chute16-summary').textContent = 'Chargement des colis…';
+  $('chute16-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Chargement…</td></tr>';
+  if (!dialog.open) dialog.showModal();
+  try {
+    const query = new URLSearchParams({ date: requestedDate, depot: requestedDepot });
+    const response = await fetch(`/api/conveyor-chute16/parcels?${query}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Réponse ${response.status}`);
+    const data = await response.json();
+    if (request !== chute16Request || !dialog.open) return;
+    renderChute16(data);
+  } catch {
+    if (request !== chute16Request || !dialog.open) return;
+    $('chute16-summary').textContent = 'Chargement impossible. Fermez la fenêtre et réessayez.';
+    $('chute16-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Colis indisponibles.</td></tr>';
+  }
+}
+
 async function loadConveyorData(timestamp = Date.now()) {
   const requestVersion = ++conveyorRequestVersion;
   const requestedDate = selectedConveyorDate;
@@ -935,6 +972,19 @@ $('recirculation-close').addEventListener('click', () => $('recirculation-dialog
 $('recirculation-dialog').addEventListener('close', () => { recirculationRequest++; });
 $('recirculation-dialog').addEventListener('click', (event) => {
   const dialog = $('recirculation-dialog');
+  if (event.target !== dialog) return;
+  const bounds = dialog.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+});
+
+$('quality-chute16-card').addEventListener('click', openChute16Dialog);
+$('quality-chute16-card').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openChute16Dialog(); }
+});
+$('chute16-close').addEventListener('click', () => $('chute16-dialog').close());
+$('chute16-dialog').addEventListener('close', () => { chute16Request++; });
+$('chute16-dialog').addEventListener('click', (event) => {
+  const dialog = $('chute16-dialog');
   if (event.target !== dialog) return;
   const bounds = dialog.getBoundingClientRect();
   if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();

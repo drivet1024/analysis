@@ -329,6 +329,18 @@ app.MapGet("/api/conveyor-recirculation/parcels", async (string? date, string? d
     catch (Exception ex) { return Results.Problem($"Les colis en recirculation n'ont pas pu être chargés : {ex.Message}"); }
 });
 
+app.MapGet("/api/conveyor-chute16/parcels", async (string? date, string? depot, ConveyorDataService data) =>
+{
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetConveyorChute16Async(
+            ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Les passages en chute 16 n'ont pas pu être chargés : {ex.Message}"); }
+});
+
 app.MapGet("/api/conveyor-efficiency", (ConveyorEfficiencyService efficiency) =>
 {
     var snapshot = efficiency.Current;
@@ -822,6 +834,9 @@ sealed record ConveyorHourlyResponse(
     IReadOnlyList<ConveyorHourlyRow> Rows,
     IReadOnlyList<string> Notes,
     DateTimeOffset GeneratedAt);
+sealed record ConveyorChute16Row(string? ParcelId, long CustomerId, string CustomerName,
+    int? Line, int Chute, DateTime PassageTime);
+sealed record ConveyorChute16Response(DateOnly Date, string Depot, IReadOnlyList<ConveyorChute16Row> Rows);
 sealed record ConveyorRecirculationRow(string ParcelId, long CustomerId, string CustomerName,
     int? Line, int Chute, IReadOnlyList<DateTime> PassageTimes);
 sealed record ConveyorRecirculationResponse(DateOnly Date, string Depot, long TotalParcels,
@@ -2692,6 +2707,45 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             .Select(g => new ConveyorRecirculationRow(g.Key.ParcelId, g.Key.CustomerId, g.Key.CustomerName,
                 g.Key.Line, g.Key.Chute, g.Select(p => p.Time).ToArray())).ToArray();
         return new(date, depot.Name, rows.Select(r => r.ParcelId).Distinct().LongCount(), passages.Count, rows);
+    }
+
+    public async Task<ConveyorChute16Response> GetConveyorChute16Async(DateOnly date, DepotDefinition depot)
+    {
+        const string sql = ConveyorRecirculationCte + """
+            , chute16 AS (
+                SELECT * FROM scope
+                WHERE chute=16 AND NOT ((parcel_id IS NULL OR parcel_id=0) AND COALESCE(camera_data,'') LIKE '?%')
+            ), parcel_customers AS (
+                SELECT p.PARCEL_ID parcel_id,MAX(NULLIF(p.CUSTOMER_ID,0)) customer_id
+                FROM parcel p
+                JOIN (SELECT DISTINCT parcel_id FROM chute16 WHERE parcel_id IS NOT NULL AND parcel_id<>0) r ON r.parcel_id=p.PARCEL_ID
+                GROUP BY p.PARCEL_ID
+            )
+            SELECT s.parcel_id,s.line_id,s.chute,s.date_insert,
+                   COALESCE(pc.customer_id,0) customer_id,
+                   COALESCE(NULLIF(TRIM(c.NAME),''),CASE WHEN pc.customer_id IS NULL THEN 'Client non identifié'
+                       ELSE CONCAT('Client ',pc.customer_id) END) customer_name
+            FROM chute16 s
+            LEFT JOIN parcel_customers pc ON pc.parcel_id=s.parcel_id
+            LEFT JOIN customer c ON c.CUSTOMER_ID=pc.customer_id
+            ORDER BY s.date_insert,s.parcel_id,s.line_id
+            """;
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        command.Parameters.AddWithValue("@shiftStart", depot.ShiftStart(date));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
+        await using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<ConveyorChute16Row>();
+        while (await reader.ReadAsync())
+        {
+            var parcelId = NullableInt64(reader, "parcel_id");
+            rows.Add(new(parcelId is null or 0 ? null : parcelId.Value.ToString(CultureInfo.InvariantCulture),
+                Int64OrZero(reader, "customer_id"), reader.GetString("customer_name"),
+                NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert")));
+        }
+        return new(date, depot.Name, rows);
     }
 
     public async Task<ConveyorQualityResponse> GetConveyorQualityAsync(DateOnly date, DepotDefinition depot)

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Suivi en direct des convoyeurs Nationex par dépôt.">
   <title>Nationex - Saint-Hubert</title>
-  <link rel="stylesheet" href="/live-routes.css?v=20260917-3">
+  <link rel="stylesheet" href="/live-routes.css?v=20260917-5">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body>
@@ -142,7 +142,7 @@
         </div>
         <div class="conveyor-quality-grid" aria-live="polite">
           <article class="conveyor-quality-card quality-chute98"><span>Chute 98</span><strong id="quality-chute98-rate">— %</strong><small id="quality-chute98-total">— passages</small></article>
-          <article class="conveyor-quality-card quality-chute16"><span>Chute 16 hors non-lus</span><strong id="quality-chute16-rate">— %</strong><small id="quality-chute16-total">— passages</small></article>
+          <article id="quality-chute16-card" class="conveyor-quality-card quality-chute16" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="chute16-dialog"><span>Chute 16 hors non-lus</span><strong id="quality-chute16-rate">— %</strong><small id="quality-chute16-total">— passages</small><span class="quality-card-action">Voir les colis →</span></article>
           <article class="conveyor-quality-card quality-noread"><span>Non-lus caméra</span><strong id="quality-noread-rate">— %</strong><small id="quality-noread-total">— passages</small></article>
           <article id="quality-recirculated-card" class="conveyor-quality-card quality-recirculated" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="recirculation-dialog"><span>Recirculation</span><strong id="quality-recirculated-rate">— %</strong><small id="quality-recirculated-total">— colis</small><div class="quality-top-chutes"><span>Top 5 chutes</span><ol id="quality-recirculated-top"><li>—</li></ol></div><span class="quality-card-action">Voir les colis →</span></article>
           <article id="quality-under2-card" class="conveyor-quality-card quality-under2" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="under2-clients-dialog"><span>Colis sous 2 lb</span><strong id="quality-under2-rate">— %</strong><small id="quality-under2-total">— colis du convoyeur</small><span class="quality-card-action">Voir les clients <span aria-hidden="true">→</span></span></article>
@@ -265,7 +265,17 @@
     <p class="dialog-source">Au moins deux passages du même colis sur la même ligne et la même chute, hors chute 98. Une ligne par combinaison colis / ligne / chute. La pastille compte les colis uniques; le détail montre les passages de chaque combinaison répétée, premier passage inclus.</p>
   </dialog>
 
-  <script src="/live-routes.js?v=20260917-4" defer></script>
+  <dialog id="chute16-dialog" class="under2-clients-dialog" aria-labelledby="chute16-title">
+    <div class="dialog-head"><div><p class="section-kicker">Chute 16 hors non-lus</p><h2 id="chute16-title">Passages du quart</h2></div><button id="chute16-close" class="dialog-action-button" type="button" autofocus>Fermer ×</button></div>
+    <p id="chute16-summary" class="dialog-source" aria-live="polite"></p>
+    <div class="table-wrap"><table class="under2-clients-table">
+      <thead><tr><th>Nº colis</th><th>Client</th><th>Ligne</th><th>Chute</th><th>Heure de passage</th></tr></thead>
+      <tbody id="chute16-body"></tbody>
+    </table></div>
+    <p class="dialog-source">Une ligne par passage en chute 16. Les non-lus caméra sont exclus selon la même règle que la pastille. Un colis passé plusieurs fois apparaît plusieurs fois; les passages retenus sans numéro de colis restent affichés comme non identifiés.</p>
+  </dialog>
+
+  <script src="/live-routes.js?v=20260917-5" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>
