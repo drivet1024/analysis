@@ -838,7 +838,8 @@ sealed record ConveyorChute16Row(string? ParcelId, long CustomerId, string Custo
     int? Line, int Chute, DateTime PassageTime);
 sealed record ConveyorChute16Response(DateOnly Date, string Depot, IReadOnlyList<ConveyorChute16Row> Rows);
 sealed record ConveyorRecirculationRow(string ParcelId, long CustomerId, string CustomerName,
-    int? Line, int Chute, IReadOnlyList<DateTime> PassageTimes);
+    int? Line, int Chute, IReadOnlyList<DateTime> PassageTimes,
+    decimal? Weight, decimal? Length, decimal? Height, decimal? Width);
 sealed record ConveyorRecirculationResponse(DateOnly Date, string Depot, long TotalParcels,
     long TotalPassages, IReadOnlyList<ConveyorRecirculationRow> Rows);
 sealed record RecirculationChute(int Chute, long Parcels);
@@ -2653,7 +2654,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
 
     private const string ConveyorRecirculationCte = """
             WITH scope AS (
-                SELECT parcel_id,line_id,chute,camera_data,date_insert
+                SELECT parcel_id,line_id,chute,camera_data,date_insert,weight,l,h,w
                 FROM parcel_scan_history
                 WHERE depot_id=@depotId
                   AND (@hasFloor=0 OR line_id IN (0,1))
@@ -2675,7 +2676,15 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
     public async Task<ConveyorRecirculationResponse> GetConveyorRecirculationAsync(DateOnly date, DepotDefinition depot)
     {
         const string sql = ConveyorRecirculationCte + """
-            , parcel_customers AS (
+            , ranked_weights AS (
+                SELECT parcel_id,weight,
+                       ROW_NUMBER() OVER (PARTITION BY parcel_id ORDER BY date_insert DESC,weight DESC) measurement_rank
+                FROM scope WHERE weight>0
+            ), ranked_dimensions AS (
+                SELECT parcel_id,l,h,w,
+                       ROW_NUMBER() OVER (PARTITION BY parcel_id ORDER BY date_insert DESC,l DESC,h DESC,w DESC) measurement_rank
+                FROM scope WHERE l>0 AND h>0 AND w>0
+            ), parcel_customers AS (
                 SELECT p.PARCEL_ID parcel_id,MAX(NULLIF(p.CUSTOMER_ID,0)) customer_id
                 FROM parcel p
                 JOIN (SELECT DISTINCT parcel_id FROM same_chute_repeat) r ON r.parcel_id=p.PARCEL_ID
@@ -2684,9 +2693,12 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             SELECT s.parcel_id,s.line_id,s.chute,s.date_insert,
                    COALESCE(pc.customer_id,0) customer_id,
                    COALESCE(NULLIF(TRIM(c.NAME),''),CASE WHEN pc.customer_id IS NULL THEN 'Client non identifié'
-                       ELSE CONCAT('Client ',pc.customer_id) END) customer_name
+                       ELSE CONCAT('Client ',pc.customer_id) END) customer_name,
+                   mw.weight,md.l length_value,md.h height_value,md.w width_value
             FROM scope s
             JOIN same_chute_repeat r ON r.parcel_id=s.parcel_id AND r.line_id <=> s.line_id AND r.chute=s.chute
+            LEFT JOIN ranked_weights mw ON mw.parcel_id=s.parcel_id AND mw.measurement_rank=1
+            LEFT JOIN ranked_dimensions md ON md.parcel_id=s.parcel_id AND md.measurement_rank=1
             LEFT JOIN parcel_customers pc ON pc.parcel_id=s.parcel_id
             LEFT JOIN customer c ON c.CUSTOMER_ID=pc.customer_id
             ORDER BY s.parcel_id,s.line_id,s.chute,s.date_insert
@@ -2698,14 +2710,17 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         command.Parameters.AddWithValue("@depotId", depot.DepotId);
         command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
         await using var reader = await command.ExecuteReaderAsync();
-        var passages = new List<(string ParcelId, long CustomerId, string CustomerName, int? Line, int Chute, DateTime Time)>();
+        var passages = new List<(string ParcelId, long CustomerId, string CustomerName, int? Line, int Chute, DateTime Time, decimal? Weight, decimal? Length, decimal? Height, decimal? Width)>();
         while (await reader.ReadAsync())
             passages.Add((reader.GetInt64("parcel_id").ToString(CultureInfo.InvariantCulture),
                 Int64OrZero(reader, "customer_id"), reader.GetString("customer_name"),
-                NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert")));
+                NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert"),
+                NullableDecimal(reader, "weight"), NullableDecimal(reader, "length_value"),
+                NullableDecimal(reader, "height_value"), NullableDecimal(reader, "width_value")));
         var rows = passages.GroupBy(p => (p.ParcelId, p.CustomerId, p.CustomerName, p.Line, p.Chute))
             .Select(g => new ConveyorRecirculationRow(g.Key.ParcelId, g.Key.CustomerId, g.Key.CustomerName,
-                g.Key.Line, g.Key.Chute, g.Select(p => p.Time).ToArray())).ToArray();
+                g.Key.Line, g.Key.Chute, g.Select(p => p.Time).ToArray(),
+                g.First().Weight, g.First().Length, g.First().Height, g.First().Width)).ToArray();
         return new(date, depot.Name, rows.Select(r => r.ParcelId).Distinct().LongCount(), passages.Count, rows);
     }
 

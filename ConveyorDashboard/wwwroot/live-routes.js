@@ -757,11 +757,13 @@ function renderRecirculation(data) {
   $('recirculation-body').innerHTML = data.rows.map(row => `<tr>
     <td data-label="Nº colis">${escapeHtml(String(row.parcelId))}</td>
     <td data-label="Client">${escapeHtml(row.customerName)}${row.customerId ? `<br><small>Nº ${number.format(row.customerId)}</small>` : ''}</td>
+    <td data-label="Poids (lb)">${Number.isFinite(row.weight) && row.weight > 0 ? row.weight.toLocaleString('fr-CA', { maximumFractionDigits: 3 }) : '—'}</td>
+    <td data-label="Dimensions L × H × l (po)">${[row.length, row.height, row.width].every(value => Number.isFinite(value) && value > 0) ? [row.length, row.height, row.width].map(value => value.toLocaleString('fr-CA', { maximumFractionDigits: 1 })).join(' × ') : '—'}</td>
     <td data-label="Ligne">${row.line == null ? '—' : number.format(row.line)}</td>
     <td data-label="Chute">${number.format(row.chute)}</td>
     <td data-label="Passages">${number.format(row.passageTimes.length)}</td>
     <td data-label="Heures de passage">${row.passageTimes.map(time => escapeHtml(new Date(time).toLocaleString('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }))).join('<br>')}</td>
-  </tr>`).join('') || '<tr><td colspan="6" class="empty-cell">Aucun colis en recirculation pour ce quart.</td></tr>';
+  </tr>`).join('') || '<tr><td colspan="8" class="empty-cell">Aucun colis en recirculation pour ce quart.</td></tr>';
 }
 
 async function openRecirculationDialog() {
@@ -771,7 +773,7 @@ async function openRecirculationDialog() {
   const dialog = $('recirculation-dialog');
   $('recirculation-title').textContent = `${DEPOTS[requestedDepot].name} · ${requestedDate}`;
   $('recirculation-summary').textContent = 'Chargement des colis…';
-  $('recirculation-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Chargement…</td></tr>';
+  $('recirculation-body').innerHTML = '<tr><td colspan="8" class="empty-cell">Chargement…</td></tr>';
   if (!dialog.open) dialog.showModal();
   try {
     const query = new URLSearchParams({ date: requestedDate, depot: requestedDepot });
@@ -783,7 +785,7 @@ async function openRecirculationDialog() {
   } catch {
     if (request !== recirculationRequest || !dialog.open) return;
     $('recirculation-summary').textContent = 'Chargement impossible. Fermez la fenêtre et réessayez.';
-    $('recirculation-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Colis indisponibles.</td></tr>';
+    $('recirculation-body').innerHTML = '<tr><td colspan="8" class="empty-cell">Colis indisponibles.</td></tr>';
   }
 }
 

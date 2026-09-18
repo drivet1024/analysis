@@ -7,7 +7,7 @@ assert(html.includes('id="quality-recirculated-card"'));
 assert(html.includes('aria-controls="recirculation-dialog"'));
 const nodes = new Map();
 const $ = id => { if (!nodes.has(id)) nodes.set(id, { open: false, showModal() { this.open = true; } }); return nodes.get(id); };
-let data = { date: '2026-09-17', depot: 'Saint-Hubert', totalParcels: 1, totalPassages: 2, rows: [{ parcelId: '9007199254740993', customerId: 1, customerName: '<Client>', line: 0, chute: 39, passageTimes: ['2026-09-17T16:00:00', '2026-09-17T16:01:00'] }] };
+let data = { date: '2026-09-17', depot: 'Saint-Hubert', totalParcels: 1, totalPassages: 2, rows: [{ parcelId: '9007199254740993', customerId: 1, customerName: '<Client>', line: 0, chute: 39, weight: 1.25, length: 12.5, height: 3, width: 8, passageTimes: ['2026-09-17T16:00:00', '2026-09-17T16:01:00'] }] };
 let fail = false, url;
 const context = { $, selectedDepotKey: 'st-hubert', selectedConveyorDate: '2026-09-17', DEPOTS: { 'st-hubert': { name: 'Saint-Hubert' } }, number: new Intl.NumberFormat('fr-CA'), fullDate: new Intl.DateTimeFormat('fr-CA'), escapeHtml: s => s.replaceAll('<', '&lt;').replaceAll('>', '&gt;'), URLSearchParams,
 fetch: async value => { url = value; return { ok: !fail, status: fail ? 500 : 200, json: async () => data }; } };
@@ -21,6 +21,12 @@ vm.runInContext(source.slice(source.indexOf('let recirculationRequest ='), sourc
  assert($('recirculation-body').innerHTML.includes('9007199254740993'));
  assert($('recirculation-body').innerHTML.includes('&lt;Client&gt;'));
  assert($('recirculation-body').innerHTML.includes('data-label="Ligne">0'));
+ assert($('recirculation-body').innerHTML.includes('data-label="Poids (lb)">1,25'));
+ assert($('recirculation-body').innerHTML.includes('12,5 × 3 × 8'));
+ assert.equal(($('recirculation-body').innerHTML.match(/<td/g) || []).length, 8);
+ context.renderRecirculation({ ...data, rows: [{ ...data.rows[0], weight: null, height: null }] });
+ assert($('recirculation-body').innerHTML.includes('data-label="Poids (lb)">—'));
+ assert($('recirculation-body').innerHTML.includes('data-label="Dimensions L × H × l (po)">—'));
  data = { ...data, totalParcels: 0, totalPassages: 0, rows: [] };
  await context.openRecirculationDialog();
  assert($('recirculation-body').innerHTML.includes('Aucun colis'));

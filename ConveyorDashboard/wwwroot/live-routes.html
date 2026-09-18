@@ -259,10 +259,10 @@
     <div class="dialog-head"><div><p class="section-kicker">Recirculation</p><h2 id="recirculation-title">Colis du quart</h2></div><button id="recirculation-close" class="dialog-action-button" type="button" autofocus>Fermer ×</button></div>
     <p id="recirculation-summary" class="dialog-source" aria-live="polite"></p>
     <div class="table-wrap"><table class="under2-clients-table">
-      <thead><tr><th>Nº colis</th><th>Client</th><th>Ligne</th><th>Chute</th><th>Passages</th><th>Heures de passage</th></tr></thead>
+      <thead><tr><th>Nº colis</th><th>Client</th><th>Poids (lb)</th><th>Dimensions L × H × l (po)</th><th>Ligne</th><th>Chute</th><th>Passages</th><th>Heures de passage</th></tr></thead>
       <tbody id="recirculation-body"></tbody>
     </table></div>
-    <p class="dialog-source">Au moins deux passages du même colis sur la même ligne et la même chute, hors chute 98. Une ligne par combinaison colis / ligne / chute. La pastille compte les colis uniques; le détail montre les passages de chaque combinaison répétée, premier passage inclus.</p>
+    <p class="dialog-source">Au moins deux passages du même colis sur la même ligne et la même chute, hors chute 98. Une ligne par combinaison colis / ligne / chute. La pastille compte les colis uniques; le détail montre les passages de chaque combinaison répétée, premier passage inclus. Poids : dernière lecture positive du colis dans le quart et le dépôt sélectionnés. Dimensions : dernière lecture complète positive, en longueur × hauteur × largeur (pouces). Une mesure absente est affichée « — ».</p>
   </dialog>
 
   <dialog id="chute16-dialog" class="under2-clients-dialog" aria-labelledby="chute16-title">
@@ -275,7 +275,7 @@
     <p class="dialog-source">Une ligne par passage en chute 16. Les non-lus caméra sont exclus selon la même règle que la pastille. Un colis passé plusieurs fois apparaît plusieurs fois; les passages retenus sans numéro de colis restent affichés comme non identifiés.</p>
   </dialog>
 
-  <script src="/live-routes.js?v=20260917-5" defer></script>
+  <script src="/live-routes.js?v=20260917-6" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>

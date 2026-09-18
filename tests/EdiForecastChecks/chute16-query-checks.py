@@ -4,9 +4,9 @@ s=Path('ConveyorDashboard/Program.cs').read_text(encoding='utf-8')
 cte=s.split('private const string ConveyorRecirculationCte = """',1)[1].split('"""',1)[0]
 tail=s.split('public async Task<ConveyorChute16Response>',1)[1].split('const string sql = ConveyorRecirculationCte + """',1)[1].split('"""',1)[0]
 c=sqlite3.connect(':memory:'); c.create_function('CONCAT',-1,lambda *a: ''.join(map(str,a)))
-c.executescript('CREATE TABLE parcel_scan_history(parcel_id,line_id,chute,camera_data,date_insert,depot_id); CREATE TABLE parcel(PARCEL_ID,CUSTOMER_ID); CREATE TABLE customer(CUSTOMER_ID,NAME); INSERT INTO parcel VALUES(1,10),(1,10); INSERT INTO customer VALUES(10,"Client A");')
+c.executescript('CREATE TABLE parcel_scan_history(parcel_id,line_id,chute,camera_data,date_insert,depot_id,weight,l,h,w); CREATE TABLE parcel(PARCEL_ID,CUSTOMER_ID); CREATE TABLE customer(CUSTOMER_ID,NAME); INSERT INTO parcel VALUES(1,10),(1,10); INSERT INTO customer VALUES(10,"Client A");')
 for pid,line,chute,camera,depot,time in [(1,0,16,'read',1,'16:00'),(1,0,16,'read',1,'16:01'),(0,0,16,'?unread',1,'16:02'),(None,0,16,'?unread',1,'16:03'),(None,0,16,None,1,'16:04'),(0,0,16,'read',1,'16:05'),(2,0,16,'?read',1,'16:06'),(3,2,16,'read',1,'16:07'),(4,0,98,'read',1,'16:08'),(5,0,16,'read',2,'16:09')]:
- c.execute('INSERT INTO parcel_scan_history VALUES(?,?,?,?,?,?)',(pid,line,chute,camera,'2026-09-17 '+time,depot))
+ c.execute('INSERT INTO parcel_scan_history(parcel_id,line_id,chute,camera_data,date_insert,depot_id) VALUES(?,?,?,?,?,?)',(pid,line,chute,camera,'2026-09-17 '+time,depot))
 params=dict(shiftStart='2026-09-17 15:00',shiftEnd='2026-09-18 03:00',depotId=1,hasFloor=1)
 rows=c.execute(cte+tail,params).fetchall()
 assert len(rows)==5,rows
