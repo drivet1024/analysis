@@ -381,3 +381,8 @@ dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); 
   #recirculation-dialog tbody td { display: table-cell; }
   #recirculation-dialog tbody td::before { content: none; }
 }
+
+.quality-chute98[role="button"] { cursor: pointer; }
+.quality-chute98[role="button"]:hover { border-color: #ff6f9f; }
+.quality-chute98[role="button"]:focus-visible { outline: 2px solid #ff6f9f; outline-offset: 3px; }
+.quality-chute98 > .quality-card-action { color: #ff6f9f; }

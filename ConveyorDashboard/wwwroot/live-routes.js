@@ -862,6 +862,43 @@ async function openChute16Dialog() {
   }
 }
 
+let chute98Request = 0;
+function renderChute98(data) {
+  $('chute98-title').textContent = `${data.depot} · ${fullDate.format(new Date(`${data.date}T12:00:00`))}`;
+  const identified = new Set(data.rows.filter(row => row.parcelId != null).map(row => row.parcelId)).size;
+  $('chute98-summary').textContent = `${number.format(data.rows.length)} passages · ${number.format(identified)} colis uniques identifiés`;
+  $('chute98-body').innerHTML = data.rows.map(row => `<tr>
+    <td data-label="Nº colis">${row.parcelId == null ? 'Non identifié' : escapeHtml(String(row.parcelId))}</td>
+    <td data-label="Client">${escapeHtml(row.customerName)}${row.customerId ? `<br><small>Nº ${number.format(row.customerId)}</small>` : ''}</td>
+    <td data-label="Ligne">${row.line == null ? '—' : number.format(row.line)}</td>
+    <td data-label="Chute">${number.format(row.chute)}</td>
+    <td data-label="Heure de passage">${escapeHtml(new Date(row.passageTime).toLocaleString('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }))}</td>
+  </tr>`).join('') || '<tr><td colspan="5" class="empty-cell">Aucun passage en chute 98 pour ce quart.</td></tr>';
+}
+
+async function openChute98Dialog() {
+  const request = ++chute98Request;
+  const requestedDepot = selectedDepotKey;
+  const requestedDate = selectedConveyorDate;
+  const dialog = $('chute98-dialog');
+  $('chute98-title').textContent = `${DEPOTS[requestedDepot].name} · ${requestedDate}`;
+  $('chute98-summary').textContent = 'Chargement des colis…';
+  $('chute98-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Chargement…</td></tr>';
+  if (!dialog.open) dialog.showModal();
+  try {
+    const query = new URLSearchParams({ date: requestedDate, depot: requestedDepot });
+    const response = await fetch(`/api/conveyor-chute98/parcels?${query}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Réponse ${response.status}`);
+    const data = await response.json();
+    if (request !== chute98Request || !dialog.open) return;
+    renderChute98(data);
+  } catch {
+    if (request !== chute98Request || !dialog.open) return;
+    $('chute98-summary').textContent = 'Chargement impossible. Fermez la fenêtre et réessayez.';
+    $('chute98-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Colis indisponibles.</td></tr>';
+  }
+}
+
 async function loadConveyorData(timestamp = Date.now()) {
   const requestVersion = ++conveyorRequestVersion;
   const requestedDate = selectedConveyorDate;
@@ -1023,6 +1060,19 @@ $('chute16-close').addEventListener('click', () => $('chute16-dialog').close());
 $('chute16-dialog').addEventListener('close', () => { chute16Request++; });
 $('chute16-dialog').addEventListener('click', (event) => {
   const dialog = $('chute16-dialog');
+  if (event.target !== dialog) return;
+  const bounds = dialog.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+});
+
+$('quality-chute98-card').addEventListener('click', openChute98Dialog);
+$('quality-chute98-card').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openChute98Dialog(); }
+});
+$('chute98-close').addEventListener('click', () => $('chute98-dialog').close());
+$('chute98-dialog').addEventListener('close', () => { chute98Request++; });
+$('chute98-dialog').addEventListener('click', (event) => {
+  const dialog = $('chute98-dialog');
   if (event.target !== dialog) return;
   const bounds = dialog.getBoundingClientRect();
   if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();

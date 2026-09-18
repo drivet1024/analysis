@@ -341,6 +341,18 @@ app.MapGet("/api/conveyor-chute16/parcels", async (string? date, string? depot, 
     catch (Exception ex) { return Results.Problem($"Les passages en chute 16 n'ont pas pu être chargés : {ex.Message}"); }
 });
 
+app.MapGet("/api/conveyor-chute98/parcels", async (string? date, string? depot, ConveyorDataService data) =>
+{
+    try
+    {
+        var selectedDepot = ConveyorCatalog.ResolveDepot(depot);
+        return Results.Ok(await data.GetConveyorChute98Async(
+            ResolveAnalysisDate(date, CurrentOperationalDate(DateTime.Now, selectedDepot)), selectedDepot));
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"Les passages en chute 98 n'ont pas pu être chargés : {ex.Message}"); }
+});
+
 app.MapGet("/api/conveyor-efficiency", (ConveyorEfficiencyService efficiency) =>
 {
     var snapshot = efficiency.Current;
@@ -834,6 +846,9 @@ sealed record ConveyorHourlyResponse(
     IReadOnlyList<ConveyorHourlyRow> Rows,
     IReadOnlyList<string> Notes,
     DateTimeOffset GeneratedAt);
+sealed record ConveyorChute98Row(string? ParcelId, long CustomerId, string CustomerName,
+    int? Line, int Chute, DateTime PassageTime);
+sealed record ConveyorChute98Response(DateOnly Date, string Depot, IReadOnlyList<ConveyorChute98Row> Rows);
 sealed record ConveyorChute16Row(string? ParcelId, long CustomerId, string CustomerName,
     int? Line, int Chute, DateTime PassageTime, string? PostalCode, string PostalStatus);
 sealed record ConveyorChute16Response(DateOnly Date, string Depot, IReadOnlyList<ConveyorChute16Row> Rows);
@@ -2794,6 +2809,44 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 Int64OrZero(reader, "customer_id"), reader.GetString("customer_name"),
                 NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert"),
                 IsNull(reader, "postal_code") ? null : reader.GetString("postal_code"), reader.GetString("postal_status")));
+        }
+        return new(date, depot.Name, rows);
+    }
+
+    public async Task<ConveyorChute98Response> GetConveyorChute98Async(DateOnly date, DepotDefinition depot)
+    {
+        const string sql = ConveyorRecirculationCte + """
+            , chute98 AS (
+                SELECT * FROM scope WHERE chute=98
+            ), parcel_customers AS (
+                SELECT p.PARCEL_ID parcel_id,MAX(NULLIF(p.CUSTOMER_ID,0)) customer_id
+                FROM parcel p
+                JOIN (SELECT DISTINCT parcel_id FROM chute98 WHERE parcel_id IS NOT NULL AND parcel_id<>0) r ON r.parcel_id=p.PARCEL_ID
+                GROUP BY p.PARCEL_ID
+            )
+            SELECT s.parcel_id,s.line_id,s.chute,s.date_insert,
+                   COALESCE(pc.customer_id,0) customer_id,
+                   COALESCE(NULLIF(TRIM(c.NAME),''),CASE WHEN pc.customer_id IS NULL THEN 'Client non identifié'
+                       ELSE CONCAT('Client ',pc.customer_id) END) customer_name
+            FROM chute98 s
+            LEFT JOIN parcel_customers pc ON pc.parcel_id=s.parcel_id
+            LEFT JOIN customer c ON c.CUSTOMER_ID=pc.customer_id
+            ORDER BY s.date_insert,s.parcel_id,s.line_id
+            """;
+        await using var connection = await OpenAsync();
+        await using var command = new MySqlCommand(sql, connection) { CommandTimeout = 90 };
+        command.Parameters.AddWithValue("@shiftStart", depot.ShiftStart(date));
+        command.Parameters.AddWithValue("@shiftEnd", depot.ShiftEnd(date));
+        command.Parameters.AddWithValue("@depotId", depot.DepotId);
+        command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
+        await using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<ConveyorChute98Row>();
+        while (await reader.ReadAsync())
+        {
+            var parcelId = NullableInt64(reader, "parcel_id");
+            rows.Add(new(parcelId is null or 0 ? null : parcelId.Value.ToString(CultureInfo.InvariantCulture),
+                Int64OrZero(reader, "customer_id"), reader.GetString("customer_name"),
+                NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert")));
         }
         return new(date, depot.Name, rows);
     }

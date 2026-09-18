@@ -1,0 +1,36 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync('ConveyorDashboard/wwwroot/live-routes.js', 'utf8');
+const html = fs.readFileSync('ConveyorDashboard/wwwroot/live-routes.html', 'utf8');
+assert(html.includes('id="quality-chute98-card"'));
+assert(html.includes('aria-controls="chute98-dialog"'));
+const nodes = new Map();
+const $ = id => { if (!nodes.has(id)) nodes.set(id, { open: false, showModal() { this.open = true; } }); return nodes.get(id); };
+let data = { date: '2026-09-17', depot: 'Saint-Hubert', totalParcels: 1, totalPassages: 2, rows: [{ parcelId: '9007199254740993', customerId: 1, customerName: '<Client>', line: 0, chute: 98, passageTime: '2026-09-17T16:00:00' }] };
+let fail = false, url;
+const context = { $, selectedDepotKey: 'st-hubert', selectedConveyorDate: '2026-09-17', DEPOTS: { 'st-hubert': { name: 'Saint-Hubert' } }, number: new Intl.NumberFormat('fr-CA'), fullDate: new Intl.DateTimeFormat('fr-CA'), escapeHtml: s => s.replaceAll('<', '&lt;').replaceAll('>', '&gt;'), URLSearchParams,
+fetch: async value => { url = value; return { ok: !fail, status: fail ? 500 : 200, json: async () => data }; } };
+vm.createContext(context);
+vm.runInContext(source.slice(source.indexOf('let chute98Request ='), source.indexOf('async function loadConveyorData(')), context);
+(async () => {
+ await context.openChute98Dialog();
+ assert(url.includes('date=2026-09-17&depot=st-hubert'));
+ assert($('chute98-dialog').open);
+ assert($('chute98-summary').textContent.includes('1 passages · 1 colis uniques identifiés'));
+ assert($('chute98-body').innerHTML.includes('9007199254740993'));
+ assert($('chute98-body').innerHTML.includes('&lt;Client&gt;'));
+ assert($('chute98-body').innerHTML.includes('data-label="Ligne">0'));
+ context.renderChute98({ ...data, rows: [{ ...data.rows[0], parcelId: null }] });
+ assert($('chute98-body').innerHTML.includes('Non identifié'));
+ data = { ...data, totalParcels: 0, totalPassages: 0, rows: [] };
+ await context.openChute98Dialog();
+ assert($('chute98-body').innerHTML.includes('Aucun passage'));
+ fail = true;
+ await context.openChute98Dialog();
+ assert($('chute98-body').innerHTML.includes('Colis indisponibles'));
+ context.fetch = async () => ({ ok: true, json: async () => { $('chute98-dialog').open = false; return data; } });
+ await context.openChute98Dialog();
+ assert($('chute98-body').innerHTML.includes('Chargement'));
+ console.log('Chute 98 dialog rendering, scope, empty/error and stale response checks passed.');
+})().catch(error => { console.error(error); process.exitCode = 1; });
