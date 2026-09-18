@@ -27,6 +27,13 @@ vm.runInContext(source.slice(source.indexOf('let recirculationRequest ='), sourc
  context.renderRecirculation({ ...data, rows: [{ ...data.rows[0], weight: null, height: null }] });
  assert($('recirculation-body').innerHTML.includes('data-label="Poids (lb)">—'));
  assert($('recirculation-body').innerHTML.includes('data-label="Dimensions L × H × l (po)">—'));
+ const times = Array.from({ length: 18 }, (_, index) => `2026-09-17T17:${String(index).padStart(2, '0')}:00`);
+ const compact = context.recirculationPassageTimes(times);
+ assert(compact.includes('Voir les 18 passages'));
+ assert.equal((compact.match(/<li /g) || []).length, 18);
+ assert(!compact.includes('<details open'));
+ assert(compact.includes('Premier') && compact.includes('Dernier'));
+ assert(!context.recirculationPassageTimes(times.slice(0, 2)).includes('<details'));
  data = { ...data, totalParcels: 0, totalPassages: 0, rows: [] };
  await context.openRecirculationDialog();
  assert($('recirculation-body').innerHTML.includes('Aucun colis'));

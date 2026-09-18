@@ -361,3 +361,23 @@ dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); 
 .quality-chute16[role="button"]:hover { border-color: #55c2ff; }
 .quality-chute16[role="button"]:focus-visible { outline: 2px solid #55c2ff; outline-offset: 3px; }
 .quality-chute16 > .quality-card-action { color: #55c2ff; }
+
+#recirculation-dialog { width: min(1440px, calc(100% - 28px)); }
+#recirculation-dialog table { table-layout: auto; }
+#recirculation-dialog th, #recirculation-dialog td { vertical-align: top; }
+#recirculation-dialog td:nth-child(1), #recirculation-dialog td:nth-child(3), #recirculation-dialog td:nth-child(4) { white-space: nowrap; }
+#recirculation-dialog th:last-child, #recirculation-dialog td:last-child { min-width: 265px; text-align: left; }
+.passage-time { display: block; white-space: nowrap; font-variant-numeric: tabular-nums; line-height: 1.65; }
+.passage-time small { display: inline-block; min-width: 46px; color: var(--muted); }
+.passage-details { margin-top: 5px; }
+.passage-details summary { cursor: pointer; color: #8dc5ff; white-space: nowrap; }
+.passage-details ol { max-height: 220px; overflow-y: auto; margin: 8px 0 0; padding: 0 8px 0 0; list-style: none; }
+@media (max-width: 760px) {
+  #recirculation-dialog .table-wrap { overflow-x: auto; }
+  #recirculation-dialog table { display: table; min-width: 1060px; }
+  #recirculation-dialog thead { display: table-header-group; position: static; width: auto; height: auto; overflow: visible; clip: auto; clip-path: none; white-space: normal; }
+  #recirculation-dialog tbody { display: table-row-group; }
+  #recirculation-dialog tr { display: table-row; box-shadow: none; }
+  #recirculation-dialog tbody td { display: table-cell; }
+  #recirculation-dialog tbody td::before { content: none; }
+}

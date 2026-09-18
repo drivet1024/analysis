@@ -751,6 +751,16 @@ async function openUnderTwoPoundsParcels(button) {
 }
 
 let recirculationRequest = 0;
+function recirculationPassageTimes(times) {
+  const ordered = [...times].sort();
+  const label = time => escapeHtml(new Date(time).toLocaleString('fr-CA', {
+    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+  }));
+  if (!ordered.length) return '—';
+  const endpoints = `<span class="passage-time"><small>Premier</small> ${label(ordered[0])}</span>${ordered.length > 1 ? `<span class="passage-time"><small>Dernier</small> ${label(ordered.at(-1))}</span>` : ''}`;
+  return endpoints + (ordered.length > 2 ? `<details class="passage-details"><summary>Voir les ${number.format(ordered.length)} passages</summary><ol>${ordered.map(time => `<li class="passage-time">${label(time)}</li>`).join('')}</ol></details>` : '');
+}
+
 function renderRecirculation(data) {
   $('recirculation-title').textContent = `${data.depot} · ${fullDate.format(new Date(`${data.date}T12:00:00`))}`;
   $('recirculation-summary').textContent = `${number.format(data.totalParcels)} colis uniques · ${number.format(data.totalPassages)} passages sur les combinaisons répétées`;
@@ -762,7 +772,7 @@ function renderRecirculation(data) {
     <td data-label="Ligne">${row.line == null ? '—' : number.format(row.line)}</td>
     <td data-label="Chute">${number.format(row.chute)}</td>
     <td data-label="Passages">${number.format(row.passageTimes.length)}</td>
-    <td data-label="Heures de passage">${row.passageTimes.map(time => escapeHtml(new Date(time).toLocaleString('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }))).join('<br>')}</td>
+    <td data-label="Heures de passage">${recirculationPassageTimes(row.passageTimes)}</td>
   </tr>`).join('') || '<tr><td colspan="8" class="empty-cell">Aucun colis en recirculation pour ce quart.</td></tr>';
 }
 
