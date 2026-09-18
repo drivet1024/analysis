@@ -56,4 +56,12 @@ context.renderForecast(payload.forecast, { ...payload.forecastArchive, compariso
 assert(elements.get('forecast-body').children[0].innerHTML.includes('<td>10 %</td>'));
 context.renderForecast({ ...payload.forecast, seasonality: null }, payload.forecastArchive);
 assert.equal(elements.get('forecast-seasonality').hidden, true);
+assert.equal(elements.get('forecast-average-ml').textContent, new Intl.NumberFormat('fr-CA').format(1003));
+const averageDays = payload.forecast.days.map((day, index) => ({ ...day, parcels: index === 0 ? 0 : index === 1 ? 100 : null }));
+context.renderForecast({ ...payload.forecast, days: averageDays }, payload.forecastArchive);
+assert.equal(elements.get('forecast-average-statistical').textContent, '50');
+assert.match(elements.get('forecast-average-note').textContent, /statistique : 2 jour/);
+context.renderForecast(null, null);
+assert.equal(elements.get('forecast-average-statistical').textContent, '—');
+assert.equal(elements.get('forecast-average-ml').textContent, '—');
 console.log('Seasonality rendering and archive-filter checks passed.');

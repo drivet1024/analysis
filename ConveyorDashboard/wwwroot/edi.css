@@ -276,3 +276,6 @@ tfoot td { border-top: 1px solid rgba(81, 167, 255, .34); border-bottom: 0; back
 
 #forecast-explanations-dialog .forecast-chart-header { position: sticky; top: -24px; padding-block: 12px; background: var(--panel); z-index: 1; }
 #forecast-explanations-dialog p { overflow-wrap: anywhere; }
+
+.forecast-average { margin-top: 16px; flex-wrap: wrap; }
+.forecast-average strong { font-size: clamp(1.8rem, 3vw, 2.8rem); }

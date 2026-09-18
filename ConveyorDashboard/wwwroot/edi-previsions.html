@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI PRÉVISION</title>
-  <link rel="stylesheet" href="/edi.css?v=20260917-1">
+  <link rel="stylesheet" href="/edi.css?v=20260917-2">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body data-edi-page="forecasts">
@@ -60,6 +60,11 @@
         <div><p>Estimation à partir du passé</p><h2 id="forecast-title">Prévision figée et réel de la semaine</h2></div>
         <div><span id="forecast-context">Chargement des archives…</span><label>Version <select id="forecast-archive-select"></select></label></div>
       </div>
+      <div class="snapshot-pill forecast-average" aria-live="polite">
+        <div><span>Moyenne quotidienne prévue</span><small id="forecast-average-note">Semaine affichée · colis par jour</small></div>
+        <div><span>Statistique</span><strong id="forecast-average-statistical">—</strong></div>
+        <div><span>ML.NET</span><strong id="forecast-average-ml">—</strong></div>
+      </div>
       <div class="forecast-chart-actions"><button id="forecast-explanations-open" class="app-button" type="button" aria-haspopup="dialog" aria-controls="forecast-explanations-dialog">Explications des prévisions</button><button id="forecast-chart-open" class="app-button" type="button" disabled>Afficher le graphique</button></div>
       <div class="table-wrap forecast-wrap">
         <table class="forecast-table">
@@ -111,7 +116,7 @@
     <p id="forecast-chart-readout" aria-live="polite"></p><p id="forecast-chart-note"></p>
   </dialog>
   <script src="/edi-forecast-chart.js?v=20260914-1" defer></script>
-  <script src="/edi.js?v=20260917-1" defer></script>
+  <script src="/edi.js?v=20260917-2" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>
