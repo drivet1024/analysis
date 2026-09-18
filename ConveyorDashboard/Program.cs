@@ -862,7 +862,7 @@ sealed record ConveyorHourlyResponse(
     IReadOnlyList<string> Notes,
     DateTimeOffset GeneratedAt);
 sealed record ConveyorChute98Row(string? ParcelId, long CustomerId, string CustomerName,
-    int? Line, int Chute, DateTime PassageTime);
+    int? Line, int Chute, DateTime PassageTime, decimal? Weight, decimal? Length, decimal? Height, decimal? Width);
 sealed record ConveyorChute98Response(DateOnly Date, string Depot, IReadOnlyList<ConveyorChute98Row> Rows);
 sealed record ConveyorChute16Row(string? ParcelId, long CustomerId, string CustomerName,
     int? Line, int Chute, DateTime PassageTime, string? PostalCode, string PostalStatus);
@@ -2846,7 +2846,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             SELECT s.parcel_id,s.line_id,s.chute,s.date_insert,
                    COALESCE(pc.customer_id,0) customer_id,
                    COALESCE(NULLIF(TRIM(c.NAME),''),CASE WHEN pc.customer_id IS NULL THEN 'Client non identifié'
-                       ELSE CONCAT('Client ',pc.customer_id) END) customer_name
+                       ELSE CONCAT('Client ',pc.customer_id) END) customer_name,
+                   s.weight,s.l,s.h,s.w
             FROM chute98 s
             LEFT JOIN parcel_customers pc ON pc.parcel_id=s.parcel_id
             LEFT JOIN customer c ON c.CUSTOMER_ID=pc.customer_id
@@ -2865,7 +2866,9 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             var parcelId = NullableInt64(reader, "parcel_id");
             rows.Add(new(parcelId is null or 0 ? null : parcelId.Value.ToString(CultureInfo.InvariantCulture),
                 Int64OrZero(reader, "customer_id"), reader.GetString("customer_name"),
-                NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert")));
+                NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert"),
+                NullableDecimal(reader, "weight"), NullableDecimal(reader, "l"),
+                NullableDecimal(reader, "h"), NullableDecimal(reader, "w")));
         }
         return new(date, depot.Name, rows);
     }

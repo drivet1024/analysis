@@ -251,6 +251,8 @@ dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); 
 .under2-clients-table { min-width: 1000px; }
 .under2-clients-table th:first-child, .under2-clients-table td:first-child { text-align: left; }
 .under2-clients-table .under2-dimensions { white-space: nowrap; }
+#chute98-dialog table { table-layout: auto; }
+#chute98-dialog td:nth-child(3), #chute98-dialog td:nth-child(4), #chute98-dialog td:last-child { white-space: nowrap; }
 .under2-dimensions small { display: block; color: var(--muted); font-size: .7rem; margin-top: 4px; }
 .conveyor-efficiency-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 22px 0 16px; }
 .conveyor-efficiency-summary > div { padding: 13px 15px; border: 1px solid var(--line); border-radius: 13px; background: rgba(18, 35, 48, .7); }

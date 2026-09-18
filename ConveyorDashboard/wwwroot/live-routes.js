@@ -870,10 +870,12 @@ function renderChute98(data) {
   $('chute98-body').innerHTML = data.rows.map(row => `<tr>
     <td data-label="Nº colis">${row.parcelId == null ? 'Non identifié' : escapeHtml(String(row.parcelId))}</td>
     <td data-label="Client">${escapeHtml(row.customerName)}${row.customerId ? `<br><small>Nº ${number.format(row.customerId)}</small>` : ''}</td>
+    <td data-label="Poids (lb)">${Number.isFinite(row.weight) && row.weight > 0 ? row.weight.toLocaleString('fr-CA', { maximumFractionDigits: 3 }) : '—'}</td>
+    <td data-label="Dimensions L × H × l (po)">${[row.length, row.height, row.width].every(value => Number.isFinite(value) && value > 0) ? [row.length, row.height, row.width].map(value => value.toLocaleString('fr-CA', { maximumFractionDigits: 1 })).join(' × ') : '—'}</td>
     <td data-label="Ligne">${row.line == null ? '—' : number.format(row.line)}</td>
     <td data-label="Chute">${number.format(row.chute)}</td>
     <td data-label="Heure de passage">${escapeHtml(new Date(row.passageTime).toLocaleString('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }))}</td>
-  </tr>`).join('') || '<tr><td colspan="5" class="empty-cell">Aucun passage en chute 98 pour ce quart.</td></tr>';
+  </tr>`).join('') || '<tr><td colspan="7" class="empty-cell">Aucun passage en chute 98 pour ce quart.</td></tr>';
 }
 
 async function openChute98Dialog() {
@@ -883,7 +885,7 @@ async function openChute98Dialog() {
   const dialog = $('chute98-dialog');
   $('chute98-title').textContent = `${DEPOTS[requestedDepot].name} · ${requestedDate}`;
   $('chute98-summary').textContent = 'Chargement des colis…';
-  $('chute98-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Chargement…</td></tr>';
+  $('chute98-body').innerHTML = '<tr><td colspan="7" class="empty-cell">Chargement…</td></tr>';
   if (!dialog.open) dialog.showModal();
   try {
     const query = new URLSearchParams({ date: requestedDate, depot: requestedDepot });
@@ -895,7 +897,7 @@ async function openChute98Dialog() {
   } catch {
     if (request !== chute98Request || !dialog.open) return;
     $('chute98-summary').textContent = 'Chargement impossible. Fermez la fenêtre et réessayez.';
-    $('chute98-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Colis indisponibles.</td></tr>';
+    $('chute98-body').innerHTML = '<tr><td colspan="7" class="empty-cell">Colis indisponibles.</td></tr>';
   }
 }
 
