@@ -847,7 +847,7 @@ sealed record ConveyorQualityResponse(
     public double UnderTwoPoundsPercent => HighConveyorParcels == 0 ? 0 : 100d * UnderTwoPounds / HighConveyorParcels;
 }
 sealed record ConveyorUnderTwoPoundsParcelRow(string ParcelId, decimal? MinimumWeight,
-    decimal? Length, decimal? Height, decimal? Width, long Passages, DateTime FirstScan, DateTime LastScan);
+    decimal? Length, decimal? Height, decimal? Width, long Passages, DateTime FirstScan, DateTime LastScan, string? Chutes);
 sealed record ConveyorUnderTwoPoundsParcelsResponse(DateOnly Date, string Depot, long CustomerId,
     IReadOnlyList<ConveyorUnderTwoPoundsParcelRow> Parcels);
 sealed record ConveyorUnderTwoPoundsClientRow(
@@ -2780,6 +2780,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             WITH parcel_weights AS (
                 SELECT ph.PARCEL_ID parcel_id,
                        ph.WEIGHT weight,
+                       ph.CHUTE_NO chute,
                        ph.LENGTH length_value, ph.HEIGHT height_value, ph.WIDTH width_value,
                        ph.DATE_INSERT inserted_at,
                        NULLIF(ph.CUSTOMER_ID,0) customer_id,
@@ -2803,7 +2804,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                        MIN(scan_time) first_scan,
                        MAX(scan_time) last_scan,
                        COUNT(*) passages,
-                       MIN(weight) minimum_weight
+                       MIN(weight) minimum_weight,
+                       GROUP_CONCAT(DISTINCT chute) chutes
                 FROM parcel_weights
                 GROUP BY parcel_id
                 HAVING MAX(weight IS NOT NULL AND weight<2)=1
@@ -2827,7 +2829,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                        COALESCE(u.customer_id,pc.customer_id,0) customer_id,
                        u.first_scan,
                        u.last_scan,
-                       u.passages,u.minimum_weight,
+                       u.passages,u.minimum_weight,u.chutes,
                        d.length_value,d.height_value,d.width_value
                 FROM under_two u
                 LEFT JOIN parcel_customer pc ON pc.parcel_id=u.parcel_id
@@ -2919,7 +2921,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         if (!depot.SupportsMeasurements) return new(date, depot.Name, customerId, rows);
         const string sql = UnderTwoPoundsCte + """
             SELECT r.parcel_id,r.minimum_weight,r.length_value,r.height_value,r.width_value,
-                   r.passages,r.first_scan,r.last_scan
+                   r.passages,r.first_scan,r.last_scan,r.chutes
             FROM resolved r
             WHERE r.customer_id=@customerId
             ORDER BY r.first_scan,r.parcel_id
@@ -2936,7 +2938,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             rows.Add(new(reader.GetInt64("parcel_id").ToString(CultureInfo.InvariantCulture),
                 NullableDecimal(reader, "minimum_weight"), NullableDecimal(reader, "length_value"),
                 NullableDecimal(reader, "height_value"), NullableDecimal(reader, "width_value"),
-                Int64OrZero(reader, "passages"), reader.GetDateTime("first_scan"), reader.GetDateTime("last_scan")));
+                Int64OrZero(reader, "passages"), reader.GetDateTime("first_scan"), reader.GetDateTime("last_scan"),
+                IsNull(reader, "chutes") ? null : reader.GetString("chutes")));
         return new(date, depot.Name, customerId, rows);
     }
 

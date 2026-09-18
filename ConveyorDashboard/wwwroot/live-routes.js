@@ -722,8 +722,9 @@ function renderUnderTwoPoundsParcels(data) {
     return `<tr><td data-label="Nº colis">${escapeHtml(String(parcel.parcelId))}</td>
       <td data-label="Poids min. (lb)">${parcel.minimumWeight == null ? '—' : Number(parcel.minimumWeight).toLocaleString('fr-CA', { maximumFractionDigits: 3 })}</td>
       <td data-label="Dimensions L × H × l (po)">${size}</td><td data-label="Passages">${number.format(parcel.passages)}</td>
+      <td data-label="Chute(s)">${parcel.chutes ? escapeHtml(parcel.chutes.split(',').map(chute => chute.trim()).sort((a, b) => Number(a) - Number(b)).join(', ')) : '—'}</td>
       <td data-label="Premier passage">${formatTime(parcel.firstScan)}</td><td data-label="Dernier passage">${formatTime(parcel.lastScan)}</td></tr>`;
-  }).join('') || '<tr><td colspan="6" class="empty-cell">Aucun colis sous 2 lb pour ce client et ce quart.</td></tr>';
+  }).join('') || '<tr><td colspan="7" class="empty-cell">Aucun colis sous 2 lb pour ce client et ce quart.</td></tr>';
 }
 
 async function openUnderTwoPoundsParcels(button) {
@@ -733,7 +734,7 @@ async function openUnderTwoPoundsParcels(button) {
   const dialog = $('under2-parcels-dialog');
   $('under2-parcels-title').textContent = button.textContent;
   $('under2-parcels-summary').textContent = 'Chargement des colis…';
-  $('under2-parcels-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Chargement…</td></tr>';
+  $('under2-parcels-body').innerHTML = '<tr><td colspan="7" class="empty-cell">Chargement…</td></tr>';
   if (!dialog.open) dialog.showModal();
   try {
     const query = new URLSearchParams(requested);
@@ -745,7 +746,7 @@ async function openUnderTwoPoundsParcels(button) {
   } catch {
     if (request !== underTwoParcelRequest || !dialog.open) return;
     $('under2-parcels-summary').textContent = 'Chargement impossible. Revenez aux clients et réessayez.';
-    $('under2-parcels-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Colis indisponibles.</td></tr>';
+    $('under2-parcels-body').innerHTML = '<tr><td colspan="7" class="empty-cell">Colis indisponibles.</td></tr>';
   }
 }
 
