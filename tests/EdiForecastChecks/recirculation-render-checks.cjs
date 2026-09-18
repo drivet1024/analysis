@@ -1,0 +1,34 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync('ConveyorDashboard/wwwroot/live-routes.js', 'utf8');
+const html = fs.readFileSync('ConveyorDashboard/wwwroot/live-routes.html', 'utf8');
+assert(html.includes('id="quality-recirculated-card"'));
+assert(html.includes('aria-controls="recirculation-dialog"'));
+const nodes = new Map();
+const $ = id => { if (!nodes.has(id)) nodes.set(id, { open: false, showModal() { this.open = true; } }); return nodes.get(id); };
+let data = { date: '2026-09-17', depot: 'Saint-Hubert', totalParcels: 1, totalPassages: 2, rows: [{ parcelId: '9007199254740993', customerId: 1, customerName: '<Client>', line: 0, chute: 39, passageTimes: ['2026-09-17T16:00:00', '2026-09-17T16:01:00'] }] };
+let fail = false, url;
+const context = { $, selectedDepotKey: 'st-hubert', selectedConveyorDate: '2026-09-17', DEPOTS: { 'st-hubert': { name: 'Saint-Hubert' } }, number: new Intl.NumberFormat('fr-CA'), fullDate: new Intl.DateTimeFormat('fr-CA'), escapeHtml: s => s.replaceAll('<', '&lt;').replaceAll('>', '&gt;'), URLSearchParams,
+fetch: async value => { url = value; return { ok: !fail, status: fail ? 500 : 200, json: async () => data }; } };
+vm.createContext(context);
+vm.runInContext(source.slice(source.indexOf('let recirculationRequest ='), source.indexOf('async function loadConveyorData(')), context);
+(async () => {
+ await context.openRecirculationDialog();
+ assert(url.includes('date=2026-09-17&depot=st-hubert'));
+ assert($('recirculation-dialog').open);
+ assert($('recirculation-summary').textContent.includes('1 colis uniques · 2 passages'));
+ assert($('recirculation-body').innerHTML.includes('9007199254740993'));
+ assert($('recirculation-body').innerHTML.includes('&lt;Client&gt;'));
+ assert($('recirculation-body').innerHTML.includes('data-label="Ligne">0'));
+ data = { ...data, totalParcels: 0, totalPassages: 0, rows: [] };
+ await context.openRecirculationDialog();
+ assert($('recirculation-body').innerHTML.includes('Aucun colis'));
+ fail = true;
+ await context.openRecirculationDialog();
+ assert($('recirculation-body').innerHTML.includes('Colis indisponibles'));
+ context.fetch = async () => ({ ok: true, json: async () => { $('recirculation-dialog').open = false; return data; } });
+ await context.openRecirculationDialog();
+ assert($('recirculation-body').innerHTML.includes('Chargement'));
+ console.log('Recirculation dialog rendering, scope, empty/error and stale response checks passed.');
+})().catch(error => { console.error(error); process.exitCode = 1; });

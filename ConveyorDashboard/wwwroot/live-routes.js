@@ -384,7 +384,7 @@ function renderConveyorQuality(data) {
   ];
   metrics.forEach(([metric, total, rate]) => {
     $(`quality-${metric}-rate`).textContent = `${Number(rate || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %`;
-    $(`quality-${metric}-total`).textContent = `${number.format(total)} passages`;
+    $(`quality-${metric}-total`).textContent = `${number.format(total)} ${metric === 'recirculated' ? 'colis' : 'passages'}`;
   });
   $('quality-under2-rate').textContent = depot.supportsMeasurements
     ? `${Number(data.underTwoPoundsPercent || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %`
@@ -749,6 +749,43 @@ async function openUnderTwoPoundsParcels(button) {
   }
 }
 
+let recirculationRequest = 0;
+function renderRecirculation(data) {
+  $('recirculation-title').textContent = `${data.depot} · ${fullDate.format(new Date(`${data.date}T12:00:00`))}`;
+  $('recirculation-summary').textContent = `${number.format(data.totalParcels)} colis uniques · ${number.format(data.totalPassages)} passages sur les combinaisons répétées`;
+  $('recirculation-body').innerHTML = data.rows.map(row => `<tr>
+    <td data-label="Nº colis">${escapeHtml(String(row.parcelId))}</td>
+    <td data-label="Client">${escapeHtml(row.customerName)}${row.customerId ? `<br><small>Nº ${number.format(row.customerId)}</small>` : ''}</td>
+    <td data-label="Ligne">${row.line == null ? '—' : number.format(row.line)}</td>
+    <td data-label="Chute">${number.format(row.chute)}</td>
+    <td data-label="Passages">${number.format(row.passageTimes.length)}</td>
+    <td data-label="Heures de passage">${row.passageTimes.map(time => escapeHtml(new Date(time).toLocaleString('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }))).join('<br>')}</td>
+  </tr>`).join('') || '<tr><td colspan="6" class="empty-cell">Aucun colis en recirculation pour ce quart.</td></tr>';
+}
+
+async function openRecirculationDialog() {
+  const request = ++recirculationRequest;
+  const requestedDepot = selectedDepotKey;
+  const requestedDate = selectedConveyorDate;
+  const dialog = $('recirculation-dialog');
+  $('recirculation-title').textContent = `${DEPOTS[requestedDepot].name} · ${requestedDate}`;
+  $('recirculation-summary').textContent = 'Chargement des colis…';
+  $('recirculation-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Chargement…</td></tr>';
+  if (!dialog.open) dialog.showModal();
+  try {
+    const query = new URLSearchParams({ date: requestedDate, depot: requestedDepot });
+    const response = await fetch(`/api/conveyor-recirculation/parcels?${query}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Réponse ${response.status}`);
+    const data = await response.json();
+    if (request !== recirculationRequest || !dialog.open) return;
+    renderRecirculation(data);
+  } catch {
+    if (request !== recirculationRequest || !dialog.open) return;
+    $('recirculation-summary').textContent = 'Chargement impossible. Fermez la fenêtre et réessayez.';
+    $('recirculation-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Colis indisponibles.</td></tr>';
+  }
+}
+
 async function loadConveyorData(timestamp = Date.now()) {
   const requestVersion = ++conveyorRequestVersion;
   const requestedDate = selectedConveyorDate;
@@ -884,6 +921,19 @@ $('under2-parcels-close').addEventListener('click', () => $('under2-parcels-dial
 $('under2-parcels-dialog').addEventListener('close', () => { underTwoParcelRequest++; });
 $('under2-parcels-dialog').addEventListener('click', (event) => {
   const dialog = $('under2-parcels-dialog');
+  if (event.target !== dialog) return;
+  const bounds = dialog.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+});
+
+$('quality-recirculated-card').addEventListener('click', openRecirculationDialog);
+$('quality-recirculated-card').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openRecirculationDialog(); }
+});
+$('recirculation-close').addEventListener('click', () => $('recirculation-dialog').close());
+$('recirculation-dialog').addEventListener('close', () => { recirculationRequest++; });
+$('recirculation-dialog').addEventListener('click', (event) => {
+  const dialog = $('recirculation-dialog');
   if (event.target !== dialog) return;
   const bounds = dialog.getBoundingClientRect();
   if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();

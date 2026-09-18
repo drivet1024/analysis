@@ -351,3 +351,8 @@ dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); 
 .under2-client-link { padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 800; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .under2-client-link:hover { color: #62d9d0; }
 .under2-client-link:focus-visible { outline: 2px solid #62d9d0; outline-offset: 4px; }
+
+.quality-recirculated[role="button"] { cursor: pointer; }
+.quality-recirculated[role="button"]:hover { border-color: var(--violet); }
+.quality-recirculated[role="button"]:focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+.quality-recirculated > .quality-card-action { color: var(--violet); }
