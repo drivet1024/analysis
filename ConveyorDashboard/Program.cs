@@ -2736,14 +2736,22 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 JOIN (SELECT DISTINCT parcel_id FROM chute16 WHERE parcel_id IS NOT NULL AND parcel_id<>0) r ON r.parcel_id=p.PARCEL_ID
                 GROUP BY p.PARCEL_ID
             )
-            , postal_candidates AS (
-                SELECT p.PARCEL_ID parcel_id,sh.ID shipment_id,
-                       NULLIF(REPLACE(UPPER(TRIM(sh.DEST_POSTAL_CODE)),' ',''),'') postal_code
+            , postal_parcels AS (
+                SELECT p.PARCEL_ID,p.SHIPMENT_INTERNAL_ID,p.SHIPPING_ID,p.EXP_DATE
                 FROM parcel p
                 JOIN (SELECT DISTINCT parcel_id FROM chute16 WHERE parcel_id IS NOT NULL AND parcel_id<>0) r ON r.parcel_id=p.PARCEL_ID
-                LEFT JOIN shipment sh ON (p.SHIPMENT_INTERNAL_ID>0 AND sh.ID=p.SHIPMENT_INTERNAL_ID)
-                    OR ((p.SHIPMENT_INTERNAL_ID IS NULL OR p.SHIPMENT_INTERNAL_ID=0)
-                        AND sh.SHIPPING_ID=p.SHIPPING_ID AND sh.EXP_DATE=p.EXP_DATE)
+            ), postal_candidates AS (
+                SELECT p.PARCEL_ID parcel_id,sh.ID shipment_id,
+                       NULLIF(REPLACE(UPPER(TRIM(sh.DEST_POSTAL_CODE)),' ',''),'') postal_code
+                FROM postal_parcels p
+                LEFT JOIN shipment sh ON sh.ID=p.SHIPMENT_INTERNAL_ID
+                WHERE p.SHIPMENT_INTERNAL_ID>0
+                UNION ALL
+                SELECT p.PARCEL_ID parcel_id,sh.ID shipment_id,
+                       NULLIF(REPLACE(UPPER(TRIM(sh.DEST_POSTAL_CODE)),' ',''),'') postal_code
+                FROM postal_parcels p
+                LEFT JOIN shipment sh ON sh.SHIPPING_ID=p.SHIPPING_ID AND sh.EXP_DATE=p.EXP_DATE
+                WHERE p.SHIPMENT_INTERNAL_ID IS NULL OR p.SHIPMENT_INTERNAL_ID=0
             ), postal_reference AS (
                 SELECT parcel_id,MAX(postal_code) postal_code,
                        CASE WHEN COUNT(shipment_id)=0 OR SUM(shipment_id IS NULL)>0 THEN 'unknown'

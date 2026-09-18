@@ -32,3 +32,13 @@ for pid,postal,enabled,expected in [(10,'H2A0A1',0,'inactive'),(11,'Z9Z9Z9',None
 c.execute("INSERT INTO shipment VALUES(100,201,'2026-09-17','H2A0A1')")
 assert all(r[7]=='ambiguous' for r in c.execute(cte+tail,params).fetchall() if r[0]==1)
 print('Postal classification checks passed: normalized codes, inactive, nonexistent, missing, unknown and conflicting references.')
+
+# Legacy parcels resolve by shipping ID and expedition date; unrelated dates must not match.
+for pid,internal in [(20,None),(21,0)]:
+ c.execute('INSERT INTO parcel VALUES(?,?,?,?,?)',(pid,10,internal,500,'2026-09-17'))
+ c.execute("INSERT INTO parcel_scan_history(parcel_id,line_id,chute,camera_data,date_insert,depot_id) VALUES(?,0,16,'read','2026-09-17 17:10',1)",(pid,))
+c.execute("INSERT INTO shipment VALUES(500,500,'2026-09-17','H2A0A1')")
+c.execute("INSERT INTO shipment VALUES(501,500,'2026-09-16','H1S0A1')")
+legacy=[r for r in c.execute(cte+tail,params).fetchall() if r[0] in (20,21)]
+assert len(legacy)==2 and all(r[6:]==('H2A0A1','inactive') for r in legacy)
+print('Split indexed shipment lookup verified for internal IDs and legacy shipping/date references.')
