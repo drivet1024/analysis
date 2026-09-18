@@ -247,13 +247,11 @@ dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); 
 .dialog-action-button:hover { background: rgba(81, 167, 255, .2); }
 .dialog-action-button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .conveyor-efficiency-dialog { width: min(1160px, calc(100% - 28px)); }
-.under2-clients-dialog { width: min(1040px, calc(100% - 28px)); }
-.under2-clients-table { min-width: 760px; }
+.under2-clients-dialog { width: min(1240px, calc(100% - 28px)); }
+.under2-clients-table { min-width: 1000px; }
 .under2-clients-table th:first-child, .under2-clients-table td:first-child { text-align: left; }
-.under2-clients-table th:nth-child(1), .under2-clients-table td:nth-child(1) { width: 32%; }
-.under2-clients-table th:nth-child(2), .under2-clients-table td:nth-child(2) { width: 13%; }
-.under2-clients-table th:nth-child(3), .under2-clients-table td:nth-child(3), .under2-clients-table th:nth-child(4), .under2-clients-table td:nth-child(4) { width: 15%; }
-.under2-clients-table th:nth-child(5), .under2-clients-table td:nth-child(5), .under2-clients-table th:nth-child(6), .under2-clients-table td:nth-child(6) { width: 13%; }
+.under2-clients-table .under2-dimensions { white-space: nowrap; }
+.under2-dimensions small { display: block; color: var(--muted); font-size: .7rem; margin-top: 4px; }
 .conveyor-efficiency-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 22px 0 16px; }
 .conveyor-efficiency-summary > div { padding: 13px 15px; border: 1px solid var(--line); border-radius: 13px; background: rgba(18, 35, 48, .7); }
 .conveyor-efficiency-summary span { display: block; color: var(--muted); font-size: .67rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }

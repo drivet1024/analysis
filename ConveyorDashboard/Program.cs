@@ -824,7 +824,11 @@ sealed record ConveyorUnderTwoPoundsClientRow(
     long Parcels,
     double SharePercent,
     DateTime FirstScan,
-    DateTime LastScan);
+    DateTime LastScan,
+    decimal? AverageLength,
+    decimal? AverageHeight,
+    decimal? AverageWidth,
+    long DimensionedParcels);
 sealed record ConveyorUnderTwoPoundsClientsResponse(
     DateOnly Date,
     string Depot,
@@ -2718,6 +2722,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             WITH parcel_weights AS (
                 SELECT ph.PARCEL_ID parcel_id,
                        ph.WEIGHT weight,
+                       ph.LENGTH length_value, ph.HEIGHT height_value, ph.WIDTH width_value,
+                       ph.DATE_INSERT inserted_at,
                        NULLIF(ph.CUSTOMER_ID,0) customer_id,
                        ph.DATE_LIV scan_time
                 FROM parcel_history PARTITION (p2026) ph
@@ -2742,6 +2748,14 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 GROUP BY parcel_id
                 HAVING MAX(weight IS NOT NULL AND weight<2)=1
             ),
+            ranked_dimensions AS (
+                SELECT pw.parcel_id,pw.length_value,pw.height_value,pw.width_value,
+                       ROW_NUMBER() OVER (PARTITION BY pw.parcel_id ORDER BY pw.scan_time DESC,pw.inserted_at DESC,
+                           pw.length_value DESC,pw.height_value DESC,pw.width_value DESC) dimension_rank
+                FROM parcel_weights pw
+                JOIN under_two u ON u.parcel_id=pw.parcel_id
+                WHERE pw.length_value>0 AND pw.height_value>0 AND pw.width_value>0
+            ),
             parcel_customer AS (
                 SELECT p.PARCEL_ID parcel_id,MAX(NULLIF(p.CUSTOMER_ID,0)) customer_id
                 FROM parcel p
@@ -2752,16 +2766,22 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 SELECT u.parcel_id,
                        COALESCE(u.customer_id,pc.customer_id,0) customer_id,
                        u.first_scan,
-                       u.last_scan
+                       u.last_scan,
+                       d.length_value,d.height_value,d.width_value
                 FROM under_two u
                 LEFT JOIN parcel_customer pc ON pc.parcel_id=u.parcel_id
+                LEFT JOIN ranked_dimensions d ON d.parcel_id=u.parcel_id AND d.dimension_rank=1
             )
             SELECT r.customer_id,
                    CASE WHEN r.customer_id=0 THEN 'Client non identifié'
                         ELSE COALESCE(NULLIF(TRIM(c.NAME),''),CONCAT('Client ',r.customer_id)) END customer_name,
                    COUNT(*) parcels,
                    MIN(r.first_scan) first_scan,
-                   MAX(r.last_scan) last_scan
+                   MAX(r.last_scan) last_scan,
+                   AVG(r.length_value) average_length,
+                   AVG(r.height_value) average_height,
+                   AVG(r.width_value) average_width,
+                   COUNT(r.length_value) dimensioned_parcels
             FROM resolved r
             LEFT JOIN customer c ON c.CUSTOMER_ID=r.customer_id
             GROUP BY r.customer_id,c.NAME
@@ -2776,7 +2796,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         command.Parameters.AddWithValue("@depotId", depot.DepotId);
         command.Parameters.AddWithValue("@hasFloor", depot.HasFloorConveyor);
         await using var reader = await command.ExecuteReaderAsync();
-        var raw = new List<(long CustomerId, string CustomerName, long Parcels, DateTime FirstScan, DateTime LastScan)>();
+        var raw = new List<(long CustomerId, string CustomerName, long Parcels, DateTime FirstScan, DateTime LastScan, decimal? AverageLength, decimal? AverageHeight, decimal? AverageWidth, long DimensionedParcels)>();
         while (await reader.ReadAsync())
         {
             raw.Add((
@@ -2784,7 +2804,11 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 reader.GetString("customer_name").Trim(),
                 Int64OrZero(reader, "parcels"),
                 reader.GetDateTime("first_scan"),
-                reader.GetDateTime("last_scan")));
+                reader.GetDateTime("last_scan"),
+                NullableDecimal(reader, "average_length"),
+                NullableDecimal(reader, "average_height"),
+                NullableDecimal(reader, "average_width"),
+                Int64OrZero(reader, "dimensioned_parcels")));
         }
 
         var total = raw.Sum(row => row.Parcels);
@@ -2794,7 +2818,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             row.Parcels,
             total == 0 ? 0 : 100d * row.Parcels / total,
             row.FirstScan,
-            row.LastScan)).ToList();
+            row.LastScan,
+            row.AverageLength, row.AverageHeight, row.AverageWidth, row.DimensionedParcels)).ToList();
         return new ConveyorUnderTwoPoundsClientsResponse(
             date,
             depot.Name,
@@ -2803,7 +2828,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             clients,
             [
                 "Colis uniques ayant au moins une lecture automatisée de poids inférieure à 2 lb pendant le quart sélectionné.",
-                "Les scans manuels sont exclus."
+                "Les scans manuels sont exclus.",
+                "Dimensions moyennes en pouces : longueur × hauteur × largeur. Une seule lecture automatisée complète et strictement positive par colis, la plus récente du quart. Les colis sans dimensions complètes sont exclus de la moyenne."
             ],
             DateTimeOffset.Now);
     }

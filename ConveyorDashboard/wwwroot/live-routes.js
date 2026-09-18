@@ -664,15 +664,19 @@ function renderUnderTwoPoundsClients(data) {
   const body = $('under2-clients-body');
   body.replaceChildren();
   if (!(data.clients || []).length) {
-    body.innerHTML = '<tr><td colspan="6" class="empty-cell">Aucun colis sous 2 lb pour ce quart.</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" class="empty-cell">Aucun colis sous 2 lb pour ce quart.</td></tr>';
   } else {
     data.clients.forEach((client) => {
       const row = document.createElement('tr');
+      const dimensions = [client.averageLength, client.averageHeight, client.averageWidth];
+      const dimensionLabel = dimensions.every(value => Number.isFinite(value) && value > 0)
+        ? dimensions.map(value => value.toLocaleString('fr-CA', { maximumFractionDigits: 1 })).join(' × ') + ' po' : '—';
       row.innerHTML = `
         <td data-label="Client" class="client-name">${escapeHtml(client.customerName)}</td>
         <td data-label="Nº client">${client.customerId ? number.format(client.customerId) : '—'}</td>
         <td data-label="Colis sous 2 lb"><strong>${number.format(client.parcels)}</strong></td>
         <td data-label="Part du total">${Number(client.sharePercent || 0).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} %</td>
+        <td data-label="Dimensions moyennes L × H × l (po)" class="under2-dimensions">${dimensionLabel}<small>${number.format(client.dimensionedParcels || 0)} / ${number.format(client.parcels)} colis mesurés</small></td>
         <td data-label="Premier passage">${formatTime(client.firstScan)}</td>
         <td data-label="Dernier passage">${formatTime(client.lastScan)}</td>`;
       body.append(row);
@@ -688,7 +692,7 @@ async function openUnderTwoPoundsClientsDialog() {
   const dialog = $('under2-clients-dialog');
   $('under2-clients-title').textContent = `${DEPOTS[requestedDepot].name} · chargement…`;
   $('under2-clients-summary').innerHTML = '<article><span>Analyse</span><strong>Chargement…</strong></article>';
-  $('under2-clients-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Regroupement des colis par client…</td></tr>';
+  $('under2-clients-body').innerHTML = '<tr><td colspan="7" class="empty-cell">Regroupement des colis par client…</td></tr>';
   $('under2-clients-source').textContent = 'Colis uniques du convoyeur automatisé; les scans manuels sont exclus.';
   if (!dialog.open) dialog.showModal();
   try {
@@ -699,7 +703,7 @@ async function openUnderTwoPoundsClientsDialog() {
     renderUnderTwoPoundsClients(await response.json());
   } catch (error) {
     $('under2-clients-summary').innerHTML = '<article><span>Analyse</span><strong>Indisponible</strong></article>';
-    $('under2-clients-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Impossible de charger les clients pour ce quart.</td></tr>';
+    $('under2-clients-body').innerHTML = '<tr><td colspan="7" class="empty-cell">Impossible de charger les clients pour ce quart.</td></tr>';
   }
 }
 
