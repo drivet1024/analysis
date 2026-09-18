@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tableau de bord EDI Nationex par région et par jour.">
   <title>Nationex - EDI</title>
-  <link rel="stylesheet" href="/edi.css?v=20260913-10">
+  <link rel="stylesheet" href="/edi.css?v=20260917-9">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body>
@@ -96,8 +96,8 @@
         <span id="depot-period">Journée de 4 h à 4 h · D−7 à la même heure</span>
       </div>
       <div class="table-wrap"><table class="regions-table">
-        <thead><tr><th>Dépôt</th><th id="depot-current-label">Colis aujourd’hui</th><th>Colis D−7</th><th>Écart</th><th>Part du total</th></tr></thead>
-        <tbody id="depot-body"><tr><td colspan="5" class="empty-cell">Chargement des dépôts…</td></tr></tbody>
+        <thead><tr><th>Dépôt</th><th title="Clients expéditeurs identifiés ayant des colis EDI dans la journée">Clients uniques</th><th id="depot-current-label">Colis aujourd’hui</th><th>Colis D−7</th><th>Écart</th><th>Part du total</th></tr></thead>
+        <tbody id="depot-body"><tr><td colspan="6" class="empty-cell">Chargement des dépôts…</td></tr></tbody>
         <tfoot id="depot-foot"></tfoot>
       </table></div>
       <details class="forecast-method"><summary>Sources et rattachement</summary><p>Même population que le compteur EDI : colis créés dans la journée de 4 h à 4 h, hors statuts 500 et 501. Destination déterminée par le code postal de l’expédition et le dépôt de location; à défaut, dépôt de fin de la route de destination, puis dépôt du secteur de destination. Les correspondances multiples sont regroupées dans « Destination ambiguë » et les destinations manquantes dans « Destination non déterminée ». Chaque colis contribue à une seule ligne. D−7 utilise la même plage horaire, sept jours plus tôt. Écart = colis de la journée − colis D−7. Le tableau se charge séparément pour laisser les compteurs EDI disponibles immédiatement.</p></details>
@@ -140,9 +140,18 @@
     <p id="depot-clients-status" role="status"></p>
     <div class="table-wrap"><table class="regions-table"><thead><tr><th>Client</th><th>Colis</th><th>Part du dépôt</th></tr></thead><tbody id="depot-clients-body"></tbody><tfoot id="depot-clients-foot"></tfoot></table></div>
   </dialog>
-  <script src="/edi-depot-clients.js?v=20260913-1" defer></script>
+  <dialog id="depot-chutes-dialog" aria-labelledby="depot-chutes-title">
+    <div class="section-heading"><div><p>Passages réels sur le convoyeur</p><h2 id="depot-chutes-title">Colis par chute</h2></div><button id="depot-chutes-close" class="app-button" type="button" autofocus>Fermer ✕</button></div>
+    <p id="depot-chutes-period" class="method-note"></p>
+    <label>Configuration de tri <select id="depot-chutes-configuration" aria-label="Configuration de tri"></select></label>
+    <p id="depot-chutes-status" role="status"></p>
+    <div class="table-wrap"><table><thead><tr><th>Convoyeur</th><th>Chute</th><th>Destination</th><th>FSA des routes locales</th><th>Colis uniques</th><th>Passages</th><th>Non identifiés</th></tr></thead><tbody id="depot-chutes-body"></tbody><tfoot id="depot-chutes-foot"></tfoot></table></div>
+    <p class="method-note">Scans réels du dépôt pendant la journée affichée, de 4 h au relevé. Un colis est compté une fois par chute, mais peut apparaître dans plusieurs chutes. Le total des colis uniques est dédupliqué sur l’ensemble des chutes. Les passages sans numéro de colis sont comptés séparément. Les convoyeurs sont affichés séparément lorsque leur correspondance est connue. La destination est celle des configurations actives ou de la configuration actuelle sélectionnée; les FSA sont les préfixes des codes postaux actifs des routes locales appartenant à ce dépôt. Cette configuration ne reconstitue pas un ancien plan de tri.</p>
+  </dialog>
+  <script src="/edi-depot-chutes.js?v=20260917-1" defer></script>
+  <script src="/edi-depot-clients.js?v=20260917-1" defer></script>
   <script src="/edi-history.js?v=20260913-5" defer></script>
-  <script src="/edi.js?v=20260913-7" defer></script>
+  <script src="/edi.js?v=20260917-9" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>

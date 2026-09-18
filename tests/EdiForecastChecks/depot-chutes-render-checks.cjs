@@ -1,0 +1,26 @@
+const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict');
+const html = fs.readFileSync('ConveyorDashboard/wwwroot/edi.html', 'utf8');
+const nodes = new Map([...html.matchAll(/id="([^"]+)"/g)].map(m => [m[1], { innerHTML: '', textContent: '', value: '', open: false, events: {}, addEventListener(e,f) { this.events[e]=f; }, replaceChildren() { this.innerHTML=''; }, showModal() { this.open=true; }, close() { this.open=false; this.events.close?.(); } }]));
+let url, fail=false;
+const result = { date:'2026-09-17', asOf:'2026-09-17T20:00:00', depotId:1, depotName:'STH', total:2, totalPassages:6, configurationId:3, configurations:[{id:3,name:'Haut · Soir',active:true},{id:80,name:'Sol',active:false}], rows:[{chute:1,parcels:1,passages:2,unidentifiedPassages:0,destinations:['Local · STH'],localFsas:['J3V','J3T']},{chute:2,parcels:2,passages:3,unidentifiedPassages:1,destinations:['<QC>'],localFsas:[]},{chute:null,parcels:0,passages:1,unidentifiedPassages:1,destinations:[],localFsas:[]}] };
+const context={ document:{ getElementById:id=>nodes.get(id) }, URLSearchParams, fetch:async u=> {url=u; return {ok:!fail,json:async()=>result};} };
+vm.createContext(context); vm.runInContext(fs.readFileSync('ConveyorDashboard/wwwroot/edi-depot-chutes.js','utf8'),context);
+const tick=()=>new Promise(r=>setImmediate(r));
+const click=()=>nodes.get('depot-body').events.click({target:{closest:()=>({dataset:{depotChutes:'1'}})}});
+(async()=>{
+ context.updateDepotChuteContext({date:result.date,asOf:result.asOf,depots:[{depotId:1,depotName:'STH'}]});
+ click(); await tick();
+ assert(url.includes('/1/chutes?date=2026-09-17'));
+ assert(nodes.get('depot-chutes-dialog').open);
+ assert(nodes.get('depot-chutes-body').innerHTML.includes('J3V, J3T'));
+ assert(nodes.get('depot-chutes-body').innerHTML.includes('&lt;QC&gt;'));
+ assert(nodes.get('depot-chutes-foot').innerHTML.includes('<td>2</td><td>6</td><td>2</td>'));
+ nodes.get('depot-chutes-configuration').events.change({target:{value:'80'}}); await tick();
+ assert(url.includes('configurationId=80'));
+ context.resetDepotChuteContext('2026-09-18'); assert(!nodes.get('depot-chutes-dialog').open);
+ context.updateDepotChuteContext({date:result.date,asOf:result.asOf,depots:[{depotId:1,depotName:'STH'}]});
+ fail=true; click(); await tick(); assert(nodes.get('depot-chutes-status').textContent.includes('indisponible'));
+ context.fetch=async()=>({ok:true,json:async()=>{nodes.get('depot-chutes-dialog').close(); return result;}});
+ click(); await tick(); assert.equal(nodes.get('depot-chutes-body').innerHTML,'');
+ console.log('Depot chute popup: counts, destinations, FSA, configuration choice, errors and stale responses passed.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -9,7 +9,7 @@
   function render() {
     const rows = $('depot-clients-all').checked ? data.clients : data.clients.slice(0, 10);
     const subtotal = rows.reduce((sum, row) => sum + row.parcelsToday, 0);
-    $('depot-clients-status').textContent = `${rows.length} client(s) affiché(s) sur ${data.clients.length} · ${number.format(data.total)} colis destinés à ce dépôt`;
+    $('depot-clients-status').textContent = `${rows.length} ligne(s) affichée(s) sur ${data.clients.length} · ${data.clients.filter(row => row.customerId > 0).length} clients uniques identifiés · ${number.format(data.total)} colis destinés à ce dépôt`;
     $('depot-clients-body').innerHTML = rows.length ? rows.map(row => `<tr><td>${row.customerId > 0 ? number.format(row.customerId) + ' · ' : ''}${escape(row.customerName)}</td><td>${number.format(row.parcelsToday)}</td><td>${data.total ? percent.format(100 * row.parcelsToday / data.total) + ' %' : '—'}</td></tr>`).join('')
       : '<tr><td colspan="3" class="empty-cell">Aucun client avec des colis pour cette journée.</td></tr>';
     $('depot-clients-foot').innerHTML = `<tr><td>Total affiché</td><td>${number.format(subtotal)}</td><td>${data.total ? percent.format(100 * subtotal / data.total) + ' %' : '—'}</td></tr>`;

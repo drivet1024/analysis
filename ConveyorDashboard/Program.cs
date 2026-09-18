@@ -26,6 +26,7 @@ builder.Services.AddSingleton<ConveyorDataService>();
 builder.Services.AddSingleton<ConveyorEfficiencyService>();
 builder.Services.AddHostedService<ConveyorEfficiencyRefreshWorker>();
 builder.Services.AddSingleton<EdiDepotService>();
+builder.Services.AddSingleton<EdiDepotChuteService>();
 builder.Services.AddSingleton<EdiMapService>();
 builder.Services.AddSingleton<EdiHistoryService>();
 builder.Services.AddSingleton<EdiFiscalHistoryService>();
@@ -226,6 +227,20 @@ app.MapGet("/api/edi/depots", async (string? date, EdiDepotService data, Cancell
     }
     catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
     catch (Exception ex) { return Results.Problem($"Les colis par dépôt sont indisponibles : {ex.Message}"); }
+});
+
+app.MapGet("/api/edi/depots/{depotId:int}/chutes", async (int depotId, string? date, int? configurationId, EdiDepotChuteService data, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var today = CurrentOperationalDate(DateTime.Now);
+        var selected = ResolveAnalysisDate(date, today);
+        if (selected > today) return Results.BadRequest("La date ne peut pas être future.");
+        var result = await data.GetAsync(selected, depotId, configurationId, cancellationToken);
+        return result == null ? Results.NotFound() : Results.Ok(result);
+    }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+    catch (Exception ex) { return Results.Problem($"La répartition par chute n'a pas pu être chargée : {ex.Message}"); }
 });
 
 app.MapGet("/api/edi/depots/{depotId:int}/clients", async (int depotId, string? date, EdiDepotService data, CancellationToken cancellationToken) =>

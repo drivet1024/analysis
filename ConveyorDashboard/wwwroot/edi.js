@@ -456,6 +456,7 @@ function renderNowcast(nowcast) {
 
 function renderDepots(data) {
   globalThis.updateDepotClientContext?.(data);
+  globalThis.updateDepotChuteContext?.(data);
   const rows = data.depots || [];
   const total = rows.reduce((sum, row) => sum + row.parcelsToday, 0);
   const d7 = rows.reduce((sum, row) => sum + row.parcelsD7, 0);
@@ -465,12 +466,12 @@ function renderDepots(data) {
     ? 'Depuis 4 h jusqu’à ' + formatTime(data.asOf) + ' · D−7 à la même heure'
     : 'Journée complète · 4 h à 4 h · comparaison D−7';
   $('depot-body').innerHTML = rows.length ? rows.map(row => '<tr><td><strong>' +
-    '<button type="button" class="sector-chart-trigger" data-depot-clients="' + row.depotId + '" aria-haspopup="dialog">' + (row.depotId > 0 ? number.format(row.depotId) + ' · ' : '') + escapeHtml(row.depotName) + '</button>' +
-    '</strong></td><td>' + number.format(row.parcelsToday) + '</td><td>' + number.format(row.parcelsD7) +
+    '<button type="button" class="sector-chart-trigger" data-depot-chutes="' + row.depotId + '" aria-haspopup="dialog">' + (row.depotId > 0 ? number.format(row.depotId) + ' · ' : '') + escapeHtml(row.depotName) + '</button>' +
+    '</strong></td><td><button type="button" class="sector-chart-trigger" data-depot-clients="' + row.depotId + '" aria-haspopup="dialog" aria-label="Voir les clients du dépôt ' + row.depotId + '">' + number.format(row.uniqueClients || 0) + '</button></td><td>' + number.format(row.parcelsToday) + '</td><td>' + number.format(row.parcelsD7) +
     '</td><td>' + difference(row.parcelsToday - row.parcelsD7) + '</td><td>' +
     (total ? decimal.format(100 * row.parcelsToday / total) + ' %' : '—') + '</td></tr>').join('')
-    : '<tr><td colspan="5" class="empty-cell">Aucun colis pour ces deux périodes.</td></tr>';
-  $('depot-foot').innerHTML = '<tr><td>Total</td><td>' + number.format(total) + '</td><td>' +
+    : '<tr><td colspan="6" class="empty-cell">Aucun colis pour ces deux périodes.</td></tr>';
+  $('depot-foot').innerHTML = '<tr><td>Total</td><td title="Un même client peut être présent dans plusieurs dépôts">—</td><td>' + number.format(total) + '</td><td>' +
     number.format(d7) + '</td><td>' + difference(total - d7) + '</td><td>' + (total ? '100 %' : '—') + '</td></tr>';
 }
 
@@ -483,7 +484,7 @@ async function loadDepots(date, version) {
     renderDepots(data);
   } catch {
     if (version !== requestVersion) return;
-    $('depot-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Dépôts indisponibles. Nouvelle tentative à la prochaine actualisation.</td></tr>';
+    $('depot-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Dépôts indisponibles. Nouvelle tentative à la prochaine actualisation.</td></tr>';
     $('depot-foot').replaceChildren();
   }
 }
@@ -578,7 +579,8 @@ async function load(snapshotId) {
   $('refresh-button').disabled = true;
   if ($('depot-body')) {
     globalThis.resetDepotClientContext?.(selectedAnalysisDate);
-    $('depot-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Chargement des dépôts…</td></tr>';
+    globalThis.resetDepotChuteContext?.(selectedAnalysisDate);
+    $('depot-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Chargement des dépôts…</td></tr>';
     $('depot-foot').replaceChildren();
   }
   $('error-banner').hidden = true;

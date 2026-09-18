@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 
-sealed record EdiDepotRow(int DepotId, string DepotName, long ParcelsToday, long ParcelsD7);
+sealed record EdiDepotRow(int DepotId, string DepotName, long ParcelsToday, long ParcelsD7, int UniqueClients);
 sealed record EdiDepotResponse(DateOnly Date, DateTime AsOf, IReadOnlyList<EdiDepotRow> Depots);
 
 sealed record EdiDepotClientRow(int DepotId, string DepotName, long CustomerId, string CustomerName, long ParcelsToday, long ParcelsD7);
@@ -76,7 +76,8 @@ sealed class EdiDepotService(DashboardConfig config, ConveyorDataService edi)
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken)) rows.Add(new(reader.GetInt32("depot_id"), reader.GetString("depot_name"), reader.GetInt64("CUSTOMER_ID"), reader.GetString("customer_name"), reader.GetInt64("parcels_today"), reader.GetInt64("parcels_d7")));
             var depots = rows.GroupBy(row => row.DepotId).Select(group => new EdiDepotRow(group.Key,
-                group.First().DepotName, group.Sum(row => row.ParcelsToday), group.Sum(row => row.ParcelsD7)))
+                group.First().DepotName, group.Sum(row => row.ParcelsToday), group.Sum(row => row.ParcelsD7),
+                group.Where(row => row.CustomerId > 0 && row.ParcelsToday > 0).Select(row => row.CustomerId).Distinct().Count()))
                 .OrderByDescending(row => row.ParcelsToday).ThenBy(row => row.DepotId).ToArray();
             var result = new EdiDepotDataset(new(date, summary.Nowcast.AsOf, depots), rows);
             cache.Set(key, result, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60), Size = 1 });

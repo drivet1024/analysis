@@ -22,7 +22,10 @@ const context = {
 vm.createContext(context);
 const script = fs.readFileSync('ConveyorDashboard/wwwroot/edi.js', 'utf8');
 vm.runInContext(script.slice(script.indexOf('function renderDepots('), script.indexOf('function renderParcelSnapshot(')), context);
-context.renderDepots(data);
+context.renderDepots({ ...data, depots: data.depots.map(row => ({ ...row, uniqueClients: 7 })) });
+assert(nodes.get('depot-body').innerHTML.includes('data-depot-clients='));
+assert(nodes.get('depot-body').innerHTML.includes('data-depot-chutes='));
+assert(nodes.get('depot-body').innerHTML.includes('>7</button>'));
 assert.equal((nodes.get('depot-body').innerHTML.match(/<tr>/g) || []).length, data.depots.length);
 assert(nodes.get('depot-foot').innerHTML.includes(context.number.format(main.parcelsTodaySnapshot)));
 context.renderDepots({ ...data, depots: [{ depotId: -1, depotName: '<inconnu>', parcelsToday: 0, parcelsD7: 3 }] });
