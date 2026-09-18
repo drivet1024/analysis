@@ -302,12 +302,10 @@ function renderForecast(forecast, archive) {
     const values = (days || []).map(day => day.parcels).filter(value => Number.isFinite(value) && value >= 0);
     return { count: values.length, value: values.length ? number.format(Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)) : '—' };
   };
-  const statisticalAverage = averageVolume(forecast?.days);
   const forecastDates = new Set((forecast?.days || []).map(day => day.date));
   const mlAverage = averageVolume((archive?.snapshot?.mlForecast?.days || []).filter(day => forecastDates.has(day.date)));
-  $('forecast-average-statistical').textContent = statisticalAverage.value;
   $('forecast-average-ml').textContent = mlAverage.value;
-  $('forecast-average-note').textContent = `Semaine affichée · colis par jour · statistique : ${statisticalAverage.count} jour(s), ML.NET : ${mlAverage.count} jour(s). Valeurs indisponibles exclues.`;
+  $('forecast-average-note').textContent = `Semaine affichée · colis par jour · ${mlAverage.count} jour(s) avec une prévision ML.NET. Valeurs indisponibles exclues.`;
   if (!forecast) {
     $('forecast-context').textContent = 'Prévision indisponible';
     $('forecast-summary').textContent = 'Aucune prévision sauvegardée pour cette semaine. Le calcul hebdomadaire est effectué le samedi à 6 h.';

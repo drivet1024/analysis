@@ -58,10 +58,9 @@ context.renderForecast({ ...payload.forecast, seasonality: null }, payload.forec
 assert.equal(elements.get('forecast-seasonality').hidden, true);
 assert.equal(elements.get('forecast-average-ml').textContent, new Intl.NumberFormat('fr-CA').format(1003));
 const averageDays = payload.forecast.days.map((day, index) => ({ ...day, parcels: index === 0 ? 0 : index === 1 ? 100 : null }));
-context.renderForecast({ ...payload.forecast, days: averageDays }, payload.forecastArchive);
-assert.equal(elements.get('forecast-average-statistical').textContent, '50');
-assert.match(elements.get('forecast-average-note').textContent, /statistique : 2 jour/);
+context.renderForecast(payload.forecast, { ...payload.forecastArchive, snapshot: { ...payload.forecastArchive.snapshot, mlForecast: { ...payload.forecastArchive.snapshot.mlForecast, days: averageDays } } });
+assert.equal(elements.get('forecast-average-ml').textContent, '50');
+assert.match(elements.get('forecast-average-note').textContent, /2 jour/);
 context.renderForecast(null, null);
-assert.equal(elements.get('forecast-average-statistical').textContent, '—');
 assert.equal(elements.get('forecast-average-ml').textContent, '—');
 console.log('Seasonality rendering and archive-filter checks passed.');
