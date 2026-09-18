@@ -29,4 +29,10 @@ assert 'J3V' in {r[4] for r in rows}
 qc=c.execute(query,dict(params,depot=2)).fetchall()
 assert len(qc)==1 and qc[0][1:4]==(234,1,1),qc
 assert not c.execute(query,dict(params,start='2026-09-18 04:00:00',end='2026-09-19 04:00:00')).fetchall()
+for chute,pid in [(16,10),(98,10),(98,11),(16,11)]:
+ c.execute('INSERT INTO parcel_scan_history VALUES(?,?,1,0,?)',(chute,pid,'2026-09-17 18:00:00'))
+assert c.execute(query,params).fetchall()==rows # Saint-Hubert excludes both chutes and their counts
+qc_filtered=c.execute(query,dict(params,depot=2)).fetchall()
+assert {r[0] for r in qc_filtered}=={1,16} # other destinations retain chute 16
+assert all(r[5:]==(1,2) for r in qc_filtered) # chute 98 excluded from totals too
 print('High conveyor destination filter, actual sectors/FSA, legacy shipments, real parcels, repeated scans, ambiguous destinations and totals passed.')

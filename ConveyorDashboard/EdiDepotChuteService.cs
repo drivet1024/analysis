@@ -48,6 +48,8 @@ sealed class EdiDepotChuteService(DashboardConfig config, EdiDepotService depots
                 HAVING MIN(destination)=@depot AND MAX(destination)=@depot
             ), matched AS (
                 SELECT s.chute,s.parcel_id,a.sector,a.fsa FROM scans s JOIN assigned a ON a.PARCEL_ID=s.parcel_id
+                WHERE (s.chute IS NULL OR s.chute<>98)
+                  AND (@depot<>1 OR s.chute IS NULL OR s.chute<>16)
             )
             SELECT chute,sector,COUNT(DISTINCT parcel_id) parcels,COUNT(*) passages,
                    GROUP_CONCAT(DISTINCT fsa) fsas,
