@@ -835,7 +835,7 @@ sealed record ConveyorHourlyResponse(
     IReadOnlyList<string> Notes,
     DateTimeOffset GeneratedAt);
 sealed record ConveyorChute16Row(string? ParcelId, long CustomerId, string CustomerName,
-    int? Line, int Chute, DateTime PassageTime);
+    int? Line, int Chute, DateTime PassageTime, string? PostalCode, string PostalStatus);
 sealed record ConveyorChute16Response(DateOnly Date, string Depot, IReadOnlyList<ConveyorChute16Row> Rows);
 sealed record ConveyorRecirculationRow(string ParcelId, long CustomerId, string CustomerName,
     int? Line, int Chute, IReadOnlyList<DateTime> PassageTimes,
@@ -2736,13 +2736,39 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 JOIN (SELECT DISTINCT parcel_id FROM chute16 WHERE parcel_id IS NOT NULL AND parcel_id<>0) r ON r.parcel_id=p.PARCEL_ID
                 GROUP BY p.PARCEL_ID
             )
+            , postal_candidates AS (
+                SELECT p.PARCEL_ID parcel_id,sh.ID shipment_id,
+                       NULLIF(REPLACE(UPPER(TRIM(sh.DEST_POSTAL_CODE)),' ',''),'') postal_code
+                FROM parcel p
+                JOIN (SELECT DISTINCT parcel_id FROM chute16 WHERE parcel_id IS NOT NULL AND parcel_id<>0) r ON r.parcel_id=p.PARCEL_ID
+                LEFT JOIN shipment sh ON (p.SHIPMENT_INTERNAL_ID>0 AND sh.ID=p.SHIPMENT_INTERNAL_ID)
+                    OR ((p.SHIPMENT_INTERNAL_ID IS NULL OR p.SHIPMENT_INTERNAL_ID=0)
+                        AND sh.SHIPPING_ID=p.SHIPPING_ID AND sh.EXP_DATE=p.EXP_DATE)
+            ), postal_reference AS (
+                SELECT parcel_id,MAX(postal_code) postal_code,
+                       CASE WHEN COUNT(shipment_id)=0 OR SUM(shipment_id IS NULL)>0 THEN 'unknown'
+                            WHEN COUNT(DISTINCT postal_code)>1 THEN 'ambiguous'
+                            WHEN COUNT(postal_code)=0 THEN 'missing'
+                            WHEN SUM(postal_code IS NULL)>0 THEN 'ambiguous'
+                            ELSE 'resolved' END reference_status
+                FROM postal_candidates GROUP BY parcel_id
+            )
             SELECT s.parcel_id,s.line_id,s.chute,s.date_insert,
                    COALESCE(pc.customer_id,0) customer_id,
                    COALESCE(NULLIF(TRIM(c.NAME),''),CASE WHEN pc.customer_id IS NULL THEN 'Client non identifié'
-                       ELSE CONCAT('Client ',pc.customer_id) END) customer_name
+                       ELSE CONCAT('Client ',pc.customer_id) END) customer_name,
+                   pr.postal_code,
+                   CASE WHEN pr.reference_status IS NULL THEN 'unknown'
+                        WHEN pr.reference_status<>'resolved' THEN pr.reference_status
+                        WHEN loc.LOC_POSTAL_CODE IS NULL THEN 'not_found'
+                        WHEN loc.ENABLED=0 THEN 'inactive'
+                        WHEN loc.ENABLED=1 THEN 'active'
+                        ELSE 'unknown' END postal_status
             FROM chute16 s
             LEFT JOIN parcel_customers pc ON pc.parcel_id=s.parcel_id
             LEFT JOIN customer c ON c.CUSTOMER_ID=pc.customer_id
+            LEFT JOIN postal_reference pr ON pr.parcel_id=s.parcel_id
+            LEFT JOIN location loc ON loc.LOC_POSTAL_CODE=pr.postal_code
             ORDER BY s.date_insert,s.parcel_id,s.line_id
             """;
         await using var connection = await OpenAsync();
@@ -2758,7 +2784,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
             var parcelId = NullableInt64(reader, "parcel_id");
             rows.Add(new(parcelId is null or 0 ? null : parcelId.Value.ToString(CultureInfo.InvariantCulture),
                 Int64OrZero(reader, "customer_id"), reader.GetString("customer_name"),
-                NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert")));
+                NullableInt32(reader, "line_id"), reader.GetInt32("chute"), reader.GetDateTime("date_insert"),
+                IsNull(reader, "postal_code") ? null : reader.GetString("postal_code"), reader.GetString("postal_status")));
         }
         return new(date, depot.Name, rows);
     }

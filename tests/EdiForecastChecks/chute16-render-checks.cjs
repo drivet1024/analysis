@@ -23,6 +23,12 @@ vm.runInContext(source.slice(source.indexOf('let chute16Request ='), source.inde
  assert($('chute16-body').innerHTML.includes('data-label="Ligne">0'));
  context.renderChute16({ ...data, rows: [{ ...data.rows[0], parcelId: null }] });
  assert($('chute16-body').innerHTML.includes('Non identifié'));
+ const bad = { ...data.rows[0], postalCode: 'Z9Z9Z9', postalStatus: 'not_found' };
+ context.renderChute16({ ...data, rows: [bad, bad, { ...bad, parcelId: '2', postalStatus: 'inactive' }, { ...bad, parcelId: '3', postalStatus: 'active' }, { ...bad, parcelId: null, postalStatus: 'unknown' }] });
+ assert($('chute16-postal-summary').textContent.includes('2 colis concernés · 1 passage'));
+ assert.equal(($('chute16-postal-body').innerHTML.match(/<tr>/g) || []).length, 2);
+ assert($('chute16-postal-body').innerHTML.includes('Code postal inexistant'));
+ assert($('chute16-postal-body').innerHTML.includes('Code postal inactif'));
  data = { ...data, totalParcels: 0, totalPassages: 0, rows: [] };
  await context.openChute16Dialog();
  assert($('chute16-body').innerHTML.includes('Aucun passage'));

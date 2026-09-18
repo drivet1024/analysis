@@ -790,7 +790,29 @@ async function openRecirculationDialog() {
 }
 
 let chute16Request = 0;
+function renderChute16Postal(data) {
+  const statuses = { missing: 'Code postal absent', not_found: 'Code postal inexistant', inactive: 'Code postal inactif' };
+  const parcels = new Map();
+  let unverifiedPassages = 0;
+  for (const row of data.rows) {
+    if (!row.parcelId || !['active', 'missing', 'not_found', 'inactive'].includes(row.postalStatus)) unverifiedPassages++;
+    if (!row.parcelId || !Object.hasOwn(statuses, row.postalStatus)) continue;
+    const parcel = parcels.get(row.parcelId) || { ...row, passages: 0 };
+    parcel.passages++;
+    if (row.passageTime > parcel.passageTime) parcel.passageTime = row.passageTime;
+    parcels.set(row.parcelId, parcel);
+  }
+  $('chute16-postal-summary').textContent = `${number.format(parcels.size)} colis concernés · ${number.format(unverifiedPassages)} passage(s) non vérifiable(s) (colis, expédition ou code postal non résolu).`;
+  $('chute16-postal-body').innerHTML = [...parcels.values()].map(row => `<tr>
+    <td>${escapeHtml(String(row.parcelId))}</td><td>${escapeHtml(row.customerName)}</td>
+    <td>${row.postalStatus === 'missing' ? '—' : escapeHtml(row.postalCode || '—')}</td>
+    <td>${statuses[row.postalStatus]}</td><td>${number.format(row.passages)}</td>
+    <td>${escapeHtml(new Date(row.passageTime).toLocaleString('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }))}</td>
+  </tr>`).join('') || '<tr><td colspan="6" class="empty-cell">Aucune anomalie de code postal confirmée parmi les colis vérifiables.</td></tr>';
+}
+
 function renderChute16(data) {
+  renderChute16Postal(data);
   $('chute16-title').textContent = `${data.depot} · ${fullDate.format(new Date(`${data.date}T12:00:00`))}`;
   const identified = new Set(data.rows.filter(row => row.parcelId != null).map(row => row.parcelId)).size;
   $('chute16-summary').textContent = `${number.format(data.rows.length)} passages · ${number.format(identified)} colis uniques identifiés`;
@@ -810,6 +832,8 @@ async function openChute16Dialog() {
   const dialog = $('chute16-dialog');
   $('chute16-title').textContent = `${DEPOTS[requestedDepot].name} · ${requestedDate}`;
   $('chute16-summary').textContent = 'Chargement des colis…';
+  $('chute16-postal-summary').textContent = 'Vérification des codes postaux…';
+  $('chute16-postal-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Chargement…</td></tr>';
   $('chute16-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Chargement…</td></tr>';
   if (!dialog.open) dialog.showModal();
   try {
@@ -822,6 +846,8 @@ async function openChute16Dialog() {
   } catch {
     if (request !== chute16Request || !dialog.open) return;
     $('chute16-summary').textContent = 'Chargement impossible. Fermez la fenêtre et réessayez.';
+    $('chute16-postal-summary').textContent = 'Vérification indisponible.';
+    $('chute16-postal-body').innerHTML = '<tr><td colspan="6" class="empty-cell">Codes postaux indisponibles.</td></tr>';
     $('chute16-body').innerHTML = '<tr><td colspan="5" class="empty-cell">Colis indisponibles.</td></tr>';
   }
 }
