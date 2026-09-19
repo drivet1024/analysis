@@ -111,6 +111,15 @@ Check(EdiForecastArchive.NextForecastRefresh(new DateTime(2026, 9, 17, 12, 0, 0)
     "Next weekly forecast refresh is Saturday at 6 am");
 Check(EdiForecastArchive.NextRefresh(new DateTime(2026, 3, 7, 12, 0, 0)).Offset == TimeSpan.FromHours(-4)
     && EdiForecastArchive.NextRefresh(new DateTime(2026, 10, 31, 12, 0, 0)).Offset == TimeSpan.FromHours(-5), "DST-aware next refresh");
+Check(EdiForecastRefreshService.RefreshDelay(new DateTime(2026, 9, 19, 5, 59, 59),
+    new DateTimeOffset(2026, 9, 19, 6, 0, 6, TimeSpan.FromHours(-4)), false) == TimeSpan.FromSeconds(1),
+    "A cycle crossing Saturday 6 am catches up immediately instead of waiting until Sunday");
+Check(EdiForecastRefreshService.RefreshDelay(new DateTime(2026, 9, 19, 5, 59, 58),
+    new DateTimeOffset(2026, 9, 19, 5, 59, 59, TimeSpan.FromHours(-4)), false) == TimeSpan.FromSeconds(1),
+    "A cycle finishing before 6 am still targets the same morning");
+Check(EdiForecastRefreshService.RefreshDelay(new DateTime(2026, 9, 19, 6, 0, 1),
+    new DateTimeOffset(2026, 9, 19, 6, 0, 6, TimeSpan.FromHours(-4)), true) == TimeSpan.FromMinutes(1),
+    "A failed refresh retries in one minute");
 
 Check(EdiSeasonality.CyberMonday(2025) == new DateOnly(2025, 12, 1)
     && EdiSeasonality.CyberMonday(2026) == new DateOnly(2026, 11, 30)

@@ -176,14 +176,30 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastSe
 sealed class EdiForecastRefreshService(ConveyorDataService data, EdiForecastArchive archive,
     ILogger<EdiForecastRefreshService> logger) : BackgroundService
 {
+    internal static TimeSpan RefreshDelay(DateTime iterationStarted, DateTimeOffset completedAt, bool retry)
+    {
+        if (retry) return TimeSpan.FromMinutes(1);
+        // Keep the deadline from before the reads: crossing 6 am must trigger a catch-up,
+        // not silently move the next check to tomorrow.
+        var delay = EdiForecastArchive.NextRefresh(iterationStarted) - completedAt;
+        return delay > TimeSpan.Zero ? delay : TimeSpan.FromSeconds(1);
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            var iterationStarted = EdiForecastArchive.LocalNow;
             var retry = false;
-            try { await archive.EnsureCurrentAsync(data); await archive.EnsureActualsAsync(data); }
+            try
+            {
+                var snapshot = await archive.EnsureCurrentAsync(data);
+                await archive.EnsureActualsAsync(data);
+                logger.LogInformation("Relevé EDI terminé : prévision {SnapshotId}, début {StartedAt}, fin {CompletedAt} (Montréal).",
+                    snapshot.Id, iterationStarted, EdiForecastArchive.LocalNow);
+            }
             catch (Exception ex) { retry = true; logger.LogError(ex, "Renouvellement EDI impossible; archives conservées, nouvelle tentative dans une minute."); }
-            var delay = retry ? TimeSpan.FromMinutes(1) : EdiForecastArchive.NextRefresh(EdiForecastArchive.LocalNow) - DateTimeOffset.UtcNow;
+            var delay = RefreshDelay(iterationStarted, DateTimeOffset.UtcNow, retry);
             try { await Task.Delay(delay > TimeSpan.Zero ? delay : TimeSpan.FromSeconds(1), stoppingToken); }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
         }
