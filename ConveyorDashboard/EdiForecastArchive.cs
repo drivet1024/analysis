@@ -135,8 +135,18 @@ sealed class EdiForecastArchive(IWebHostEnvironment environment, EdiMlForecastSe
         var weekStart = analysisDate == operationalDate ? ForecastDueDate(now) : ForecastWeekStart(analysisDate);
         var selected = snapshots.FirstOrDefault(s => s.ModelVersion == ModelVersion && s.ScheduledDate == weekStart)
             ?? (analysisDate == operationalDate ? null : snapshots.FirstOrDefault(s => s.ScheduledDate == analysisDate));
-        var byDate = actuals.ToDictionary(d => d.Date);
-        var rows = snapshots.Take(30).SelectMany(snapshot => snapshot.Forecast.Days.Select(day =>
+        // Daily files retain observations beyond the latest 84-day window.
+        var byDate = new Dictionary<DateOnly, EdiHistoryDay>();
+        var actualsDirectory = Path.Combine(directory, "actuals");
+        if (Directory.Exists(actualsDirectory))
+            foreach (var path in Directory.EnumerateFiles(actualsDirectory, "*.json").Order())
+            {
+                var saved = JsonSerializer.Deserialize<EdiForecastActuals>(File.ReadAllText(path), Json);
+                if (saved != null)
+                    foreach (var day in saved.Days) byDate[day.Date] = day;
+            }
+        foreach (var day in actuals) byDate[day.Date] = day;
+        var rows = snapshots.SelectMany(snapshot => snapshot.Forecast.Days.Select(day =>
         {
             // Weekly V6 forecasts Saturday-Friday using only data prior to Saturday.
             // V4/V5 deliberately forecast day zero at 6am using only prior completed days.

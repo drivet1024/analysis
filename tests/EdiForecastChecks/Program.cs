@@ -318,6 +318,26 @@ try
     var savedActuals = restarted.ReadActuals();
     for (var i = 0; i < 5; i++) restarted.View(today, savedActuals!.Days);
     Check(source.Reads == readsBeforeActuals + 1 && actualBytes.SequenceEqual(File.ReadAllBytes(actualFile)), "Archive-only page reads and restart never query the source or rewrite daily actuals");
+    var historicalDate = today.AddDays(-200);
+    var historical = old with { Id = "historical-test", SavedAt = DateTimeOffset.UtcNow.AddDays(-201),
+        Forecast = old.Forecast with { Days = [old.Forecast.Days[0] with { Date = historicalDate }] },
+        MlForecast = old.MlForecast! with { Days = [old.MlForecast.Days[0] with { Date = historicalDate }] } };
+    File.WriteAllText(Path.Combine(temp, historical.Id + ".json"), System.Text.Json.JsonSerializer.Serialize(historical, json));
+    for (var i = 0; i < 31; i++)
+    {
+        var newer = old with { Id = $"newer-{i}" };
+        File.WriteAllText(Path.Combine(temp, newer.Id + ".json"), System.Text.Json.JsonSerializer.Serialize(newer, json));
+    }
+    File.WriteAllText(Path.Combine(temp, "actuals", $"{today.AddDays(-100):yyyy-MM-dd}.json"),
+        System.Text.Json.JsonSerializer.Serialize(new EdiForecastActuals(today.AddDays(-100), DateTimeOffset.UtcNow.AddDays(-100),
+            [new EdiHistoryDay(historicalDate, 125)]), json));
+    var allHistory = restarted.View(today, savedActuals!.Days);
+    Check(allHistory.Comparisons.Single(r => r.SnapshotId == historical.Id).MlDifference == 15,
+        "Comparisons include forecasts older than 30 archives and actuals older than the current 84-day window");
+    var correctedHistory = restarted.View(today, [new EdiHistoryDay(historicalDate, 130)]);
+    Check(correctedHistory.Comparisons.Single(r => r.SnapshotId == historical.Id).Actual == 130,
+        "Latest provided actuals override older archived observations");
+
 
 }
 finally

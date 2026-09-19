@@ -298,17 +298,16 @@ function renderForecast(forecast, archive) {
   const body = $('forecast-body');
   body.replaceChildren();
   $('forecast-foot').replaceChildren();
-  const forecastDates = new Set((forecast?.days || []).filter(day => {
-    const weekday = new Date(`${day.date}T00:00:00Z`).getUTCDay();
-    return weekday >= 1 && weekday <= 5;
-  }).map(day => day.date));
   const mlErrors = (archive?.comparisons || [])
-    .filter(row => archive?.snapshot?.id && row.snapshotId === archive.snapshot.id && forecastDates.has(row.date)
-      && Number.isFinite(row.actual) && row.actual > 0 && Number.isFinite(row.mlDifference))
+    .filter(row => {
+      const weekday = new Date(`${row.date}T00:00:00Z`).getUTCDay();
+      return weekday >= 1 && weekday <= 5
+        && Number.isFinite(row.actual) && row.actual > 0 && Number.isFinite(row.mlDifference);
+    })
     .map(row => Math.abs(row.mlDifference) / row.actual * 100);
   const averageMlError = mlErrors.length ? mlErrors.reduce((sum, error) => sum + error, 0) / mlErrors.length : null;
   $('forecast-average-ml').textContent = averageMlError == null ? '—' : `${decimal.format(averageMlError)} %`;
-  $('forecast-average-note').textContent = `Semaine affichée · lundi au vendredi · ${mlErrors.length} jour(s) évalué(s). Moyenne de |ML.NET − réel| ÷ réel × 100. Réel nul ou données indisponibles exclus.`;
+  $('forecast-average-note').textContent = `Depuis le début des archives · lundi au vendredi · ${mlErrors.length} prévision(s) évaluée(s). Moyenne de |ML.NET − réel| ÷ réel × 100. Réel nul ou données indisponibles exclus.`;
   if (!forecast) {
     $('forecast-context').textContent = 'Prévision indisponible';
     $('forecast-summary').textContent = 'Aucune prévision sauvegardée pour cette semaine. Le calcul hebdomadaire est effectué le samedi à 6 h.';

@@ -68,19 +68,21 @@ const errorRows = [
   { ...matched, date: weekdays[2].date, actual: 0, mlDifference: 100 },
   { ...matched, date: weekdays[3].date, actual: null, mlDifference: 100 },
   { ...matched, date: weekdays[4].date, actual: 1000, mlDifference: null },
-  { ...matched, date: weekdays[0].date, snapshotId: 'different-version', actual: 1, mlDifference: 100 },
-  { ...matched, date: '1900-01-01', actual: 1, mlDifference: 100 },
+  { ...matched, date: weekdays[0].date, snapshotId: 'different-version', actual: 1000, mlDifference: 6 },
+  { ...matched, date: '1900-01-01', actual: 1000, mlDifference: 8 },
   ...weekends.map(day => ({ ...matched, date: day.date, actual: 100, mlDifference: 100 }))
 ];
 context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: errorRows });
-assert.equal(elements.get('forecast-average-ml').textContent, '0,3 %');
-assert.match(elements.get('forecast-average-note').textContent, /lundi au vendredi · 2 jour/);
+assert.equal(elements.get('forecast-average-ml').textContent, '0,5 %');
+assert.match(elements.get('forecast-average-note').textContent, /Depuis le début des archives · lundi au vendredi · 4 prévision/);
 context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [{ ...matched, date: weekdays[0].date, actual: 1000, mlDifference: 0 }] });
 assert.equal(elements.get('forecast-average-ml').textContent, '0 %');
 context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: errorRows.slice(-2) });
 assert.equal(elements.get('forecast-average-ml').textContent, '—');
 context.renderForecast(payload.forecast, { ...payload.forecastArchive, comparisons: [matched] });
 assert.equal(elements.get('forecast-average-ml').textContent, '—');
+context.renderForecast(null, { ...payload.forecastArchive, snapshot: null, comparisons: errorRows });
+assert.equal(elements.get('forecast-average-ml').textContent, '0,5 %');
 context.renderForecast(null, null);
 assert.equal(elements.get('forecast-average-ml').textContent, '—');
 console.log('Seasonality rendering and archive-filter checks passed.');
