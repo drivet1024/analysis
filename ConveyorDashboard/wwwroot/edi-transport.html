@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Colis et estimation des palettes de transport par région.">
   <title>Nationex - EDI TRANSPORT</title>
-  <link rel="stylesheet" href="/edi.css?v=20260913-10">
+  <link rel="stylesheet" href="/edi.css?v=20260922-1">
   <link rel="stylesheet" href="/deployment-footer.css?v=20260913-1">
 </head>
 <body data-edi-page="transport">
@@ -50,7 +50,7 @@
       <div><span>Semaine analysée</span><strong id="week-range">—</strong></div>
       <div><span>Dernière lecture</span><strong id="database-time">—</strong></div>
       <div><span>Prochaine mise à jour</span><strong><span id="countdown">60</span> s</strong></div>
-      <div><span>Conversion</span><strong>60 colis par palette</strong></div>
+      <div><span>Palettes du tableau</span><strong>Selon les profils clients</strong></div>
     </section>
 
     <div id="error-banner" class="error-banner" role="alert" hidden></div>
@@ -91,36 +91,46 @@
         <label>Remplissage <select id="pallet-fill"><option value="0.6">60 % · empilage difficile</option><option value="0.65">65 %</option><option value="0.7" selected>70 % · 30 % de vide</option><option value="0.75">75 %</option><option value="0.8">80 % · empilage soigné</option></select></label>
       </div>
       <p class="method-note" id="pallet-assumptions"></p>
-      <div class="table-wrap">
-        <table class="regions-table">
+      <p class="method-note" id="regions-time-note"></p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Comparaison des colis et palettes par région">
+        <table class="regions-table transport-comparison-table">
           <thead>
             <tr>
-              <th rowspan="2">Région</th>
-              <th rowspan="2">Dépôts</th>
-              <th id="regions-current-label" colspan="3">Aujourd’hui</th>
-              <th colspan="2">Hier</th>
-              <th colspan="2">Semaine dernière</th>
+              <th rowspan="3" scope="col">Région</th>
+              <th rowspan="3" scope="col">Dépôts</th>
+              <th id="regions-current-label" class="period-today period-start" colspan="2" scope="colgroup">Aujourd’hui</th>
+              <th id="regions-yesterday-label" class="period-yesterday period-start" colspan="4" scope="colgroup">Hier</th>
+              <th class="period-week period-start" colspan="4" scope="colgroup">Semaine passée · J−7</th>
             </tr>
             <tr>
-              <th>Colis</th><th>Palettes / 60 colis</th><th>Palettes estimées · volume</th>
-              <th>Colis</th><th>Palettes</th>
-              <th>Colis</th><th>Palettes</th>
+              <th id="regions-cutoff-label" class="period-today period-start" colspan="2" scope="colgroup">À cette heure</th>
+              <th class="period-yesterday period-start" colspan="2" scope="colgroup">À la même heure</th>
+              <th class="period-yesterday period-final period-start" colspan="2" scope="colgroup">Fin de journée</th>
+              <th class="period-week period-start" colspan="2" scope="colgroup">À la même heure</th>
+              <th class="period-week period-final period-start" colspan="2" scope="colgroup">Fin de journée</th>
+            </tr>
+            <tr>
+              <th class="period-today period-start" scope="col">Colis</th><th class="period-today" scope="col">Palettes</th>
+              <th class="period-yesterday period-start" scope="col">Colis</th><th class="period-yesterday" scope="col">Palettes</th>
+              <th class="period-yesterday period-final period-start" scope="col">Colis</th><th class="period-yesterday period-final" scope="col">Palettes</th>
+              <th class="period-week period-start" scope="col">Colis</th><th class="period-week" scope="col">Palettes</th>
+              <th class="period-week period-final period-start" scope="col">Colis</th><th class="period-week period-final" scope="col">Palettes</th>
             </tr>
           </thead>
-          <tbody id="regions-body"><tr><td colspan="9" class="empty-cell">Chargement des régions…</td></tr></tbody>
+          <tbody id="regions-body"><tr><td colspan="12" class="empty-cell">Chargement des régions…</td></tr></tbody>
           <tfoot id="regions-foot"></tfoot>
         </table>
       </div>
       <details class="forecast-method"><summary>Calcul des palettes et limites de l’estimation</summary>
-        <p>Pour chaque client, moyenne des volumes individuels L × l × h des colis créés dans les 28 journées complètes précédant la date analysée, hors statuts 500 et 501. Seules les trois dimensions strictement positives sont utilisées. Il faut au moins 20 colis dimensionnés; sinon, la moyenne générale des colis dimensionnés de la période sert de remplacement. Le pourcentage affiché indique la part des colis du jour couverte par un profil client.</p>
-        <p>Volume régional estimé = somme des colis du jour de chaque client × son volume moyen. Palettes = volume régional ÷ (40 × 48 × hauteur utile × taux de remplissage), arrondi à l’entier supérieur par région. Le total additionne ces arrondis sans mélanger les régions. Les dimensions des colis sont confirmées en pouces.</p>
+        <p>Pour chaque client, moyenne des volumes individuels L × l × h des colis créés dans les 28 journées complètes précédant chacune des dates comparées, hors statuts 500 et 501. Seules les trois dimensions strictement positives sont utilisées. Il faut au moins 20 colis dimensionnés; sinon, la moyenne générale des colis dimensionnés de la période sert de remplacement. Le pourcentage affiché indique la part des colis du jour couverte par un profil client.</p>
+        <p>Volume régional estimé = somme des colis de la période de chaque client × son volume moyen. Palettes = volume régional ÷ (40 × 48 × hauteur utile × taux de remplissage), arrondi à l’entier supérieur par région. Le total de chaque colonne additionne ces arrondis sans mélanger les régions. Les mêmes réglages de palette s’appliquent aux cinq périodes. Survolez une estimation historique pour consulter sa couverture par profil client. Les dimensions des colis sont confirmées en pouces.</p>
         <p>Palette confirmée : 40 × 48 × 84 po, base incluse dans la hauteur. Réglage initial : hauteur utile de 78 po (réserve estimée de 6 po pour la base) et 70 % de remplissage. La réserve et le remplissage restent des hypothèses modifiables, non des mesures de votre empilage réel. L’estimation volumétrique ne simule pas le placement de chaque colis : colis hors gabarit, fragiles, non empilables, limites de poids et séparation des tournées peuvent exiger davantage de palettes. Les dimensions absentes et les changements de produits limitent aussi la précision.</p>
       </details>
     </section>
-    <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Les palettes de référence sont calculées avec 60 colis par palette et arrondies à l’entier supérieur. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
+    <p class="method-note">Les volumes régionaux excluent les statuts 500 et 501. Le résumé à 60 colis par palette reste une référence; toutes les palettes du tableau utilisent les profils clients et le volume utile. Chaque journée commence à 4 h; la semaine débute le samedi.</p>
   </main>
   <script src="/edi-history.js?v=20260913-5" defer></script>
-  <script src="/edi.js?v=20260913-7" defer></script>
+  <script src="/edi.js?v=20260922-1" defer></script>
   <script src="/deployment-footer.js?v=20260913-1" defer></script>
 </body>
 </html>

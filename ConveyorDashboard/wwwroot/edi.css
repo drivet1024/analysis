@@ -77,6 +77,26 @@ h3 { font-size: 1rem; }
 .pallet-controls select { background: var(--panel); color: var(--text); padding: 8px; border: 1px solid var(--line); border-radius: 6px; max-width: 100%; }
 .pallet-estimate { color: var(--blue); }
 .pallet-estimate small { display: block; color: var(--muted); font-size: .65rem; margin-top: 4px; white-space: nowrap; }
+.transport-comparison-table { min-width: 1120px; font-variant-numeric: tabular-nums; }
+.transport-comparison-table .period-today { background: #142735; }
+.transport-comparison-table .period-yesterday { background: #172c2b; }
+.transport-comparison-table .period-week { background: #252536; }
+.transport-comparison-table .period-final { box-shadow: inset 0 0 0 1000px rgba(255, 255, 255, .025); }
+.transport-comparison-table .period-start { border-left: 1px solid rgba(173, 208, 229, .25); }
+.transport-comparison-table thead th[colspan] { text-align: center; }
+.transport-comparison-table thead tr:last-child th { text-align: right; }
+.transport-comparison-table thead tr:first-child .period-today { border-top: 3px solid #577d99; }
+.transport-comparison-table thead tr:first-child .period-yesterday { border-top: 3px solid #5e8981; }
+.transport-comparison-table thead tr:first-child .period-week { border-top: 3px solid #81769c; }
+.transport-comparison-table td, .transport-comparison-table th { padding: 11px 10px; }
+.transport-comparison-table .depots-cell { max-width: 170px; white-space: normal; }
+.transport-comparison-table .pallet-estimate { color: #d5e6f5; }
+.transport-comparison-table .pallet-estimate small { max-width: 140px; margin-left: auto; white-space: normal; font-size: .62rem; line-height: 1.4; }
+.transport-comparison-table tfoot td { border-top: 2px solid #536775; }
+@media (max-width: 1100px) {
+  body[data-edi-page="transport"] .dashboard-navigation { flex-wrap: wrap; }
+  body[data-edi-page="transport"] .dashboard-tabs { flex-wrap: wrap; }
+}
 .sector-table-wrap { max-height: 760px; }
 .sector-table-wrap table { min-width: 1250px; }
 .sector-table-wrap thead th { position: sticky; top: 0; z-index: 1; }

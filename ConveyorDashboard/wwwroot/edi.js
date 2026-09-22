@@ -118,44 +118,47 @@ function renderRegions(regions) {
   const height = Number($('pallet-height').value || 78);
   const fill = Number($('pallet-fill').value || 0.7);
   const usableVolume = 40 * 48 * height * fill;
-  const estimate = (region) => region.parcelsToday === 0 ? 0
-    : region.estimatedParcelVolume == null || region.missingProfileParcels > 0 ? null
-    : Math.ceil(Number(region.estimatedParcelVolume) / cubicConversion / usableVolume);
-  $('pallet-assumptions').textContent = `Palette 40 × 48 × 84 po, base incluse · ${height} po utiles (réserve estimée de ${84 - height} po pour la base) · ${Math.round(fill * 100)} % de remplissage (${Math.round((1 - fill) * 100)} % de vide) · capacité utilisée : ${number.format(usableVolume)} po³. Dimensions des colis en pouces : confirmé.`;
+  const periods = [
+    { key: 'today', tone: 'period-today', label: 'Aujourd’hui' },
+    { key: 'yesterdaySameTime', tone: 'period-yesterday', label: 'Hier · à la même heure' },
+    { key: 'yesterdayFinal', tone: 'period-yesterday period-final', label: 'Hier · fin de journée' },
+    { key: 'lastWeekSameTime', tone: 'period-week', label: 'Semaine passée · à la même heure' },
+    { key: 'lastWeekFinal', tone: 'period-week period-final', label: 'Semaine passée · fin de journée' }
+  ];
+  const values = (region, key) => key === 'today' ? { ...region, parcels: region.parcelsToday } : region[key];
+  const estimate = period => !period ? null : period.parcels === 0 ? 0
+    : period.estimatedParcelVolume == null || period.missingProfileParcels > 0 ? null
+    : Math.ceil(Number(period.estimatedParcelVolume) / cubicConversion / usableVolume);
+  const formatted = value => value == null ? '—' : number.format(value);
+  const explanation = period => !period ? 'Données indisponibles' : period.parcels === 0 ? 'Aucun colis'
+    : `${decimal.format(100 * Number(period.clientProfileParcels || 0) / period.parcels)} % profil client${period.fallbackProfileParcels ? ` · ${number.format(period.fallbackProfileParcels)} colis : moyenne générale` : ''}${period.missingProfileParcels ? ` · ${number.format(period.missingProfileParcels)} sans profil` : ''}`;
+  $('pallet-assumptions').textContent = `Toutes les palettes du tableau sont estimées par profil client · 40 × 48 × 84 po, base incluse · ${height} po utiles (réserve de ${84 - height} po) · ${Math.round(fill * 100)} % de remplissage · capacité utilisée : ${number.format(usableVolume)} po³.`;
   const body = $('regions-body');
   body.replaceChildren();
   if (!regions.length) {
-    body.innerHTML = '<tr><td colspan="9" class="empty-cell">Aucun volume EDI trouvé pour la période.</td></tr>';
+    body.innerHTML = '<tr><td colspan="12" class="empty-cell">Aucun volume EDI trouvé pour la période.</td></tr>';
   } else {
-    regions.forEach((region) => {
+    regions.forEach(region => {
       const row = document.createElement('tr');
-      const pallets = estimate(region);
-      const coverage = region.parcelsToday > 0 ? 100 * Number(region.clientProfileParcels || 0) / region.parcelsToday : 0;
-      const explanation = region.parcelsToday === 0 ? 'Aucun colis'
-        : `${decimal.format(coverage)} % profil client${region.fallbackProfileParcels ? ` · ${number.format(region.fallbackProfileParcels)} colis : moyenne générale` : ''}${region.missingProfileParcels ? ` · ${number.format(region.missingProfileParcels)} sans profil` : ''}`;
-      row.innerHTML = `
-        <td class="region-name">${escapeHtml(region.region)}</td>
-        <td class="depots-cell">${escapeHtml(region.depots)}</td>
-        <td><strong>${number.format(region.parcelsToday)}</strong></td>
-        <td>${number.format(region.palletsToday)}</td>
-        <td class="pallet-estimate" title="${escapeHtml(explanation)}"><strong>${pallets == null ? '—' : number.format(pallets)}</strong><small>${escapeHtml(explanation)}</small></td>
-        <td><strong>${number.format(region.parcelsYesterday)}</strong></td>
-        <td>${number.format(region.palletsYesterday)}</td>
-        <td><strong>${number.format(region.parcelsLastWeek)}</strong></td>
-        <td>${number.format(region.palletsLastWeek)}</td>`;
+      row.innerHTML = `<td class="region-name">${escapeHtml(region.region)}</td>
+        <td class="depots-cell">${escapeHtml(region.depots)}</td>` + periods.map(period => {
+          const value = values(region, period.key);
+          const detail = explanation(value);
+          return `<td class="${period.tone} period-start" data-label="${period.label} · colis"><strong>${formatted(value?.parcels)}</strong></td>
+            <td class="${period.tone} pallet-estimate" data-label="${period.label} · palettes" title="${escapeHtml(detail)}"><strong>${formatted(estimate(value))}</strong></td>`;
+        }).join('');
       body.append(row);
     });
   }
 
+  $('regions-foot').innerHTML = '<tr><td colspan="2">Total</td>' + periods.map(period => {
+    const samples = regions.map(region => values(region, period.key));
+    const parcels = samples.every(value => value != null) ? samples.reduce((sum, value) => sum + value.parcels, 0) : null;
+    const estimates = samples.map(estimate);
+    const pallets = estimates.every(value => value != null) ? estimates.reduce((sum, value) => sum + value, 0) : null;
+    return `<td class="${period.tone} period-start">${formatted(parcels)}</td><td class="${period.tone} pallet-estimate">${pallets == null ? 'Incomplet' : formatted(pallets)}</td>`;
+  }).join('') + '</tr>';
   const totals = totalsForRegions(regions);
-  const estimates = regions.map(estimate);
-  const palletTotal = estimates.every(value => value != null) ? estimates.reduce((sum, value) => sum + value, 0) : null;
-  $('regions-foot').innerHTML = `
-    <tr><td colspan="2">Total</td>
-      <td>${number.format(totals.parcelsToday)}</td><td>${number.format(totals.palletsToday)}</td>
-      <td class="pallet-estimate">${palletTotal == null ? 'Incomplet' : number.format(palletTotal)}</td>
-      <td>${number.format(totals.parcelsYesterday)}</td><td>${number.format(totals.palletsYesterday)}</td>
-      <td>${number.format(totals.parcelsLastWeek)}</td><td>${number.format(totals.palletsLastWeek)}</td></tr>`;
   $('parcels-today').textContent = number.format(totals.parcelsToday);
   $('pallets-today').textContent = number.format(totals.palletsToday);
 }
@@ -552,9 +555,14 @@ function render(data) {
     $('linehaul-pallets-label').textContent = isToday ? 'Palettes linehaul aujourd’hui' : 'Palettes linehaul · ' + selectedDateLabel;
     $('linehaul-parcels-context').textContent = isToday ? 'Expéditions par région jusqu’à maintenant' : 'Expéditions par région pour la journée';
     $('regions-period-label').textContent = isToday
-      ? 'Aujourd’hui, hier et même période la semaine dernière'
+      ? 'À la même heure et fin de journée · journées de 4 h à 4 h'
       : `${selectedDateLabel}, veille et même journée la semaine précédente`;
     $('regions-current-label').textContent = isToday ? 'Aujourd’hui' : selectedDateLabel;
+    $('regions-yesterday-label').textContent = isToday ? 'Hier' : 'Veille · J−1';
+    $('regions-cutoff-label').textContent = isToday ? `À ${formatTime(data.databaseNow)}` : 'Journée complète';
+    $('regions-time-note').textContent = isToday
+      ? `À la même heure : de 4 h à ${formatTime(data.databaseNow)} pour chaque date. Fin de journée : total observé jusqu’à 4 h le lendemain. Semaine passée : même jour à J−7.`
+      : 'Date passée : la journée sélectionnée est complète; les colonnes « À la même heure » couvrent donc aussi la journée entière. Semaine passée : même jour à J−7.';
 
     renderRegions(regions);
     $('week-range').textContent = formatDate(data.weekStart) + ' au ' + formatDate(data.weekEnd);

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
@@ -810,7 +810,13 @@ sealed record EdiRegionRow(
     decimal? EstimatedParcelVolume,
     long ClientProfileParcels,
     long FallbackProfileParcels,
-    long MissingProfileParcels);
+    long MissingProfileParcels,
+    EdiRegionPeriod YesterdaySameTime,
+    EdiRegionPeriod YesterdayFinal,
+    EdiRegionPeriod LastWeekSameTime,
+    EdiRegionPeriod LastWeekFinal);
+sealed record EdiRegionPeriod(long Parcels, decimal? EstimatedParcelVolume,
+    long ClientProfileParcels, long FallbackProfileParcels, long MissingProfileParcels);
 sealed record EdiDailyRow(
     int SortOrder,
     DateOnly Date,
@@ -1187,6 +1193,11 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         return json;
     }
 
+    private static EdiRegionPeriod ReadRegionPeriod(MySqlDataReader reader, string prefix) => new(
+        Int64OrZero(reader, prefix + "_parcels"), NullableDecimal(reader, prefix + "_volume"),
+        Int64OrZero(reader, prefix + "_client"), Int64OrZero(reader, prefix + "_fallback"),
+        Int64OrZero(reader, prefix + "_missing"));
+
     private async Task<EdiDashboardResponse> CalculateEdiDashboardAsync(DateOnly analysisDate, string scope)
     {
         const string parcelSnapshotSql = """
@@ -1206,13 +1217,15 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
 
         const string regionsSql = """
             WITH dimension_profiles AS (
-              SELECT CUSTOMER_ID, MAX(history_count) AS history_count, MAX(valid_count) AS valid_count, MAX(volume_sum) AS volume_sum
+              SELECT day_offset, CUSTOMER_ID, MAX(history_count) AS history_count, MAX(valid_count) AS valid_count, MAX(volume_sum) AS volume_sum
               FROM JSON_TABLE(@dimensionProfiles, '$[*]' COLUMNS (
+                day_offset INT PATH '$.day_offset', NESTED PATH '$.profiles[*]' COLUMNS (
                 CUSTOMER_ID BIGINT PATH '$.customer_id', history_count BIGINT PATH '$.history_count',
                 valid_count BIGINT PATH '$.valid_count', volume_sum DECIMAL(65,12) PATH '$.volume_sum'
-              )) AS profiles GROUP BY CUSTOMER_ID
+              ))) AS profiles GROUP BY day_offset, CUSTOMER_ID
             ), dimension_global AS (
-              SELECT SUM(volume_sum)/NULLIF(SUM(valid_count),0) AS mean_volume FROM dimension_profiles
+              SELECT day_offset, SUM(volume_sum)/NULLIF(SUM(valid_count),0) AS mean_volume
+              FROM dimension_profiles GROUP BY day_offset
             ), rm AS (
               SELECT
                 d2.DEPOTNUMBER,
@@ -1225,8 +1238,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                   WHEN d2.DEPOTNUMBER IN (13)                    THEN 'Blainville'
                   WHEN d2.DEPOTNUMBER IN (27,28)                 THEN 'Guilmore/Coli'
                   WHEN d2.DEPOTNUMBER IN (6,7)                   THEN 'Lau/Val d''or'
-                  WHEN d2.DEPOTNUMBER IN (10)                    THEN 'Drummond'
-                  WHEN d2.DEPOTNUMBER IN (3)                     THEN 'Sherb'
+                  WHEN d2.DEPOTNUMBER IN (10)                    THEN 'Drummondville'
+                  WHEN d2.DEPOTNUMBER IN (3)                     THEN 'Sherbrooke'
                 END AS region
               FROM depot d2
               WHERE d2.DEPOTNUMBER IN (
@@ -1235,7 +1248,8 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                 12,14,15,16,17,23,29,
                 9,
                 13,
-                27,28
+                27,28,
+                10,3
               )
             ),
             dep AS (
@@ -1286,14 +1300,42 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                             WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
                              AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
                             THEN s.PARCEL_NB ELSE 0
-                          END) / 60.0) AS pallets_last_week
+                          END) / 60.0) AS pallets_last_week,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_parcels,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY)
+                  THEN s.PARCEL_NB * COALESCE(CASE WHEN dpy.valid_count >= 20 THEN dpy.volume_sum/dpy.valid_count END, dgy.mean_volume) ELSE 0 END) AS yesterday_same_time_volume,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND dpy.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_client,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_fallback,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_missing,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_parcels,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate
+                  THEN s.PARCEL_NB * COALESCE(CASE WHEN dpy.valid_count >= 20 THEN dpy.volume_sum/dpy.valid_count END, dgy.mean_volume) ELSE 0 END) AS yesterday_final_volume,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND dpy.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_client,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_fallback,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_missing,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_parcels,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
+                  THEN s.PARCEL_NB * COALESCE(CASE WHEN dpw.valid_count >= 20 THEN dpw.volume_sum/dpw.valid_count END, dgw.mean_volume) ELSE 0 END) AS last_week_same_time_volume,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND dpw.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_client,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_fallback,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_missing,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_parcels,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY)
+                  THEN s.PARCEL_NB * COALESCE(CASE WHEN dpw.valid_count >= 20 THEN dpw.volume_sum/dpw.valid_count END, dgw.mean_volume) ELSE 0 END) AS last_week_final_volume,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND dpw.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_client,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_fallback,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_missing
             FROM shipment s
             JOIN location l ON s.DEST_POSTAL_CODE = l.LOC_POSTAL_CODE
             JOIN depot d ON l.DEPOTNUMBER = d.DEPOTNUMBER
             JOIN rm ON rm.DEPOTNUMBER = d.DEPOTNUMBER
             JOIN dep ON dep.region = rm.region
-            LEFT JOIN dimension_profiles dp ON dp.CUSTOMER_ID = s.CUSTOMER_ID
-            CROSS JOIN dimension_global dg
+            LEFT JOIN dimension_profiles dp ON dp.CUSTOMER_ID = s.CUSTOMER_ID AND dp.day_offset = 0
+            LEFT JOIN dimension_global dg ON dg.day_offset = 0
+            LEFT JOIN dimension_profiles dpy ON dpy.CUSTOMER_ID = s.CUSTOMER_ID AND dpy.day_offset = 1
+            LEFT JOIN dimension_global dgy ON dgy.day_offset = 1
+            LEFT JOIN dimension_profiles dpw ON dpw.CUSTOMER_ID = s.CUSTOMER_ID AND dpw.day_offset = 7
+            LEFT JOIN dimension_global dgw ON dgw.day_offset = 7
             WHERE s.SHIPMENT_STATUS NOT IN (500,501)
               AND rm.region IS NOT NULL
               AND s.INSERT_DATE >= @regionsStart
@@ -1475,7 +1517,15 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         }
 
         var regions = new List<EdiRegionRow>();
-        var dimensionProfiles = scope == "transport" ? await GetEdiDimensionProfilesAsync(analysisDate, connection) : "[]";
+        var dimensionProfiles = "[]";
+        if (scope == "transport")
+        {
+            // Each comparison uses only the 28 complete days before its own date.
+            var profiles = new List<string>();
+            foreach (var offset in new[] { 0, 1, 7 })
+                profiles.Add($"{{\"day_offset\":{offset},\"profiles\":{await GetEdiDimensionProfilesAsync(analysisDate.AddDays(-offset), connection)}}}");
+            dimensionProfiles = "[" + string.Join(",", profiles) + "]";
+        }
         if (scope == "transport")
         await using (var command = new MySqlCommand(regionsSql, connection) { CommandTimeout = 180 })
         {
@@ -1497,7 +1547,11 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                     NullableDecimal(reader, "estimated_parcel_volume"),
                     Int64OrZero(reader, "client_profile_parcels"),
                     Int64OrZero(reader, "fallback_profile_parcels"),
-                    Int64OrZero(reader, "missing_profile_parcels")));
+                    Int64OrZero(reader, "missing_profile_parcels"),
+                    ReadRegionPeriod(reader, "yesterday_same_time"),
+                    ReadRegionPeriod(reader, "yesterday_final"),
+                    ReadRegionPeriod(reader, "last_week_same_time"),
+                    ReadRegionPeriod(reader, "last_week_final")));
         }
 
         var clients = new List<EdiClientTrendRow>();
@@ -1538,7 +1592,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
         }
 
         var days = new List<EdiDailyRow>(7);
-        var databaseNow = DateTime.Now;
+        var databaseNow = now;
         long weeklyBudget = 0;
         if (scope == "main")
         await using (var command = new MySqlCommand(weeklySql, connection) { CommandTimeout = 180 })
