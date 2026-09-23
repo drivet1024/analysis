@@ -156,11 +156,11 @@ function renderRegions(regions) {
     const parcels = samples.every(value => value != null) ? samples.reduce((sum, value) => sum + value.parcels, 0) : null;
     const estimates = samples.map(estimate);
     const pallets = estimates.every(value => value != null) ? estimates.reduce((sum, value) => sum + value, 0) : null;
+    if (period.key === 'today') $('pallets-today').textContent = pallets == null ? 'Incomplet' : formatted(pallets);
     return `<td class="${period.tone} period-start">${formatted(parcels)}</td><td class="${period.tone} pallet-estimate">${pallets == null ? 'Incomplet' : formatted(pallets)}</td>`;
   }).join('') + '</tr>';
   const totals = totalsForRegions(regions);
   $('parcels-today').textContent = number.format(totals.parcelsToday);
-  $('pallets-today').textContent = number.format(totals.palletsToday);
 }
 
 function trendBadge(direction, percent) {

@@ -24,6 +24,7 @@ assert.equal(displayed(), '1', 'One effective pallet capacity');
 nodes.get('pallet-fill').value = '0.6';
 context.renderRegions([row]);
 assert.equal(displayed(), '2', 'More void requires more pallets');
+assert.equal(nodes.get('pallets-today').textContent, '2', 'Linehaul card follows packing settings');
 nodes.get('pallet-fill').value = '0.7';
 nodes.get('pallet-unit').value = 'cm';
 context.renderRegions([{ ...row, estimatedParcelVolume: capacity * 2.54 ** 3 * 0.99 }]);
@@ -31,10 +32,12 @@ assert.equal(displayed(), '1', 'Cubic centimeters converted to cubic inches');
 nodes.get('pallet-unit').value = 'in';
 context.renderRegions([{ ...row, missingProfileParcels: 1 }]);
 assert.equal(displayed(), '—', 'Missing dimensions must not produce a partial regional total');
+assert.equal(nodes.get('pallets-today').textContent, 'Incomplet', 'Linehaul card must not report a partial estimate');
 context.renderRegions([{ ...row, parcelsToday: 0, estimatedParcelVolume: null }]);
 assert.equal(displayed(), '0', 'Zero parcels require zero pallets');
 context.renderRegions([{ ...row, estimatedParcelVolume: capacity * 0.4 }, { ...row, estimatedParcelVolume: capacity * 0.4 }]);
 assert(nodes.get('regions-foot').innerHTML.includes('<td class="period-today pallet-estimate">2</td>'), 'Round each region before summing');
+assert.equal(nodes.get('pallets-today').textContent, '2', 'Linehaul card matches the sum of regional estimates');
 const period = (parcels, volume, missing = 0) => ({ parcels, estimatedParcelVolume: volume,
   clientProfileParcels: parcels - missing, fallbackProfileParcels: 0, missingProfileParcels: missing });
 const comparison = { ...row, yesterdaySameTime: period(20, capacity * 2),
