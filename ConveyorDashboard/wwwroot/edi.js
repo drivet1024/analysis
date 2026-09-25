@@ -145,8 +145,9 @@ function renderRegions(regions) {
         <td class="depots-cell">${escapeHtml(region.depots)}</td>` + periods.map(period => {
           const value = values(region, period.key);
           const detail = explanation(value);
-          const tires = period.includesTires ? `<td class="${period.tone} tire-parcels" data-label="${period.label} · pneus"><strong>${formatted(region.tireParcelsToday)}</strong></td>` : '';
-          return `<td class="${period.tone} period-start" data-label="${period.label} · colis"><strong>${formatted(value?.parcels)}</strong></td>${tires}
+          const tires = period.includesTires ? `<td class="${period.tone} period-start tire-parcels" data-label="${period.label} · pneus"><strong>${formatted(region.tireParcelsToday)}</strong></td>` : '';
+          const parcelClass = `${period.tone}${period.includesTires ? '' : ' period-start'}`;
+          return `${tires}<td class="${parcelClass}" data-label="${period.label} · colis"><strong>${formatted(value?.parcels)}</strong></td>
             <td class="${period.tone} pallet-estimate" data-label="${period.label} · palettes" title="${escapeHtml(detail)}"><strong>${formatted(estimate(value))}</strong></td>`;
         }).join('');
       body.append(row);
@@ -159,8 +160,9 @@ function renderRegions(regions) {
     const estimates = samples.map(estimate);
     const pallets = estimates.every(value => value != null) ? estimates.reduce((sum, value) => sum + value, 0) : null;
     if (period.key === 'today') $('pallets-today').textContent = pallets == null ? 'Incomplet' : formatted(pallets);
-    const tires = period.includesTires ? `<td class="${period.tone} tire-parcels">${formatted(regions.reduce((sum, region) => sum + Number(region.tireParcelsToday || 0), 0))}</td>` : '';
-    return `<td class="${period.tone} period-start">${formatted(parcels)}</td>${tires}<td class="${period.tone} pallet-estimate">${pallets == null ? 'Incomplet' : formatted(pallets)}</td>`;
+    const tires = period.includesTires ? `<td class="${period.tone} period-start tire-parcels">${formatted(regions.reduce((sum, region) => sum + Number(region.tireParcelsToday || 0), 0))}</td>` : '';
+    const parcelClass = `${period.tone}${period.includesTires ? ' total-parcels' : ' period-start'}`;
+    return `${tires}<td class="${parcelClass}">${formatted(parcels)}</td><td class="${period.tone} pallet-estimate">${pallets == null ? 'Incomplet' : formatted(pallets)}</td>`;
   }).join('') + '</tr>';
   const totals = totalsForRegions(regions);
   $('parcels-today').textContent = number.format(totals.parcelsToday);

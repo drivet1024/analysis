@@ -21,8 +21,11 @@ const row = { region: 'Test', depots: '', parcelsToday: 10, tireParcelsToday: 3,
 const displayed = () => nodes.get('regions-body').children[0].innerHTML.match(/class="[^"]*pallet-estimate"[^>]*><strong>([^<]*)/)[1];
 context.renderRegions([row]);
 assert.equal(displayed(), '1', 'One effective pallet capacity');
-assert(nodes.get('regions-body').children[0].innerHTML.includes('Aujourd’hui · pneus"><strong>3</strong>'), 'Today shows tires separately');
+const todayCells = nodes.get('regions-body').children[0].innerHTML;
+assert(todayCells.includes('Aujourd’hui · pneus"><strong>3</strong>'), 'Today shows tires separately');
+assert(todayCells.indexOf('Aujourd’hui · pneus') < todayCells.indexOf('Aujourd’hui · colis'), 'Tires are the leftmost today column');
 assert(nodes.get('regions-foot').innerHTML.includes('tire-parcels">3</td>'), 'Tire total is shown separately');
+assert(nodes.get('regions-foot').innerHTML.includes('total-parcels">10</td>'), 'Parcel total has its right-alignment hook');
 nodes.get('pallet-fill').value = '0.6';
 context.renderRegions([row]);
 assert.equal(displayed(), '2', 'More void requires more pallets');
