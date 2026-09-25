@@ -5,6 +5,7 @@ const time = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digi
 const blockTime = new Intl.DateTimeFormat('fr-CA', { hour: '2-digit', minute: '2-digit' });
 const shortDateTime = new Intl.DateTimeFormat('fr-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 const efficiencyMonth = new Intl.DateTimeFormat('fr-CA', { month: 'short', year: '2-digit', timeZone: 'UTC' });
+const efficiencyDay = new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 const fullDate = new Intl.DateTimeFormat('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const DEPOTS = {
   'st-hubert': { name: 'Saint-Hubert', startHour: 16, endHour: 4, hasFloor: true, supportsMeasurements: true },
@@ -24,6 +25,7 @@ let conveyorRequestVersion = 0;
 let dashboardRequestVersion = 0;
 let conveyorEfficiencyData = null;
 let conveyorEfficiencyPromise = null;
+let conveyorEfficiencyRange = 'months';
 
 function isoLocalDate(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
@@ -555,6 +557,10 @@ function efficiencyMonthLabel(value) {
   return efficiencyMonth.format(new Date(`${String(value).slice(0, 10)}T00:00:00Z`)).replace('.', '');
 }
 
+function efficiencyDayLabel(value) {
+  return efficiencyDay.format(new Date(`${String(value).slice(0, 10)}T00:00:00Z`)).replace('.', '');
+}
+
 function efficiencyCurve(points) {
   if (!points.length) return '';
   let path = `M ${points[0].x} ${points[0].y}`;
@@ -568,16 +574,18 @@ function efficiencyCurve(points) {
 }
 
 function renderConveyorEfficiencyChart(data) {
-  const months = [...(data.months || [])].sort((left, right) => String(left.month).localeCompare(String(right.month)));
+  const daily = conveyorEfficiencyRange === 'days';
+  const items = [...(daily ? (data.days || []) : (data.months || []))]
+    .sort((left, right) => String(daily ? left.date : left.month).localeCompare(String(daily ? right.date : right.month)));
   const chart = $('conveyor-efficiency-chart');
-  if (!months.length) {
-    chart.innerHTML = '<p class="empty-cell">Aucun historique mensuel disponible.</p>';
+  if (!items.length) {
+    chart.innerHTML = `<p class="empty-cell">Aucun historique ${daily ? 'quotidien' : 'mensuel'} disponible.</p>`;
     return;
   }
   const width = 1040;
   const height = 350;
   const margin = { top: 38, right: 26, bottom: 54, left: 58 };
-  const values = months.map((month) => Number(month.efficiencyPercent) || 0);
+  const values = items.map((item) => Number(item.efficiencyPercent) || 0);
   let yMinimum = Math.max(0, Math.floor((Math.min(...values) - 3) / 5) * 5);
   let yMaximum = Math.min(100, Math.ceil((Math.max(...values) + 3) / 5) * 5);
   if (yMaximum - yMinimum < 10) {
@@ -586,9 +594,9 @@ function renderConveyorEfficiencyChart(data) {
   }
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
-  const x = (index) => margin.left + (months.length === 1 ? plotWidth / 2 : (plotWidth * index) / (months.length - 1));
+  const x = (index) => margin.left + (items.length === 1 ? plotWidth / 2 : (plotWidth * index) / (items.length - 1));
   const y = (value) => margin.top + ((yMaximum - value) / Math.max(1, yMaximum - yMinimum)) * plotHeight;
-  const points = months.map((month, index) => ({ x: x(index), y: y(values[index]), month }));
+  const points = items.map((item, index) => ({ x: x(index), y: y(values[index]), item, index }));
   const linePath = efficiencyCurve(points);
   const areaPath = `${linePath} L ${points.at(-1).x} ${margin.top + plotHeight} L ${points[0].x} ${margin.top + plotHeight} Z`;
   const grid = Array.from({ length: 5 }, (_, index) => {
@@ -597,12 +605,46 @@ function renderConveyorEfficiencyChart(data) {
     return `<line class="efficiency-grid-line" x1="${margin.left}" y1="${yPosition}" x2="${width - margin.right}" y2="${yPosition}"></line><text class="efficiency-axis-label" x="${margin.left - 11}" y="${yPosition + 4}" text-anchor="end">${value.toLocaleString('fr-CA', { maximumFractionDigits: 1 })} %</text>`;
   }).join('');
   const pointMarkup = points.map((point) => {
-    const month = point.month;
-    const currentClass = month.isPartial ? ' current' : '';
-    const label = `${efficiencyMonthLabel(month.month)} : ${formatEfficiency(month.efficiencyPercent)} · ${number.format(month.successfulOutcomes)} réussis sur ${number.format(month.assessedOutcomes)} résultats`;
-    return `<g><title>${label}</title><circle class="efficiency-point${currentClass}" cx="${point.x}" cy="${point.y}" r="6"></circle><text class="efficiency-value-label" x="${point.x}" y="${point.y - 14}">${Number(month.efficiencyPercent).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %</text><text class="efficiency-month-label" x="${point.x}" y="${height - 20}">${efficiencyMonthLabel(month.month)}</text></g>`;
+    const item = point.item;
+    const currentClass = item.isPartial ? ' current' : '';
+    const periodLabel = daily ? efficiencyDayLabel(item.date) : efficiencyMonthLabel(item.month);
+    const label = `${periodLabel} : ${formatEfficiency(item.efficiencyPercent)} · ${number.format(item.successfulOutcomes)} réussis sur ${number.format(item.assessedOutcomes)} résultats`;
+    const showLabel = !daily || point.index % 3 === 0 || point.index === points.length - 1;
+    const valueLabel = showLabel ? `<text class="efficiency-value-label" x="${point.x}" y="${point.y - 14}">${Number(item.efficiencyPercent).toLocaleString('fr-CA', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %</text>` : '';
+    const axisLabel = showLabel ? `<text class="efficiency-month-label" x="${point.x}" y="${height - 20}">${periodLabel}</text>` : '';
+    return `<g><title>${label}</title><circle class="efficiency-point${currentClass}" cx="${point.x}" cy="${point.y}" r="${daily ? 4.5 : 6}"></circle>${valueLabel}${axisLabel}</g>`;
   }).join('');
+  chart.setAttribute('aria-label', daily
+    ? 'Courbe quotidienne de l’efficacité globale des convoyeurs automatisés sur les 30 derniers jours'
+    : 'Courbe mensuelle de l’efficacité globale des convoyeurs automatisés sur 12 mois');
   chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" aria-hidden="true"><defs><linearGradient id="efficiency-area-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38dc9a" stop-opacity=".26"></stop><stop offset="100%" stop-color="#38dc9a" stop-opacity="0"></stop></linearGradient></defs>${grid}<path class="efficiency-area" d="${areaPath}"></path><path class="efficiency-line" d="${linePath}"></path>${pointMarkup}</svg>`;
+}
+
+function renderConveyorEfficiencyRange(data) {
+  const daily = conveyorEfficiencyRange === 'days';
+  $('conveyor-efficiency-months-tab').classList.toggle('active', !daily);
+  $('conveyor-efficiency-months-tab').setAttribute('aria-selected', String(!daily));
+  $('conveyor-efficiency-days-tab').classList.toggle('active', daily);
+  $('conveyor-efficiency-days-tab').setAttribute('aria-selected', String(daily));
+  $('conveyor-efficiency-title').textContent = `Efficacité des convoyeurs · ${daily ? '30 derniers jours' : '12 mois'}`;
+
+  if (daily) {
+    const days = data.days || [];
+    const assessed = days.reduce((total, day) => total + Number(day.assessedOutcomes || 0), 0);
+    const successful = days.reduce((total, day) => total + Number(day.successfulOutcomes || 0), 0);
+    const revenueRisk = days.reduce((total, day) => total + Number(day.revenueRiskParcels || 0), 0);
+    const efficiency = assessed ? (100 * successful) / assessed : 0;
+    $('conveyor-efficiency-summary').innerHTML = `<div><span>30 derniers jours</span><strong>${formatEfficiency(efficiency)}</strong></div><div><span>Résultats évalués</span><strong>${number.format(assessed)}</strong></div><div><span>Colis à risque de revenu</span><strong>${number.format(revenueRisk)}</strong></div>`;
+    const latest = days.at(-1);
+    $('conveyor-efficiency-generated').textContent = `Dernier calcul : ${formatShortDateTime(data.generatedAt)}${latest?.lastScan ? ` · données reçues jusqu’au ${formatShortDateTime(latest.lastScan)}` : ''}. Chaque point représente une journée; le point bleu représente la journée en cours.`;
+  } else {
+    const months = data.months || [];
+    const current = months.find((month) => String(month.month).slice(0, 7) === String(data.currentMonth).slice(0, 7)) || months.at(-1);
+    if (!current) return;
+    $('conveyor-efficiency-summary').innerHTML = `<div><span>Mois courant</span><strong>${formatEfficiency(current.efficiencyPercent)}</strong></div><div><span>Résultats évalués</span><strong>${number.format(current.assessedOutcomes)}</strong></div><div><span>Colis à risque de revenu</span><strong>${number.format(current.revenueRiskParcels)}</strong></div>`;
+    $('conveyor-efficiency-generated').textContent = `Dernier calcul : ${formatShortDateTime(data.generatedAt)}${current.lastScan ? ` · données reçues jusqu’au ${formatShortDateTime(current.lastScan)}` : ''}. Le point bleu représente le mois en cours.`;
+  }
+  renderConveyorEfficiencyChart(data);
 }
 
 function renderConveyorEfficiency(data) {
@@ -613,9 +655,7 @@ function renderConveyorEfficiency(data) {
   $('conveyor-efficiency-rate').textContent = formatEfficiency(current.efficiencyPercent);
   $('conveyor-efficiency-context').textContent = `${number.format(current.successfulOutcomes)} résultats réussis sur ${number.format(current.assessedOutcomes)} · ${number.format(current.revenueRiskParcels)} colis à risque de revenu`;
   $('conveyor-efficiency-card').classList.remove('loading-card');
-  $('conveyor-efficiency-summary').innerHTML = `<div><span>Mois courant</span><strong>${formatEfficiency(current.efficiencyPercent)}</strong></div><div><span>Résultats évalués</span><strong>${number.format(current.assessedOutcomes)}</strong></div><div><span>Colis à risque de revenu</span><strong>${number.format(current.revenueRiskParcels)}</strong></div>`;
-  $('conveyor-efficiency-generated').textContent = `Dernier calcul : ${formatShortDateTime(data.generatedAt)}${current.lastScan ? ` · données reçues jusqu’au ${formatShortDateTime(current.lastScan)}` : ''}. Le point bleu représente le mois en cours.`;
-  renderConveyorEfficiencyChart(data);
+  renderConveyorEfficiencyRange(data);
 }
 
 function renderConveyorEfficiencyError() {
@@ -986,6 +1026,14 @@ $('previous-conveyor-date').addEventListener('click', () => moveConveyorDate(-1)
 $('next-conveyor-date').addEventListener('click', () => moveConveyorDate(1));
 $('conveyor-analysis-date').addEventListener('change', (event) => applyConveyorDate(event.target.value));
 $('conveyor-efficiency-card').addEventListener('click', openConveyorEfficiencyDialog);
+$('conveyor-efficiency-months-tab').addEventListener('click', () => {
+  conveyorEfficiencyRange = 'months';
+  if (conveyorEfficiencyData) renderConveyorEfficiencyRange(conveyorEfficiencyData);
+});
+$('conveyor-efficiency-days-tab').addEventListener('click', () => {
+  conveyorEfficiencyRange = 'days';
+  if (conveyorEfficiencyData) renderConveyorEfficiencyRange(conveyorEfficiencyData);
+});
 $('conveyor-efficiency-close').addEventListener('click', () => $('conveyor-efficiency-dialog').close());
 $('conveyor-efficiency-dialog').addEventListener('click', (event) => {
   if (event.target === $('conveyor-efficiency-dialog')) $('conveyor-efficiency-dialog').close();

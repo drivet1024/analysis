@@ -15,12 +15,14 @@ const script = fs.readFileSync('ConveyorDashboard/wwwroot/edi.js', 'utf8');
 vm.createContext(context);
 vm.runInContext(script.slice(script.indexOf('function totalsForRegions'), script.indexOf('function trendBadge')), context);
 const capacity = 40 * 48 * 78 * 0.7;
-const row = { region: 'Test', depots: '', parcelsToday: 10, palletsToday: 1, parcelsYesterday: 0, palletsYesterday: 0,
+const row = { region: 'Test', depots: '', parcelsToday: 10, tireParcelsToday: 3, palletsToday: 1, parcelsYesterday: 0, palletsYesterday: 0,
   parcelsLastWeek: 0, palletsLastWeek: 0, estimatedParcelVolume: capacity, clientProfileParcels: 10,
   fallbackProfileParcels: 0, missingProfileParcels: 0 };
 const displayed = () => nodes.get('regions-body').children[0].innerHTML.match(/class="[^"]*pallet-estimate"[^>]*><strong>([^<]*)/)[1];
 context.renderRegions([row]);
 assert.equal(displayed(), '1', 'One effective pallet capacity');
+assert(nodes.get('regions-body').children[0].innerHTML.includes('Aujourd’hui · pneus"><strong>3</strong>'), 'Today shows tires separately');
+assert(nodes.get('regions-foot').innerHTML.includes('tire-parcels">3</td>'), 'Tire total is shown separately');
 nodes.get('pallet-fill').value = '0.6';
 context.renderRegions([row]);
 assert.equal(displayed(), '2', 'More void requires more pallets');

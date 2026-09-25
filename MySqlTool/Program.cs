@@ -1,8 +1,8 @@
 using MySqlConnector;
 using System.Text.Json;
 
-const string defaultHost = "192.168.1.222";
-const uint defaultPort = 3306;
+const string defaultHost = "192.168.1.153";
+const uint defaultPort = 3307;
 const string defaultDatabase = "nationex";
 const string defaultUser = "user_ro";
 

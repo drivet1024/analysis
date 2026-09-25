@@ -91,6 +91,7 @@ h3 { font-size: 1rem; }
 .transport-comparison-table td, .transport-comparison-table th { padding: 11px 10px; }
 .transport-comparison-table .depots-cell { max-width: 170px; white-space: normal; }
 .transport-comparison-table .pallet-estimate { color: #d5e6f5; }
+.transport-comparison-table .tire-parcels { color: #f3c66d; }
 .transport-comparison-table .pallet-estimate small { max-width: 140px; margin-left: auto; white-space: normal; font-size: .62rem; line-height: 1.4; }
 .transport-comparison-table tfoot td { border-top: 2px solid #536775; }
 @media (max-width: 1100px) {

@@ -104,12 +104,13 @@ function setConnection(state, label) {
 function totalsForRegions(regions) {
   return regions.reduce((totals, row) => ({
     parcelsToday: totals.parcelsToday + Number(row.parcelsToday || 0),
+    tireParcelsToday: totals.tireParcelsToday + Number(row.tireParcelsToday || 0),
     palletsToday: totals.palletsToday + Number(row.palletsToday || 0),
     parcelsYesterday: totals.parcelsYesterday + Number(row.parcelsYesterday || 0),
     palletsYesterday: totals.palletsYesterday + Number(row.palletsYesterday || 0),
     parcelsLastWeek: totals.parcelsLastWeek + Number(row.parcelsLastWeek || 0),
     palletsLastWeek: totals.palletsLastWeek + Number(row.palletsLastWeek || 0)
-  }), { parcelsToday: 0, palletsToday: 0, parcelsYesterday: 0, palletsYesterday: 0, parcelsLastWeek: 0, palletsLastWeek: 0 });
+  }), { parcelsToday: 0, tireParcelsToday: 0, palletsToday: 0, parcelsYesterday: 0, palletsYesterday: 0, parcelsLastWeek: 0, palletsLastWeek: 0 });
 }
 
 function renderRegions(regions) {
@@ -119,7 +120,7 @@ function renderRegions(regions) {
   const fill = Number($('pallet-fill').value || 0.7);
   const usableVolume = 40 * 48 * height * fill;
   const periods = [
-    { key: 'today', tone: 'period-today', label: 'Aujourd’hui' },
+    { key: 'today', tone: 'period-today', label: 'Aujourd’hui', includesTires: true },
     { key: 'yesterdaySameTime', tone: 'period-yesterday', label: 'Hier · à la même heure' },
     { key: 'yesterdayFinal', tone: 'period-yesterday period-final', label: 'Hier · fin de journée' },
     { key: 'lastWeekSameTime', tone: 'period-week', label: 'Semaine passée · à la même heure' },
@@ -136,7 +137,7 @@ function renderRegions(regions) {
   const body = $('regions-body');
   body.replaceChildren();
   if (!regions.length) {
-    body.innerHTML = '<tr><td colspan="12" class="empty-cell">Aucun volume EDI trouvé pour la période.</td></tr>';
+    body.innerHTML = '<tr><td colspan="13" class="empty-cell">Aucun volume EDI trouvé pour la période.</td></tr>';
   } else {
     regions.forEach(region => {
       const row = document.createElement('tr');
@@ -144,7 +145,8 @@ function renderRegions(regions) {
         <td class="depots-cell">${escapeHtml(region.depots)}</td>` + periods.map(period => {
           const value = values(region, period.key);
           const detail = explanation(value);
-          return `<td class="${period.tone} period-start" data-label="${period.label} · colis"><strong>${formatted(value?.parcels)}</strong></td>
+          const tires = period.includesTires ? `<td class="${period.tone} tire-parcels" data-label="${period.label} · pneus"><strong>${formatted(region.tireParcelsToday)}</strong></td>` : '';
+          return `<td class="${period.tone} period-start" data-label="${period.label} · colis"><strong>${formatted(value?.parcels)}</strong></td>${tires}
             <td class="${period.tone} pallet-estimate" data-label="${period.label} · palettes" title="${escapeHtml(detail)}"><strong>${formatted(estimate(value))}</strong></td>`;
         }).join('');
       body.append(row);
@@ -157,7 +159,8 @@ function renderRegions(regions) {
     const estimates = samples.map(estimate);
     const pallets = estimates.every(value => value != null) ? estimates.reduce((sum, value) => sum + value, 0) : null;
     if (period.key === 'today') $('pallets-today').textContent = pallets == null ? 'Incomplet' : formatted(pallets);
-    return `<td class="${period.tone} period-start">${formatted(parcels)}</td><td class="${period.tone} pallet-estimate">${pallets == null ? 'Incomplet' : formatted(pallets)}</td>`;
+    const tires = period.includesTires ? `<td class="${period.tone} tire-parcels">${formatted(regions.reduce((sum, region) => sum + Number(region.tireParcelsToday || 0), 0))}</td>` : '';
+    return `<td class="${period.tone} period-start">${formatted(parcels)}</td>${tires}<td class="${period.tone} pallet-estimate">${pallets == null ? 'Incomplet' : formatted(pallets)}</td>`;
   }).join('') + '</tr>';
   const totals = totalsForRegions(regions);
   $('parcels-today').textContent = number.format(totals.parcelsToday);
@@ -553,7 +556,7 @@ function render(data) {
     renderParcelSnapshot(data);
     $('linehaul-parcels-label').textContent = isToday ? 'Colis linehaul aujourd’hui' : 'Colis linehaul · ' + selectedDateLabel;
     $('linehaul-pallets-label').textContent = isToday ? 'Palettes linehaul aujourd’hui' : 'Palettes linehaul · ' + selectedDateLabel;
-    $('linehaul-parcels-context').textContent = isToday ? 'Expéditions par région jusqu’à maintenant' : 'Expéditions par région pour la journée';
+    $('linehaul-parcels-context').textContent = isToday ? 'Expéditions par région jusqu’à maintenant · pneus exclus' : 'Expéditions par région pour la journée · pneus exclus';
     $('regions-period-label').textContent = isToday
       ? 'À la même heure et fin de journée · journées de 4 h à 4 h'
       : `${selectedDateLabel}, veille et même journée la semaine précédente`;

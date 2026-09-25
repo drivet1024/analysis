@@ -11,8 +11,8 @@ LoadEnvironmentFile(Path.Combine(builder.Environment.ContentRootPath, ".env.loca
 LoadEnvironmentFile(Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "MySqlTool", ".env.local")));
 
 var config = new DashboardConfig(
-    Environment.GetEnvironmentVariable("MYSQL_HOST") ?? "192.168.1.101",
-    uint.TryParse(Environment.GetEnvironmentVariable("MYSQL_PORT"), out var port) ? port : 3306,
+    Environment.GetEnvironmentVariable("MYSQL_HOST") ?? "192.168.1.153",
+    uint.TryParse(Environment.GetEnvironmentVariable("MYSQL_PORT"), out var port) ? port : 3307,
     Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? "nationex",
     Environment.GetEnvironmentVariable("MYSQL_USER") ?? "user_ro",
     Environment.GetEnvironmentVariable("MYSQL_PASSWORD") ?? string.Empty,
@@ -802,6 +802,7 @@ sealed record EdiRegionRow(
     string Region,
     string Depots,
     long ParcelsToday,
+    long TireParcelsToday,
     long PalletsToday,
     long ParcelsYesterday,
     long PalletsYesterday,
@@ -1263,69 +1264,77 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
               rm.region,
               dep.depots,
               SUM(CASE WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
+                  AND NOT s.is_tire
                   THEN s.PARCEL_NB * COALESCE(CASE WHEN dp.valid_count >= 20 THEN dp.volume_sum/dp.valid_count END, dg.mean_volume)
                   ELSE 0 END) AS estimated_parcel_volume,
-              SUM(CASE WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd AND dp.valid_count >= 20
+              SUM(CASE WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd AND NOT s.is_tire AND dp.valid_count >= 20
                   THEN s.PARCEL_NB ELSE 0 END) AS client_profile_parcels,
               SUM(CASE WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
-                  AND COALESCE(dp.valid_count,0) < 20 AND dg.mean_volume IS NOT NULL
+                  AND NOT s.is_tire AND COALESCE(dp.valid_count,0) < 20 AND dg.mean_volume IS NOT NULL
                   THEN s.PARCEL_NB ELSE 0 END) AS fallback_profile_parcels,
               SUM(CASE WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
-                  AND COALESCE(dp.valid_count,0) < 20 AND dg.mean_volume IS NULL
+                  AND NOT s.is_tire AND COALESCE(dp.valid_count,0) < 20 AND dg.mean_volume IS NULL
                   THEN s.PARCEL_NB ELSE 0 END) AS missing_profile_parcels,
               SUM(CASE
-                    WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
+                    WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd AND NOT s.is_tire
                     THEN s.PARCEL_NB ELSE 0
                   END) AS parcels_today,
+              SUM(CASE
+                    WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd AND s.is_tire
+                    THEN s.PARCEL_NB ELSE 0
+                  END) AS tire_parcels_today,
               CEILING(SUM(CASE
-                            WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd
+                            WHEN s.INSERT_DATE >= @analysisDate AND s.INSERT_DATE < @analysisEnd AND NOT s.is_tire
                             THEN s.PARCEL_NB ELSE 0
                           END) / 60.0) AS pallets_today,
               SUM(CASE
                     WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY)
-                     AND s.INSERT_DATE < @analysisDate
+                     AND s.INSERT_DATE < @analysisDate AND NOT s.is_tire
                     THEN s.PARCEL_NB ELSE 0
                   END) AS parcels_yesterday,
               CEILING(SUM(CASE
                             WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY)
-                             AND s.INSERT_DATE < @analysisDate
+                             AND s.INSERT_DATE < @analysisDate AND NOT s.is_tire
                             THEN s.PARCEL_NB ELSE 0
                           END) / 60.0) AS pallets_yesterday,
               SUM(CASE
                     WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
-                     AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
+                     AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND NOT s.is_tire
                     THEN s.PARCEL_NB ELSE 0
                   END) AS parcels_last_week,
               CEILING(SUM(CASE
                             WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY)
-                             AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
+                             AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND NOT s.is_tire
                             THEN s.PARCEL_NB ELSE 0
                           END) / 60.0) AS pallets_last_week,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_parcels,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND NOT s.is_tire THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_parcels,
               SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY)
-                  THEN s.PARCEL_NB * COALESCE(CASE WHEN dpy.valid_count >= 20 THEN dpy.volume_sum/dpy.valid_count END, dgy.mean_volume) ELSE 0 END) AS yesterday_same_time_volume,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND dpy.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_client,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_fallback,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_missing,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_parcels,
+                  AND NOT s.is_tire THEN s.PARCEL_NB * COALESCE(CASE WHEN dpy.valid_count >= 20 THEN dpy.volume_sum/dpy.valid_count END, dgy.mean_volume) ELSE 0 END) AS yesterday_same_time_volume,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND NOT s.is_tire AND dpy.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_client,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND NOT s.is_tire AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_fallback,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 1 DAY) AND NOT s.is_tire AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_same_time_missing,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND NOT s.is_tire THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_parcels,
               SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate
-                  THEN s.PARCEL_NB * COALESCE(CASE WHEN dpy.valid_count >= 20 THEN dpy.volume_sum/dpy.valid_count END, dgy.mean_volume) ELSE 0 END) AS yesterday_final_volume,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND dpy.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_client,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_fallback,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_missing,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_parcels,
+                  AND NOT s.is_tire THEN s.PARCEL_NB * COALESCE(CASE WHEN dpy.valid_count >= 20 THEN dpy.volume_sum/dpy.valid_count END, dgy.mean_volume) ELSE 0 END) AS yesterday_final_volume,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND NOT s.is_tire AND dpy.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_client,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND NOT s.is_tire AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_fallback,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 1 DAY) AND s.INSERT_DATE < @analysisDate AND NOT s.is_tire AND COALESCE(dpy.valid_count,0) < 20 AND dgy.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS yesterday_final_missing,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND NOT s.is_tire THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_parcels,
               SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY)
-                  THEN s.PARCEL_NB * COALESCE(CASE WHEN dpw.valid_count >= 20 THEN dpw.volume_sum/dpw.valid_count END, dgw.mean_volume) ELSE 0 END) AS last_week_same_time_volume,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND dpw.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_client,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_fallback,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_missing,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_parcels,
+                  AND NOT s.is_tire THEN s.PARCEL_NB * COALESCE(CASE WHEN dpw.valid_count >= 20 THEN dpw.volume_sum/dpw.valid_count END, dgw.mean_volume) ELSE 0 END) AS last_week_same_time_volume,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND NOT s.is_tire AND dpw.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_client,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND NOT s.is_tire AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_fallback,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisEnd, INTERVAL 7 DAY) AND NOT s.is_tire AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_same_time_missing,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND NOT s.is_tire THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_parcels,
               SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY)
-                  THEN s.PARCEL_NB * COALESCE(CASE WHEN dpw.valid_count >= 20 THEN dpw.volume_sum/dpw.valid_count END, dgw.mean_volume) ELSE 0 END) AS last_week_final_volume,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND dpw.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_client,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_fallback,
-              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_missing
-            FROM shipment s
+                  AND NOT s.is_tire THEN s.PARCEL_NB * COALESCE(CASE WHEN dpw.valid_count >= 20 THEN dpw.volume_sum/dpw.valid_count END, dgw.mean_volume) ELSE 0 END) AS last_week_final_volume,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND NOT s.is_tire AND dpw.valid_count >= 20 THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_client,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND NOT s.is_tire AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NOT NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_fallback,
+              SUM(CASE WHEN s.INSERT_DATE >= DATE_SUB(@analysisDate, INTERVAL 7 DAY) AND s.INSERT_DATE < DATE_SUB(@analysisDate, INTERVAL 6 DAY) AND NOT s.is_tire AND COALESCE(dpw.valid_count,0) < 20 AND dgw.mean_volume IS NULL THEN s.PARCEL_NB ELSE 0 END) AS last_week_final_missing
+            FROM (
+              SELECT source.*, COALESCE(source.CUSTOMER_ID,0) IN (154810,300968,300430) AS is_tire
+              FROM shipment source
+            ) s
             JOIN location l ON s.DEST_POSTAL_CODE = l.LOC_POSTAL_CODE
             JOIN depot d ON l.DEPOTNUMBER = d.DEPOTNUMBER
             JOIN rm ON rm.DEPOTNUMBER = d.DEPOTNUMBER
@@ -1539,6 +1548,7 @@ sealed class ConveyorDataService(DashboardConfig config, EdiForecastArchive fore
                     reader.GetString("region"),
                     reader.GetString("depots"),
                     Int64OrZero(reader, "parcels_today"),
+                    Int64OrZero(reader, "tire_parcels_today"),
                     Int64OrZero(reader, "pallets_today"),
                     Int64OrZero(reader, "parcels_yesterday"),
                     Int64OrZero(reader, "pallets_yesterday"),

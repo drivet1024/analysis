@@ -247,6 +247,10 @@ dialog::backdrop { background: rgba(2, 8, 13, .78); backdrop-filter: blur(4px); 
 .dialog-action-button:hover { background: rgba(81, 167, 255, .2); }
 .dialog-action-button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .conveyor-efficiency-dialog { width: min(1160px, calc(100% - 28px)); }
+.conveyor-efficiency-tabs { display: inline-flex; gap: 4px; margin-top: 20px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: rgba(18, 35, 48, .7); }
+.conveyor-efficiency-tab { padding: 8px 14px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: .78rem; font-weight: 850; }
+.conveyor-efficiency-tab.active { background: var(--green); color: #062119; }
+.conveyor-efficiency-tab:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .under2-clients-dialog { width: min(1240px, calc(100% - 28px)); }
 .under2-clients-table { min-width: 1000px; }
 .under2-clients-table th:first-child, .under2-clients-table td:first-child { text-align: left; }

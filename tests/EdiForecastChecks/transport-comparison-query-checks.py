@@ -37,11 +37,15 @@ shipment('2026-09-16 04:00:00', 1000) # final cutoff excluded
 shipment('2026-09-15 03:59:59', 1000) # start excluded
 shipment('2026-09-21 09:00:00', 1000, status=500)
 shipment('2026-09-15 09:00:00', 1000, status=501)
+shipment('2026-09-22 08:00:00', 11, customer=154810)
+shipment('2026-09-21 08:00:00', 13, customer=300968)
+shipment('2026-09-15 08:00:00', 17, customer=300430)
 params=dict(analysisDate='2026-09-22 04:00:00', analysisEnd='2026-09-22 12:00:00', regionsStart='2026-09-15 04:00:00')
 def result():
     return c.execute(query,params).fetchone()
 r=result()
 assert (r['parcels_today'],r['estimated_parcel_volume']) == (10,1000)
+assert r['tire_parcels_today']==11
 for prefix, parcels, mean in [('yesterday_same_time',20,200),('yesterday_final',55,200),('last_week_same_time',40,300),('last_week_final',97,300)]:
     assert (r[prefix+'_parcels'],r[prefix+'_volume'],r[prefix+'_client']) == (parcels,parcels*mean,parcels)
 shipment('2026-09-21 09:00:00', 3, customer=2)
@@ -55,6 +59,7 @@ c.execute('DELETE FROM dimension_profiles WHERE day_offset=7')
 r=result()
 assert r['last_week_same_time_missing']==40 and r['last_week_final_missing']==97
 assert r['yesterday_final_missing']==0
+assert r['yesterday_final_parcels']==58 and r['last_week_final_parcels']==97
 # A past selected day uses a full-day cutoff for both historical comparisons.
 params['analysisEnd']='2026-09-23 04:00:00'
 r=result()

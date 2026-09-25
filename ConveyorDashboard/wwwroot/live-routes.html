@@ -215,8 +215,12 @@
 
   <dialog id="conveyor-efficiency-dialog" class="conveyor-efficiency-dialog">
     <div class="dialog-head">
-      <div><p class="section-kicker">Performance automatisée</p><h2>Efficacité des convoyeurs · 12 mois</h2></div>
+      <div><p class="section-kicker">Performance automatisée</p><h2 id="conveyor-efficiency-title">Efficacité des convoyeurs · 12 mois</h2></div>
       <button id="conveyor-efficiency-close" class="dialog-action-button" type="button">Fermer <span aria-hidden="true">×</span></button>
+    </div>
+    <div class="conveyor-efficiency-tabs" role="tablist" aria-label="Période du graphique">
+      <button id="conveyor-efficiency-months-tab" class="conveyor-efficiency-tab active" type="button" role="tab" aria-selected="true" aria-controls="conveyor-efficiency-chart">12 mois</button>
+      <button id="conveyor-efficiency-days-tab" class="conveyor-efficiency-tab" type="button" role="tab" aria-selected="false" aria-controls="conveyor-efficiency-chart">30 derniers jours</button>
     </div>
     <div id="conveyor-efficiency-summary" class="conveyor-efficiency-summary" aria-live="polite"></div>
     <div id="conveyor-efficiency-chart" class="conveyor-efficiency-chart" role="img" aria-label="Courbe mensuelle de l’efficacité globale des convoyeurs automatisés"></div>

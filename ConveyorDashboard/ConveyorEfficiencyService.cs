@@ -23,7 +23,23 @@ sealed record ConveyorEfficiencySnapshot(
     int CalculationVersion,
     IReadOnlyList<ConveyorEfficiencyMonth> Months,
     DateTimeOffset GeneratedAt,
-    IReadOnlyList<string> Notes);
+    IReadOnlyList<string> Notes)
+{
+    public IReadOnlyList<ConveyorEfficiencyDay> Days { get; init; } = [];
+}
+
+sealed record ConveyorEfficiencyDay(
+    DateOnly Date,
+    long RevenueRiskParcels,
+    long AssessedOutcomes,
+    long SuccessfulOutcomes,
+    double EfficiencyPercent,
+    DateTime? LastScan,
+    bool IsPartial);
+
+sealed record ConveyorEfficiencyCalculation(
+    ConveyorEfficiencyMonth Month,
+    IReadOnlyList<ConveyorEfficiencyDay> Days);
 
 sealed class ConveyorEfficiencyService
 {
@@ -56,6 +72,7 @@ sealed class ConveyorEfficiencyService
         return cached is null
             || cached.CalculationVersion != CurrentCalculationVersion
             || cached.CurrentMonth != currentMonth
+            || cached.Days.Count == 0
             || cached.GeneratedAt < now.AddHours(-20);
     }
 
@@ -67,30 +84,40 @@ sealed class ConveyorEfficiencyService
             var now = EdiForecastArchive.LocalNow;
             var currentMonth = new DateOnly(now.Year, now.Month, 1);
             var fullRebuild = cached is null || cached.CalculationVersion != CurrentCalculationVersion;
-            var refreshedMonths = new List<ConveyorEfficiencyMonth>();
+            var refreshedCalculations = new List<ConveyorEfficiencyCalculation>();
             if (fullRebuild)
             {
                 for (var offset = -11; offset <= 0; offset++)
                 {
                     var month = currentMonth.AddMonths(offset);
-                    refreshedMonths.Add(await CalculateMonthAsync(month, month.AddMonths(1), month == currentMonth, cancellationToken));
+                    refreshedCalculations.Add(await CalculateMonthAsync(month, month.AddMonths(1), month == currentMonth, cancellationToken));
                 }
             }
             else
             {
-                refreshedMonths.Add(await CalculateMonthAsync(currentMonth, currentMonth.AddMonths(1), true, cancellationToken));
-                if (now.Day <= 8)
+                refreshedCalculations.Add(await CalculateMonthAsync(currentMonth, currentMonth.AddMonths(1), true, cancellationToken));
+                if (now.Day <= 8 || !(cached?.Days.Any(day => day.Date < currentMonth) ?? false))
                 {
                     var previousMonth = currentMonth.AddMonths(-1);
-                    refreshedMonths.Add(await CalculateMonthAsync(previousMonth, currentMonth, false, cancellationToken));
+                    refreshedCalculations.Add(await CalculateMonthAsync(previousMonth, currentMonth, false, cancellationToken));
                 }
             }
+            var refreshedMonths = refreshedCalculations.Select(result => result.Month).ToArray();
             var refreshedDates = refreshedMonths.Select(month => month.Month).ToHashSet();
             var months = (cached?.Months ?? [])
                 .Where(month => !refreshedDates.Contains(month.Month))
                 .Concat(refreshedMonths)
                 .OrderBy(month => month.Month)
                 .TakeLast(12)
+                .ToArray();
+            var refreshedDayMonths = refreshedDates;
+            var firstDailyDate = DateOnly.FromDateTime(now).AddDays(-29);
+            var lastDailyDate = DateOnly.FromDateTime(now);
+            var days = (cached?.Days ?? [])
+                .Where(day => !refreshedDayMonths.Contains(new DateOnly(day.Date.Year, day.Date.Month, 1)))
+                .Concat(refreshedCalculations.SelectMany(result => result.Days))
+                .Where(day => day.Date >= firstDailyDate && day.Date <= lastDailyDate)
+                .OrderBy(day => day.Date)
                 .ToArray();
             cached = new ConveyorEfficiencySnapshot(currentMonth, CurrentCalculationVersion, months, now,
             [
@@ -101,7 +128,7 @@ sealed class ConveyorEfficiencyService
                 "Dès qu'un colis passe sur le convoyeur du sol de Saint-Hubert, ses dimensions manquantes sont exclues pour tous ses passages ultérieurs, peu importe le dépôt; le poids demeure requis lorsque le colis est facturé au poids.",
                 "Une mesure est requise lorsqu'une ligne regul_weight_chg correspond au compte client et à la zone LOC_NAT_ZONE_ID du code postal de destination.",
                 "Un résultat cumulant plusieurs problèmes compte une seule fois. Gilmore ne produit pas de mesures et n'est pas pénalisé pour le poids ou les dimensions.",
-            ]);
+            ]) { Days = days };
             await SaveSnapshotAsync(cached, cancellationToken);
         }
         finally { gate.Release(); }
@@ -130,7 +157,7 @@ sealed class ConveyorEfficiencyService
         File.Move(temporaryPath, archivePath, true);
     }
 
-    private async Task<ConveyorEfficiencyMonth> CalculateMonthAsync(DateOnly month, DateOnly nextMonth, bool partial, CancellationToken cancellationToken)
+    private async Task<ConveyorEfficiencyCalculation> CalculateMonthAsync(DateOnly month, DateOnly nextMonth, bool partial, CancellationToken cancellationToken)
     {
         var partitionNames = string.Join(',', new[] { month.AddDays(-7).Year, nextMonth.AddDays(7).Year }
             .Distinct()
@@ -247,7 +274,7 @@ sealed class ConveyorEfficiencyService
                  AND wc.zone_id=pz.zone_id
             ),
             readable_summary AS (
-                SELECT COUNT(*) readable_parcel_days,
+                SELECT operational_date,COUNT(*) readable_parcel_days,
                        COALESCE(SUM(operational_issue),0) operational_problem_parcels,
                        COALESCE(SUM(supports_measurements AND billed_by_weight),0) weight_billed_parcels,
                        COALESCE(SUM(supports_measurements AND NOT billed_by_weight),0) parcel_billed_parcels,
@@ -257,21 +284,38 @@ sealed class ConveyorEfficiencyService
                        COALESCE(SUM(is_problem),0) problem_readable_parcels,
                        COALESCE(SUM(NOT is_problem),0) successful_readable_parcels
                 FROM classified
+                GROUP BY operational_date
             ),
             no_read_summary AS (
-                SELECT COALESCE(SUM((parcel_id IS NULL OR parcel_id=0) AND COALESCE(camera_data,'') LIKE '?%'),0) no_read_passages,
+                SELECT operational_date,
+                       COALESCE(SUM((parcel_id IS NULL OR parcel_id=0) AND COALESCE(camera_data,'') LIKE '?%'),0) no_read_passages,
                        MAX(date_insert) last_scan
                 FROM ranked
+                GROUP BY operational_date
+            ),
+            operational_dates AS (
+                SELECT operational_date FROM readable_summary
+                UNION
+                SELECT operational_date FROM no_read_summary
             )
-            SELECT rs.readable_parcel_days,nr.no_read_passages,rs.operational_problem_parcels,
-                   rs.weight_billed_parcels,rs.parcel_billed_parcels,rs.excluded_measurement_issues,
-                   rs.revenue_risk_parcels,rs.unknown_zone_parcels,
-                   rs.readable_parcel_days+nr.no_read_passages assessed_outcomes,
-                   rs.problem_readable_parcels+nr.no_read_passages problem_outcomes,
-                   rs.successful_readable_parcels successful_outcomes,
-                   ROUND(100*rs.successful_readable_parcels/NULLIF(rs.readable_parcel_days+nr.no_read_passages,0),3) efficiency_percent,
+            SELECT d.operational_date,
+                   COALESCE(rs.readable_parcel_days,0) readable_parcel_days,
+                   COALESCE(nr.no_read_passages,0) no_read_passages,
+                   COALESCE(rs.operational_problem_parcels,0) operational_problem_parcels,
+                   COALESCE(rs.weight_billed_parcels,0) weight_billed_parcels,
+                   COALESCE(rs.parcel_billed_parcels,0) parcel_billed_parcels,
+                   COALESCE(rs.excluded_measurement_issues,0) excluded_measurement_issues,
+                   COALESCE(rs.revenue_risk_parcels,0) revenue_risk_parcels,
+                   COALESCE(rs.unknown_zone_parcels,0) unknown_zone_parcels,
+                   COALESCE(rs.readable_parcel_days,0)+COALESCE(nr.no_read_passages,0) assessed_outcomes,
+                   COALESCE(rs.problem_readable_parcels,0)+COALESCE(nr.no_read_passages,0) problem_outcomes,
+                   COALESCE(rs.successful_readable_parcels,0) successful_outcomes,
+                   ROUND(100*COALESCE(rs.successful_readable_parcels,0)/NULLIF(COALESCE(rs.readable_parcel_days,0)+COALESCE(nr.no_read_passages,0),0),3) efficiency_percent,
                    nr.last_scan
-            FROM readable_summary rs CROSS JOIN no_read_summary nr
+            FROM operational_dates d
+            LEFT JOIN readable_summary rs ON rs.operational_date=d.operational_date
+            LEFT JOIN no_read_summary nr ON nr.operational_date=d.operational_date
+            ORDER BY d.operational_date
             """;
 
         await using var connection = new MySqlConnection(config.ConnectionString);
@@ -284,23 +328,55 @@ sealed class ConveyorEfficiencyService
         command.Parameters.AddWithValue("@scanStart", start.AddDays(-7).AddHours(13));
         command.Parameters.AddWithValue("@scanEnd", end.AddDays(7).AddHours(9));
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        await reader.ReadAsync(cancellationToken);
-        return new ConveyorEfficiencyMonth(
+        var dailyRows = new List<ConveyorEfficiencyMonth>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            dailyRows.Add(new ConveyorEfficiencyMonth(
+                DateOnly.FromDateTime(reader.GetDateTime("operational_date")),
+                reader.GetInt64("readable_parcel_days"),
+                reader.GetInt64("no_read_passages"),
+                reader.GetInt64("operational_problem_parcels"),
+                reader.GetInt64("weight_billed_parcels"),
+                reader.GetInt64("parcel_billed_parcels"),
+                reader.GetInt64("excluded_measurement_issues"),
+                reader.GetInt64("revenue_risk_parcels"),
+                reader.GetInt64("unknown_zone_parcels"),
+                reader.GetInt64("assessed_outcomes"),
+                reader.GetInt64("problem_outcomes"),
+                reader.GetInt64("successful_outcomes"),
+                reader.IsDBNull(reader.GetOrdinal("efficiency_percent")) ? 0 : reader.GetDouble("efficiency_percent"),
+                reader.IsDBNull(reader.GetOrdinal("last_scan")) ? null : reader.GetDateTime("last_scan"),
+                false));
+        }
+
+        var assessedOutcomes = dailyRows.Sum(day => day.AssessedOutcomes);
+        var successfulOutcomes = dailyRows.Sum(day => day.SuccessfulOutcomes);
+        var monthSummary = new ConveyorEfficiencyMonth(
             month,
-            reader.GetInt64("readable_parcel_days"),
-            reader.GetInt64("no_read_passages"),
-            reader.GetInt64("operational_problem_parcels"),
-            reader.GetInt64("weight_billed_parcels"),
-            reader.GetInt64("parcel_billed_parcels"),
-            reader.GetInt64("excluded_measurement_issues"),
-            reader.GetInt64("revenue_risk_parcels"),
-            reader.GetInt64("unknown_zone_parcels"),
-            reader.GetInt64("assessed_outcomes"),
-            reader.GetInt64("problem_outcomes"),
-            reader.GetInt64("successful_outcomes"),
-            reader.IsDBNull(reader.GetOrdinal("efficiency_percent")) ? 0 : reader.GetDouble("efficiency_percent"),
-            reader.IsDBNull(reader.GetOrdinal("last_scan")) ? null : reader.GetDateTime("last_scan"),
+            dailyRows.Sum(day => day.ReadableParcelDays),
+            dailyRows.Sum(day => day.NoReadPassages),
+            dailyRows.Sum(day => day.OperationalProblemParcels),
+            dailyRows.Sum(day => day.WeightBilledParcels),
+            dailyRows.Sum(day => day.ParcelBilledParcels),
+            dailyRows.Sum(day => day.ExcludedMeasurementIssues),
+            dailyRows.Sum(day => day.RevenueRiskParcels),
+            dailyRows.Sum(day => day.UnknownZoneParcels),
+            assessedOutcomes,
+            dailyRows.Sum(day => day.ProblemOutcomes),
+            successfulOutcomes,
+            assessedOutcomes == 0 ? 0 : Math.Round(100d * successfulOutcomes / assessedOutcomes, 3),
+            dailyRows.Select(day => day.LastScan).Max(),
             partial);
+        var currentDate = DateOnly.FromDateTime(EdiForecastArchive.LocalNow);
+        var days = dailyRows.Select(day => new ConveyorEfficiencyDay(
+            day.Month,
+            day.RevenueRiskParcels,
+            day.AssessedOutcomes,
+            day.SuccessfulOutcomes,
+            day.EfficiencyPercent,
+            day.LastScan,
+            day.Month == currentDate)).ToArray();
+        return new ConveyorEfficiencyCalculation(monthSummary, days);
     }
 }
 
